@@ -17,3 +17,6 @@ The additions and modifications in this library are released under the same
 license, but are not contributed by anyone officially with NXP.
 
 ## Changelog
+
+* Add missing macro definition required to compile with GNU GCC for ARM Embedded
+  (__DATA__(x))
