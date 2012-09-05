@@ -57,8 +57,8 @@ void HAL_Reset (void)
 
 	/* Initialize EP Command/Status List. */
 	LPC_USB->EPLISTSTART = (uint32_t) EndPointCmdStsList;
-	LPC_USB->DATABUFSTART = ((uint32_t) usb_data_buffer) & 0xFFC00000;
-	
+	LPC_USB->DATABUFSTART = ((uint32_t) usb_data_buffers[PHYSICAL_ENDPOINT(ENDPOINT_CONTROLEP)] & 0xFFC00000;
+
 	memset(EndPointCmdStsList, 0, sizeof(EndPointCmdStsList) );
 	
 	HAL_SetDeviceAddress(0);
@@ -100,8 +100,8 @@ bool Endpoint_ConfigureEndpoint(const uint8_t Number, const uint8_t Type,
 	uint32_t PhyEP = 2*Number + (Direction == ENDPOINT_DIR_OUT ? 0 : 1);
 	
 	memset(EndPointCmdStsList[PhyEP], 0, sizeof(USB_CMD_STAT)*2 );
-	EndPointCmdStsList[PhyEP][0].NBytes = IsOutEndpoint(PhyEP) ? 0x3FF : 0;	
-	
+	EndPointCmdStsList[PhyEP][0].NBytes = IsOutEndpoint(PhyEP) ? 0x3FF : 0;
+
 	LPC_USB->INTSTAT &= ~ (1 << PhyEP);
 	LPC_USB->INTEN |= (1 << PhyEP);
 
@@ -210,14 +210,14 @@ void USB_IRQHandler (void)
 					if ( !Endpoint_IsSETUPReceived() ){
 						if(PhyEP <= 1)
 						{
-						DcdDataTransfer(PhyEP, usb_data_buffer, 512);
+						DcdDataTransfer(PhyEP, usb_data_buffers[PhyEP], 512);
 						}
 						else
 						{
-							usb_data_buffer_size = (1023 - EndPointCmdStsList[PhyEP][0].NBytes);
+							usb_data_buffer_sizes[PhyEP] = (1023 - EndPointCmdStsList[PhyEP][0].NBytes);
 							if(EndPointCmdStsList[PhyEP][0].NBytes == 0x3FF)
 							{
-								DcdDataTransfer(PhyEP, usb_data_buffer, 512);
+								DcdDataTransfer(PhyEP, usb_data_buffers[PhyEP], 512);
 							}
 						}
 					}
@@ -228,9 +228,9 @@ void USB_IRQHandler (void)
 						uint32_t i;
 						for (i = 0; i < Remain_length; i++)
 						{
-							usb_data_buffer [i] = usb_data_buffer [i + EndpointMaxPacketSize[PhyEP]];
+							usb_data_buffers[PhyEP][i] = usb_data_buffers[PhyEP][i + EndpointMaxPacketSize[PhyEP]];
 						}
-						DcdDataTransfer(PhyEP,usb_data_buffer, Remain_length);
+						DcdDataTransfer(PhyEP, usb_data_buffers[PhyEP], Remain_length);
 					}
 					else
 					{
@@ -239,7 +239,7 @@ void USB_IRQHandler (void)
 							if(shortpacket)
 							{
 								shortpacket = false;
-								DcdDataTransfer(PhyEP, usb_data_buffer, 0);
+								DcdDataTransfer(PhyEP, usb_data_buffers[PhyEP], 0);
 							}
 						}
 					}

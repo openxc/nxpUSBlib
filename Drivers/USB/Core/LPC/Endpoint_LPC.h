@@ -134,7 +134,7 @@ static inline void Endpoint_SelectEndpoint(const uint8_t EndpointNumber) ATTR_AL
 static inline void Endpoint_SelectEndpoint(const uint8_t EndpointNumber)
 {
 	endpointselected = EndpointNumber;
-	//usb_data_buffer_index = 0;
+	//usb_data_buffer_indexes[PHYSICAL_ENDPOINT(endpointselected)] = 0;
 }
 
 /** Reads one byte from the currently selected endpoint's bank, for OUT direction endpoints.
@@ -146,9 +146,9 @@ static inline void Endpoint_SelectEndpoint(const uint8_t EndpointNumber)
 static inline uint8_t Endpoint_Read_8(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint8_t Endpoint_Read_8(void)
 {
-	uint8_t tem = usb_data_buffer[usb_data_buffer_index];
-	usb_data_buffer_index++;
-	usb_data_buffer_size--;
+	uint8_t tem = usb_data_buffers[PHYSICAL_ENDPOINT(endpointselected)][usb_data_buffer_indexes[PHYSICAL_ENDPOINT(endpointselected)]];
+	usb_data_buffer_indexes[PHYSICAL_ENDPOINT(endpointselected)]++;
+	usb_data_buffer_sizes[PHYSICAL_ENDPOINT(endpointselected)]--;
 	return tem;
 }
 
@@ -187,9 +187,9 @@ static inline bool Endpoint_IsReadWriteAllowed(void)
 static inline void Endpoint_Write_8(const uint8_t Data) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Write_8(const uint8_t Data)
 {
-	usb_data_buffer[usb_data_buffer_index] = Data;
-	usb_data_buffer_index++;
-	usb_data_buffer_size++;
+	usb_data_buffers[PHYSICAL_ENDPOINT(endpointselected)][usb_data_buffer_indexes[PHYSICAL_ENDPOINT(endpointselected)]] = Data;
+	usb_data_buffer_indexes[PHYSICAL_ENDPOINT(endpointselected)]++;
+	usb_data_buffer_sizes[PHYSICAL_ENDPOINT(endpointselected)]++;
 }
 
 /** Discards one byte from the currently selected endpoint's bank, for OUT direction endpoints.

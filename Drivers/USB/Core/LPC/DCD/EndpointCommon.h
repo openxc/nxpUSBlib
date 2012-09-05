@@ -40,15 +40,17 @@
 /** Size of share memory buffer that a device uses to communicate with host. */
 #define USB_DATA_BUFFER_TEM_LENGTH		512
 
+#define PHYSICAL_ENDPOINT(endpoint) ((endpoint == ENDPOINT_CONTROLEP ? 1: endpointhandle[endpointselected]))
+
 /* Global Variables: */
 /** Share memory buffer. */
-extern uint8_t usb_data_buffer[];
-extern uint32_t usb_data_buffer_size;
+extern uint8_t usb_data_buffers[][USB_DATA_BUFFER_TEM_LENGTH];
+extern uint32_t usb_data_buffer_sizes[];
 /** Indexer rolling along the share memory buffer. Used to determine the offset
  *  of next read/write activities on share memory buffer or the total amount of data
  *  ready to be sent.
  */
-extern uint32_t usb_data_buffer_index;
+extern uint32_t usb_data_buffer_indexes[];
 /** Store the current selected endpoint number, always the logical endpint number.
  *  Usually used as index of endpointhandle array.
  */

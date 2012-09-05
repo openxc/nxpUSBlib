@@ -278,7 +278,7 @@
 				else
 				{
 					//return (dmaDescriptor[ endpointhandle[endpointselected] ].PresentCount);
-					return usb_data_buffer_size;
+					return usb_data_buffer_sizes[PHYSICAL_ENDPOINT(endpointselected)];
 				}
 			}
 
@@ -346,7 +346,7 @@
 			static inline void Endpoint_ClearSETUP(void)
 			{
 				SETUPReceived = FALSE;
-				usb_data_buffer_index = 0;
+				usb_data_buffer_indexes[PHYSICAL_ENDPOINT(endpointselected)] = 0;
 				SIE_WriteCommamd(CMD_SEL_EP(ENDPOINT_CONTROLEP));
 				SIE_WriteCommamd(CMD_CLR_BUF);
 			}
@@ -359,18 +359,16 @@
 			static inline void Endpoint_ClearIN(void) ATTR_ALWAYS_INLINE;
 			static inline void Endpoint_ClearIN(void)
 			{
-				uint8_t PhyEP = (endpointselected==ENDPOINT_CONTROLEP ? 1: endpointhandle[endpointselected]);
-				
 				if (endpointselected==ENDPOINT_CONTROLEP)
 				{
-					WriteControlEndpoint(usb_data_buffer, usb_data_buffer_index);
+					WriteControlEndpoint(usb_data_buffers[PHYSICAL_ENDPOINT(endpointselected)], usb_data_buffer_indexes[PHYSICAL_ENDPOINT(endpointselected)]);
 				}else
 				{
-					DcdDataTransfer(PhyEP, usb_data_buffer, usb_data_buffer_index);				
-					LPC_USB->USBDMARSet = _BIT(PhyEP);
+					DcdDataTransfer(PHYSICAL_ENDPOINT(endpointselected), usb_data_buffers[PHYSICAL_ENDPOINT(endpointselected)], usb_data_buffer_indexes[PHYSICAL_ENDPOINT(endpointselected)]);
+					LPC_USB->USBDMARSet = _BIT(PHYSICAL_ENDPOINT(endpointselected));
 				}
-				usb_data_buffer_index = 0;
-				usb_data_buffer_size = 0;
+				usb_data_buffer_indexes[PHYSICAL_ENDPOINT(endpointselected)] = 0;
+				usb_data_buffer_sizes[PHYSICAL_ENDPOINT(endpointselected)] = 0;
 			}
 
 			/** Acknowledges an OUT packet to the host on the currently selected endpoint, freeing up the endpoint
@@ -381,7 +379,7 @@
 			static inline void Endpoint_ClearOUT(void) ATTR_ALWAYS_INLINE;
 			static inline void Endpoint_ClearOUT(void)
 			{
-				usb_data_buffer_index = 0;
+				usb_data_buffer_indexes[PHYSICAL_ENDPOINT(endpointselected)] = 0;
 				if(endpointselected == ENDPOINT_CONTROLEP)	   /* Control only */
 				{
 					SIE_WriteCommamd(CMD_SEL_EP(ENDPOINT_CONTROLEP));
@@ -414,10 +412,8 @@
 			static inline void Endpoint_ClearStall(void) ATTR_ALWAYS_INLINE;
 			static inline void Endpoint_ClearStall(void)
 			{
-				uint8_t PhysicalEp = endpointhandle[endpointselected] + (endpointselected==ENDPOINT_CONTROLEP ? 1 : 0);
-				
 				HAL_DisableUSBInterrupt();
-				SIE_WriteCommandData(CMD_SET_EP_STAT(PhysicalEp), DAT_WR_BYTE(0));
+				SIE_WriteCommandData(CMD_SET_EP_STAT(PHYSICAL_ENDPOINT(endpointselected)), DAT_WR_BYTE(0));
 				HAL_EnableUSBInterrupt();
 			}
 

@@ -215,7 +215,7 @@ void TransferCompleteISR(void)
 				{
 					dQueueHead[2*n].TransferCount -= dQueueHead[2*n].overlay.TotalBytes;
 					dQueueHead[2*n].IsOutReceived = 1;
-					usb_data_buffer_size = dQueueHead[2*n].TransferCount;
+					usb_data_buffer_sizes[PHYSICAL_ENDPOINT(n)] = dQueueHead[2*n].TransferCount;
 				}
 			}
 			if ( ENDPTCOMPLETE & _BIT( (n+16) ) ) /* IN */
@@ -295,15 +295,15 @@ void DcdIrqHandler (uint8_t HostID)
 						/* Check read OUT flag */
 						if(!dQueueHead[PhyEP].IsOutReceived)
 						{
-							usb_data_buffer_size = 0;
-							DcdDataTransfer(PhyEP, usb_data_buffer, 512);
+							usb_data_buffer_sizes[PhyEP] = 0;
+							DcdDataTransfer(PhyEP, usb_data_buffers[PhyEP], 512);
 						}
 					}
 				}
 			}
 	    }
 	}
-	
+
 	if (USBSTS_D & USBSTS_D_SofReceived)					/* Start of Frame Interrupt */
 	{
 		EVENT_USB_Device_StartOfFrame();
