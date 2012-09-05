@@ -94,8 +94,8 @@
 			extern void SIE_WriteCommandData (uint32_t cmd, uint32_t val);
 			extern void SIE_WriteCommamd (uint32_t cmd);
 
-			extern bool isOutReceived;
-			extern bool isInReady;
+			extern volatile bool isOutReceived;
+			extern volatile bool isInReady;
 
 			void WriteControlEndpoint(uint8_t *pData, uint32_t cnt);
 			void ReadControlEndpoint(uint8_t *pData);

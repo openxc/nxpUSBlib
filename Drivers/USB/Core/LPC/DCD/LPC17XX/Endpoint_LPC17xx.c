@@ -35,8 +35,8 @@
 #define IsOutEndpoint(PhysicalEP)		(! ((PhysicalEP) & 1) )
 
 volatile bool SETUPReceived;
-bool isOutReceived;
-bool isInReady;
+volatile bool isOutReceived;
+volatile bool isInReady;
 
 uint32_t UDCA[32] __DATA(USBRAM_SECTION) ATTR_ALIGNED(128);
 DMADescriptor dmaDescriptor[USED_PHYSICAL_ENDPOINTS] __DATA(USBRAM_SECTION);
