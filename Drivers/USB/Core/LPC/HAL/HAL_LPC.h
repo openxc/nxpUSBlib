@@ -41,6 +41,8 @@
 #elif defined(__CC_ARM) // FIXME temporarily fix for Keil (work only for lpc17xx)
 	#define __DATA(x)
 	#define __BSS(x)
+#elif defined(__GNUC__)
+    #define __DATA(x)  __attribute__((section("usbram")))
 #endif
 /* Chip Includes: */
 #if defined(__LPC18XX__)||defined(__LPC43XX__)
