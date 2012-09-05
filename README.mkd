@@ -17,3 +17,6 @@ The additions and modifications in this library are released under the same
 license, but are not contributed by anyone officially with NXP.
 
 ## Changelog
+
+* Fixed USB enumeration when using compiler optimization (added volatile
+  keywords to some global variables)
