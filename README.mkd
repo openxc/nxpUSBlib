@@ -17,3 +17,10 @@ The additions and modifications in this library are released under the same
 license, but are not contributed by anyone officially with NXP.
 
 ## Changelog
+
+* Instead of sharing a single buffer among all endpoints, in both IN and OUT
+  directions, use a different buffer per endpoint. This still has the limitation
+  that IN and OUT transfers on the same endpoint will share a buffer. This has
+  been tested on an LPC1768, but also made changes in LPC11UXX and LPC18XX code.
+  I have no way to test these, so they may be buggy. The changes are minimal,
+  though, so patches are welcome.
