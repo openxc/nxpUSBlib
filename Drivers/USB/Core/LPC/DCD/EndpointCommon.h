@@ -41,6 +41,7 @@
 #define USB_DATA_BUFFER_TEM_LENGTH		512
 
 #define PHYSICAL_ENDPOINT(endpoint) ((endpoint == ENDPOINT_CONTROLEP ? 1: endpointhandle[endpointselected]))
+#define LOGICAL_ENDPOINT(physical) ((physical - (physical % 2)) / 2)
 
 /* Global Variables: */
 /** Share memory buffer. */

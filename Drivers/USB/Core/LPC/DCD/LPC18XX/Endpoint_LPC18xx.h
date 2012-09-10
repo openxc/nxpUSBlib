@@ -417,7 +417,7 @@
 			{
 				//return usb_data_buffer_index;			// TODO not implemented yet
 				//uint8_t PhyEP = (endpointselected==ENDPOINT_CONTROLEP ? 1: endpointhandle[endpointselected]);
-                return usb_data_buffer_sizes[PHYSICAL_ENDPOINT(endpointselected)];
+                return usb_data_buffer_sizes[endpointselected];
 			}
 
 			/** Determines if the selected IN endpoint is ready for a new packet to be sent to the host.
@@ -471,7 +471,7 @@
 			static inline void Endpoint_ClearSETUP(void)
 			{
 				USB_REG(USBPortNum)->ENDPTSETUPSTAT = USB_REG(USBPortNum)->ENDPTSETUPSTAT;
-				usb_data_buffer_indexes[PHYSICAL_ENDPOINT(endpointselected)] = 0;
+				usb_data_buffer_indexes[endpointselected] = 0;
 			}
 
 			/** Sends an IN packet to the host on the currently selected endpoint, freeing up the endpoint for the
@@ -482,8 +482,8 @@
 			static inline void Endpoint_ClearIN(void) ATTR_ALWAYS_INLINE;
 			static inline void Endpoint_ClearIN(void)
 			{
-                DcdDataTransfer(PHYSICAL_ENDPOINT(endpointselected), usb_data_buffers[PHYSICAL_ENDPOINT(endpointselected)], usb_data_buffer_indexes[PHYSICAL_ENDPOINT(endpointselected)]);
-				usb_data_buffer_indexes[PHYSICAL_ENDPOINT(endpointselected)] = 0;
+                DcdDataTransfer(PHYSICAL_ENDPOINT(endpointselected), usb_data_buffers[endpointselected], usb_data_buffer_indexes[endpointselected]);
+				usb_data_buffer_indexes[endpointselected] = 0;
 			}
 
 			/** Acknowledges an OUT packet to the host on the currently selected endpoint, freeing up the endpoint
@@ -494,7 +494,7 @@
 			static inline void Endpoint_ClearOUT(void) ATTR_ALWAYS_INLINE;
 			static inline void Endpoint_ClearOUT(void)
 			{
-				usb_data_buffer_indexes[PHYSICAL_ENDPOINT(endpointselected)] = 0;
+				usb_data_buffer_indexes[endpointselected] = 0;
 				dQueueHead[endpointhandle[endpointselected]].IsOutReceived = 0;
 			}
 

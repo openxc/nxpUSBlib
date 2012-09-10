@@ -327,7 +327,7 @@
 //				}
 //				else
 //					return (1023 - EndPointCmdStsList[ endpointhandle[endpointselected] ][0].NBytes);
-				return usb_data_buffer_sizes[PHYSICAL_ENDPOINT(endpointselected)];
+				return usb_data_buffer_sizes[endpointselected];
 			}
 
 			/** Determines if the selected IN endpoint is ready for a new packet to be sent to the host.
@@ -379,7 +379,7 @@
 			static inline void Endpoint_ClearSETUP(void)
 			{
 				LPC_USB->DEVCMDSTAT |= USB_SETUP_RCVD;
-				usb_data_buffer_indexes[PHYSICAL_ENDPOINT(endpointselected)] = 0;
+				usb_data_buffer_indexes[endpointselected] = 0;
 			}
 
 			/** Sends an IN packet to the host on the currently selected endpoint, freeing up the endpoint for the
@@ -403,7 +403,7 @@
 			static inline void Endpoint_ClearOUT(void) ATTR_ALWAYS_INLINE;
 			static inline void Endpoint_ClearOUT(void)
 			{
-				usb_data_buffer_indexes[PHYSICAL_ENDPOINT(endpointselected)] = 0;
+				usb_data_buffer_indexes[endpointselected] = 0;
 				EndPointCmdStsList[ endpointhandle[endpointselected] ][0].NBytes = 0x3FF;
 			}
 
