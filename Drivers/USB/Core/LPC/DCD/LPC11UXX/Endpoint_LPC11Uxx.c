@@ -57,7 +57,7 @@ void HAL_Reset (void)
 
 	/* Initialize EP Command/Status List. */
 	LPC_USB->EPLISTSTART = (uint32_t) EndPointCmdStsList;
-	LPC_USB->DATABUFSTART = ((uint32_t) usb_data_buffers[PHYSICAL_ENDPOINT(ENDPOINT_CONTROLEP)] & 0xFFC00000;
+	LPC_USB->DATABUFSTART = ((uint32_t) usb_data_buffers[endpointselected] & 0xFFC00000;
 
 	memset(EndPointCmdStsList, 0, sizeof(EndPointCmdStsList) );
 	
@@ -210,14 +210,14 @@ void USB_IRQHandler (void)
 					if ( !Endpoint_IsSETUPReceived() ){
 						if(PhyEP <= 1)
 						{
-						DcdDataTransfer(PhyEP, usb_data_buffers[PhyEP], 512);
+						DcdDataTransfer(PhyEP, usb_data_buffers[LOGICAL_ENDPOINT(PhyEP)], 512);
 						}
 						else
 						{
-							usb_data_buffer_sizes[PhyEP] = (1023 - EndPointCmdStsList[PhyEP][0].NBytes);
+							usb_data_buffer_sizes[LOGICAL_ENDPOINT(PhyEP)] = (1023 - EndPointCmdStsList[PhyEP][0].NBytes);
 							if(EndPointCmdStsList[PhyEP][0].NBytes == 0x3FF)
 							{
-								DcdDataTransfer(PhyEP, usb_data_buffers[PhyEP], 512);
+								DcdDataTransfer(PhyEP, usb_data_buffers[LOGICAL_ENDPOINT(PhyEP)], 512);
 							}
 						}
 					}
@@ -228,9 +228,9 @@ void USB_IRQHandler (void)
 						uint32_t i;
 						for (i = 0; i < Remain_length; i++)
 						{
-							usb_data_buffers[PhyEP][i] = usb_data_buffers[PhyEP][i + EndpointMaxPacketSize[PhyEP]];
+							usb_data_buffers[LOGICAL_ENDPOINT(PhyEP)][i] = usb_data_buffers[LOGICAL_ENDPOINT(PhyEP)][i + EndpointMaxPacketSize[PhyEP]];
 						}
-						DcdDataTransfer(PhyEP, usb_data_buffers[PhyEP], Remain_length);
+						DcdDataTransfer(PhyEP, usb_data_buffers[LOGICAL_ENDPOINT(PhyEP)], Remain_length);
 					}
 					else
 					{
@@ -239,7 +239,7 @@ void USB_IRQHandler (void)
 							if(shortpacket)
 							{
 								shortpacket = false;
-								DcdDataTransfer(PhyEP, usb_data_buffers[PhyEP], 0);
+								DcdDataTransfer(PhyEP, usb_data_buffers[LOGICAL_ENDPOINT(PhyEP)], 0);
 							}
 						}
 					}

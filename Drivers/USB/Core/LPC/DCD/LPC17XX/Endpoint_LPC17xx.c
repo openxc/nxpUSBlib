@@ -306,7 +306,7 @@ void SlaveEndpointISR()
 					ReadControlEndpoint(SetupPackage);
 				}else
 				{
-					ReadControlEndpoint(usb_data_buffers[PhyEP]);
+					ReadControlEndpoint(usb_data_buffers[LOGICAL_ENDPOINT(PhyEP)]);
 				}
 			}
 			else                              /* IN Endpoint */
@@ -314,14 +314,14 @@ void SlaveEndpointISR()
 				isInReady = true;
 				if(DataInRemainCount)
 				{
-					WriteControlEndpoint((uint8_t*)(usb_data_buffers[PhyEP]+DataInRemainOffset),DataInRemainCount);
+					WriteControlEndpoint((uint8_t*)(usb_data_buffers[LOGICAL_ENDPOINT(PhyEP)]+DataInRemainOffset),DataInRemainCount);
 				}
 				else
 				{
 					if(shortpacket)
 					{
 						shortpacket = false;
-						WriteControlEndpoint((uint8_t*)(usb_data_buffers[PhyEP]+DataInRemainOffset),DataInRemainCount);
+						WriteControlEndpoint((uint8_t*)(usb_data_buffers[LOGICAL_ENDPOINT(PhyEP)]+DataInRemainOffset),DataInRemainCount);
 						DataInRemainOffset = 0;
 					}
 				}
@@ -390,7 +390,7 @@ void DMAEndTransferISR()
 					ISO_Address = (uint8_t*)CALLBACK_HAL_GetISOBufferAddress(PhyEP/2,&SizeAudioTransfer);
 					DcdDataTransfer(PhyEP, ISO_Address,512);
 				}
-				usb_data_buffer_sizes[PhyEP] = dmaDescriptor[PhyEP].PresentCount;
+				usb_data_buffer_sizes[LOGICAL_ENDPOINT(PhyEP)] = dmaDescriptor[PhyEP].PresentCount;
 			}
 			else			                    /* IN Endpoint */
 			{
@@ -417,7 +417,7 @@ void DMANewTransferRequestISR()
 					DcdDataTransfer(PhyEP, ISO_Address,512);
 				}
 				else
-				DcdDataTransfer(PhyEP, usb_data_buffers[PhyEP], 512);
+				DcdDataTransfer(PhyEP, usb_data_buffers[LOGICAL_ENDPOINT(PhyEP)], 512);
 			}
 			else			                    /* IN Endpoint */
 			{

@@ -278,7 +278,7 @@
 				else
 				{
 					//return (dmaDescriptor[ endpointhandle[endpointselected] ].PresentCount);
-					return usb_data_buffer_sizes[PHYSICAL_ENDPOINT(endpointselected)];
+					return usb_data_buffer_sizes[endpointselected];
 				}
 			}
 
@@ -346,7 +346,7 @@
 			static inline void Endpoint_ClearSETUP(void)
 			{
 				SETUPReceived = FALSE;
-				usb_data_buffer_indexes[PHYSICAL_ENDPOINT(endpointselected)] = 0;
+				usb_data_buffer_indexes[endpointselected] = 0;
 				SIE_WriteCommamd(CMD_SEL_EP(ENDPOINT_CONTROLEP));
 				SIE_WriteCommamd(CMD_CLR_BUF);
 			}
@@ -361,14 +361,14 @@
 			{
 				if (endpointselected==ENDPOINT_CONTROLEP)
 				{
-					WriteControlEndpoint(usb_data_buffers[PHYSICAL_ENDPOINT(endpointselected)], usb_data_buffer_indexes[PHYSICAL_ENDPOINT(endpointselected)]);
+					WriteControlEndpoint(usb_data_buffers[endpointselected], usb_data_buffer_indexes[endpointselected]);
 				}else
 				{
-					DcdDataTransfer(PHYSICAL_ENDPOINT(endpointselected), usb_data_buffers[PHYSICAL_ENDPOINT(endpointselected)], usb_data_buffer_indexes[PHYSICAL_ENDPOINT(endpointselected)]);
+					DcdDataTransfer(PHYSICAL_ENDPOINT(endpointselected), usb_data_buffers[endpointselected], usb_data_buffer_indexes[endpointselected]);
 					LPC_USB->USBDMARSet = _BIT(PHYSICAL_ENDPOINT(endpointselected));
 				}
-				usb_data_buffer_indexes[PHYSICAL_ENDPOINT(endpointselected)] = 0;
-				usb_data_buffer_sizes[PHYSICAL_ENDPOINT(endpointselected)] = 0;
+				usb_data_buffer_indexes[endpointselected] = 0;
+				usb_data_buffer_sizes[endpointselected] = 0;
 			}
 
 			/** Acknowledges an OUT packet to the host on the currently selected endpoint, freeing up the endpoint
@@ -379,7 +379,7 @@
 			static inline void Endpoint_ClearOUT(void) ATTR_ALWAYS_INLINE;
 			static inline void Endpoint_ClearOUT(void)
 			{
-				usb_data_buffer_indexes[PHYSICAL_ENDPOINT(endpointselected)] = 0;
+				usb_data_buffer_indexes[endpointselected] = 0;
 				if(endpointselected == ENDPOINT_CONTROLEP)	   /* Control only */
 				{
 					SIE_WriteCommamd(CMD_SEL_EP(ENDPOINT_CONTROLEP));
