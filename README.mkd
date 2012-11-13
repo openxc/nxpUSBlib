@@ -20,3 +20,4 @@ license, but are not contributed by anyone officially with NXP.
 
 * Fixed USB enumeration when using compiler optimization (added volatile
   keywords to some global variables)
+    * Fixed in nxpUSBlib v0.98
