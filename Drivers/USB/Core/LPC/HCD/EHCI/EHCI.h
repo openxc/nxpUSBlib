@@ -380,11 +380,11 @@ typedef struct st_PipeHandle{
 /*=======================================================================*/
 /*  LOCAL   S Y M B O L   D E C L A R A T I O N S                        */
 /*=======================================================================*/
-//extern EHCI_HOST_DATA_Type ehci_data[MAX_USB_CORE];
-extern EHCI_HOST_DATA_Type ehci_data;
+extern EHCI_HOST_DATA_Type ehci_data[MAX_USB_CORE];
+//extern EHCI_HOST_DATA_Type ehci_data;
 extern NextLinkPointer		PeriodFrameList0[FRAME_LIST_SIZE];		/* Period Frame List */
-//extern NextLinkPointer		PeriodFrameList1[FRAME_LIST_SIZE];		/* Period Frame List */
-#define EHCI_FRAME_LIST(HostID)		(PeriodFrameList0) //((HostID) ? PeriodFrameList0 : PeriodFrameList0 )
+extern NextLinkPointer		PeriodFrameList1[FRAME_LIST_SIZE];		/* Period Frame List */
+#define EHCI_FRAME_LIST(HostID)		((HostID) ? PeriodFrameList1 : PeriodFrameList0 )
 
 /*=======================================================================*/
 /*  G L O B A L   S Y M B O L   D E C L A R A T I O N S                  */
@@ -402,36 +402,41 @@ static __INLINE HCD_STATUS EHciHostStop(uint8_t HostID);
 static __INLINE HCD_STATUS EHciHostReset(uint8_t HostID);
 static void DisableAsyncSchedule( uint8_t HostID );
 static void EnableAsyncSchedule( uint8_t HostID );
+#if !defined(__ICCARM__)
 static void DisablePeriodSchedule( uint8_t HostID ) __attribute__ ((unused)); // TODO temporarily suppress unused warnnings for DisablePeriodSchedule & EnablePeriodSchedule
 static void EnablePeriodSchedule( uint8_t HostID ) __attribute__ ((unused)); // TODO temporarily suppress unused warnnings for DisablePeriodSchedule & EnablePeriodSchedule
+#else
+static void DisablePeriodSchedule( uint8_t HostID ); // TODO temporarily suppress unused warnnings for DisablePeriodSchedule & EnablePeriodSchedule
+static void EnablePeriodSchedule( uint8_t HostID ); // TODO temporarily suppress unused warnnings for DisablePeriodSchedule & EnablePeriodSchedule
+#endif
 static __INLINE void DisableSchedule( uint8_t HostID, uint8_t isPeriod );
 static __INLINE void EnableSchedule( uint8_t HostID, uint8_t isPeriod );
 /********************************* HELPER *********************************/
 static __INLINE PHCD_QHD	HcdAsyncHead(uint8_t HostID);
 static __INLINE PHCD_QHD	HcdIntHead(uint8_t HostID);
-static __INLINE PHCD_QHD	HcdQHD(uint8_t idx);
-static __INLINE PHCD_QTD	HcdQTD(uint8_t idx);
-static __INLINE PHCD_HS_ITD	HcdHsITD(uint8_t idx);
-static __INLINE PHCD_SITD	HcdSITD(uint8_t idx);
+static __INLINE PHCD_QHD	HcdQHD(uint8_t HostID,uint8_t idx);
+static __INLINE PHCD_QTD	HcdQTD(uint8_t HostID,uint8_t idx);
+static __INLINE PHCD_HS_ITD	HcdHsITD(uint8_t HostID,uint8_t idx);
+static __INLINE PHCD_SITD	HcdSITD(uint8_t HostID,uint8_t idx);
 static __INLINE Bool		isValidLink(uint32_t link);
-static __INLINE Bool IsInterruptQhd (uint8_t QhdIdx);
+static __INLINE Bool IsInterruptQhd (uint8_t HostID,uint8_t QhdIdx);
 /********************************* Queue Head & Queue TD *********************************/
-static void FreeQhd( uint8_t QhdIdx );
-static HCD_STATUS AllocQhd( uint8_t DeviceAddr, HCD_USB_SPEED DeviceSpeed, uint8_t EndpointNumber, HCD_TRANSFER_TYPE TransferType, HCD_TRANSFER_DIR TransferDir, uint16_t MaxPacketSize, uint8_t Interval, uint8_t Mult, uint8_t HSHubDevAddr, uint8_t HSHubPortNum, uint32_t* pQhdIdx );
+static void FreeQhd(uint8_t HostID, uint8_t QhdIdx );
+static HCD_STATUS AllocQhd(uint8_t HostID, uint8_t DeviceAddr, HCD_USB_SPEED DeviceSpeed, uint8_t EndpointNumber, HCD_TRANSFER_TYPE TransferType, HCD_TRANSFER_DIR TransferDir, uint16_t MaxPacketSize, uint8_t Interval, uint8_t Mult, uint8_t HSHubDevAddr, uint8_t HSHubPortNum, uint32_t* pQhdIdx );
 static HCD_STATUS InsertLinkPointer(NextLinkPointer *pList, NextLinkPointer *pNew, uint8_t type);
 static HCD_STATUS RemoveQueueHead(uint8_t HostID, uint8_t QhdIdx );
 static void FreeQtd( PHCD_QTD pQtd );
-static HCD_STATUS AllocQTD (uint32_t* pTdIdx, uint8_t* const BufferPointer, uint32_t xferLen, HCD_TRANSFER_DIR PIDCode, uint8_t DataToggle, uint8_t IOC);
+static HCD_STATUS AllocQTD (uint8_t HostID, uint32_t* pTdIdx, uint8_t* const BufferPointer, uint32_t xferLen, HCD_TRANSFER_DIR PIDCode, uint8_t DataToggle, uint8_t IOC);
 /*static HCD_STATUS QueueQTDs (uint32_t* pTdIdx, uint8_t* dataBuff, uint32_t xferLen, HCD_TRANSFER_DIR PIDCode, uint8_t DataToggle);*/
 /********************************* ISO Head & ISO TD & Split ISO *********************************/
 static void FreeHsItd( PHCD_HS_ITD pItd );
-static HCD_STATUS AllocHsItd( uint32_t* pTdIdx, uint8_t IhdIdx, uint8_t* dataBuff, uint32_t TDLen, uint8_t XactPerITD, uint8_t IntOnComplete);
+static HCD_STATUS AllocHsItd(uint8_t HostID, uint32_t* pTdIdx, uint8_t IhdIdx, uint8_t* dataBuff, uint32_t TDLen, uint8_t XactPerITD, uint8_t IntOnComplete);
 static HCD_STATUS QueueITDs( uint8_t HostID, uint8_t IhdIdx, uint8_t* dataBuff, uint32_t xferLen );
 static void FreeSItd( PHCD_SITD pSItd );
-static HCD_STATUS AllocSItd( uint32_t* TdIdx, uint8_t HeadIdx, uint8_t* dataBuff, uint32_t TDLen, uint8_t IntOnComplete );
+static HCD_STATUS AllocSItd(uint8_t HostID, uint32_t* TdIdx, uint8_t HeadIdx, uint8_t* dataBuff, uint32_t TDLen, uint8_t IntOnComplete );
 static HCD_STATUS QueueSITDs( uint8_t HostID, uint8_t HeadIdx, uint8_t* dataBuff, uint32_t xferLen);
 /********************************* Transfer Routines *********************************/
-static HCD_STATUS WaitForTransferComplete( uint8_t EpIdx );
+static HCD_STATUS WaitForTransferComplete(uint8_t HostID, uint8_t EpIdx );
 static HCD_STATUS PipehandleParse(uint32_t Pipehandle, uint8_t* pHostID, HCD_TRANSFER_TYPE* XferType, uint8_t* pIdx);
 static void PipehandleCreate(uint32_t* pPipeHandle, uint8_t HostID, HCD_TRANSFER_TYPE XferType, uint8_t idx);
 /********************************* Interrupt Service Routines *********************************/

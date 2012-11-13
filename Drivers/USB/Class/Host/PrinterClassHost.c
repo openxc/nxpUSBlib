@@ -46,6 +46,7 @@ uint8_t PRNT_Host_ConfigurePipes(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceI
 	USB_Descriptor_Endpoint_t*  DataINEndpoint   = NULL;
 	USB_Descriptor_Endpoint_t*  DataOUTEndpoint  = NULL;
 	USB_Descriptor_Interface_t* PrinterInterface = NULL;
+	uint8_t portnum = PRNTInterfaceInfo->Config.PortNumber;
 
 	memset(&PRNTInterfaceInfo->State, 0x00, sizeof(PRNTInterfaceInfo->State));
 
@@ -113,7 +114,7 @@ uint8_t PRNT_Host_ConfigurePipes(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceI
 			continue;
 		}
 
-		if (!(Pipe_ConfigurePipe(PipeNum, Type, Token, EndpointAddress, Size,
+		if (!(Pipe_ConfigurePipe(portnum,PipeNum, Type, Token, EndpointAddress, Size,
 		                         DoubleBanked ? PIPE_BANK_DOUBLE : PIPE_BANK_SINGLE)))
 		{
 			return PRNT_ENUMERROR_PipeConfigurationFailed;
@@ -169,7 +170,7 @@ static uint8_t DCOMP_PRNT_Host_NextPRNTInterfaceEndpoint(void* CurrentDescriptor
 
 void PRNT_Host_USBTask(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo)
 {
-	if ((USB_HostState != HOST_STATE_Configured) || !(PRNTInterfaceInfo->State.IsActive))
+	if ((USB_HostState[PRNTInterfaceInfo->Config.PortNumber] != HOST_STATE_Configured) || !(PRNTInterfaceInfo->State.IsActive))
 	  return;
 
 	#if !defined(NO_CLASS_DRIVER_AUTOFLUSH)
@@ -183,7 +184,8 @@ uint8_t PRNT_Host_SetBidirectionalMode(USB_ClassInfo_PRNT_Host_t* const PRNTInte
 	{
 		uint8_t ErrorCode;
 
-		if ((ErrorCode = USB_Host_SetInterfaceAltSetting(PRNTInterfaceInfo->State.InterfaceNumber,
+		if ((ErrorCode = USB_Host_SetInterfaceAltSetting(PRNTInterfaceInfo->Config.PortNumber,
+														 PRNTInterfaceInfo->State.InterfaceNumber,
 		                                                 PRNTInterfaceInfo->State.AlternateSetting)) != HOST_SENDCONTROL_Successful)
 		{
 			return ErrorCode;
@@ -204,9 +206,10 @@ uint8_t PRNT_Host_GetPortStatus(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceIn
 			.wIndex        = PRNTInterfaceInfo->State.InterfaceNumber,
 			.wLength       = sizeof(uint8_t),
 		};
+	uint8_t portnum = PRNTInterfaceInfo->Config.PortNumber;
 
-	Pipe_SelectPipe(PIPE_CONTROLPIPE);
-	return USB_Host_SendControlRequest(PortStatus);
+	Pipe_SelectPipe(portnum,PIPE_CONTROLPIPE);
+	return USB_Host_SendControlRequest(portnum,PortStatus);
 }
 
 uint8_t PRNT_Host_SoftReset(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo)
@@ -219,34 +222,36 @@ uint8_t PRNT_Host_SoftReset(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo)
 			.wIndex        = PRNTInterfaceInfo->State.InterfaceNumber,
 			.wLength       = 0,
 		};
+	uint8_t portnum = PRNTInterfaceInfo->Config.PortNumber;
 
-	Pipe_SelectPipe(PIPE_CONTROLPIPE);
-	return USB_Host_SendControlRequest(NULL);
+	Pipe_SelectPipe(portnum,PIPE_CONTROLPIPE);
+	return USB_Host_SendControlRequest(portnum,NULL);
 }
 
 uint8_t PRNT_Host_Flush(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo)
 {
-	if ((USB_HostState != HOST_STATE_Configured) || !(PRNTInterfaceInfo->State.IsActive))
-	  return PIPE_READYWAIT_DeviceDisconnected;
-
+	uint8_t portnum = PRNTInterfaceInfo->Config.PortNumber;
 	uint8_t ErrorCode;
 
-	Pipe_SelectPipe(PRNTInterfaceInfo->Config.DataOUTPipeNumber);
+	if ((USB_HostState[portnum] != HOST_STATE_Configured) || !(PRNTInterfaceInfo->State.IsActive))
+	  return PIPE_READYWAIT_DeviceDisconnected;
+
+	Pipe_SelectPipe(portnum,PRNTInterfaceInfo->Config.DataOUTPipeNumber);
 	Pipe_Unfreeze();
 
-	if (!(Pipe_BytesInPipe()))
+	if (!(Pipe_BytesInPipe(portnum)))
 	  return PIPE_READYWAIT_NoError;
 
-	bool BankFull = !(Pipe_IsReadWriteAllowed());
+	bool BankFull = !(Pipe_IsReadWriteAllowed(portnum));
 
-	Pipe_ClearOUT();
+	Pipe_ClearOUT(portnum);
 
 	if (BankFull)
 	{
-		if ((ErrorCode = Pipe_WaitUntilReady()) != PIPE_READYWAIT_NoError)
+		if ((ErrorCode = Pipe_WaitUntilReady(portnum)) != PIPE_READYWAIT_NoError)
 		  return ErrorCode;
 
-		Pipe_ClearOUT();
+		Pipe_ClearOUT(portnum);
 	}
 
 	Pipe_Freeze();
@@ -257,23 +262,23 @@ uint8_t PRNT_Host_Flush(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo)
 uint8_t PRNT_Host_SendByte(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo,
                            const uint8_t Data)
 {
-	if ((USB_HostState != HOST_STATE_Configured) || !(PRNTInterfaceInfo->State.IsActive))
+	uint8_t portnum = PRNTInterfaceInfo->Config.PortNumber;
+	uint8_t ErrorCode;
+	if ((USB_HostState[portnum] != HOST_STATE_Configured) || !(PRNTInterfaceInfo->State.IsActive))
 	  return PIPE_READYWAIT_DeviceDisconnected;
 
-	uint8_t ErrorCode;
-
-	Pipe_SelectPipe(PRNTInterfaceInfo->Config.DataOUTPipeNumber);
+	Pipe_SelectPipe(portnum,PRNTInterfaceInfo->Config.DataOUTPipeNumber);
 	Pipe_Unfreeze();
 
-	if (!(Pipe_IsReadWriteAllowed()))
+	if (!(Pipe_IsReadWriteAllowed(portnum)))
 	{
-		Pipe_ClearOUT();
+		Pipe_ClearOUT(portnum);
 
-		if ((ErrorCode = Pipe_WaitUntilReady()) != PIPE_READYWAIT_NoError)
+		if ((ErrorCode = Pipe_WaitUntilReady(portnum)) != PIPE_READYWAIT_NoError)
 		  return ErrorCode;
 	}
 
-	Pipe_Write_8(Data);
+	Pipe_Write_8(portnum,Data);
 	Pipe_Freeze();
 
 	return PIPE_READYWAIT_NoError;
@@ -283,19 +288,20 @@ uint8_t PRNT_Host_SendString(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo,
                              void* String)
 {
 	uint8_t ErrorCode;
+	uint8_t portnum = PRNTInterfaceInfo->Config.PortNumber;
 
-	if ((USB_HostState != HOST_STATE_Configured) || !(PRNTInterfaceInfo->State.IsActive))
+	if ((USB_HostState[portnum] != HOST_STATE_Configured) || !(PRNTInterfaceInfo->State.IsActive))
 	  return PIPE_RWSTREAM_DeviceDisconnected;
 
-	Pipe_SelectPipe(PRNTInterfaceInfo->Config.DataOUTPipeNumber);
+	Pipe_SelectPipe(portnum,PRNTInterfaceInfo->Config.DataOUTPipeNumber);
 	Pipe_Unfreeze();
 
-	if ((ErrorCode = Pipe_Write_Stream_LE(String, strlen(String), NULL)) != PIPE_RWSTREAM_NoError)
+	if ((ErrorCode = Pipe_Write_Stream_LE(portnum,String, strlen(String), NULL)) != PIPE_RWSTREAM_NoError)
 	  return ErrorCode;
 
-	Pipe_ClearOUT();
+	Pipe_ClearOUT(portnum);
 
-	ErrorCode = Pipe_WaitUntilReady();
+	ErrorCode = Pipe_WaitUntilReady(portnum);
 
 	Pipe_Freeze();
 
@@ -307,19 +313,20 @@ uint8_t PRNT_Host_SendData(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo,
                            const uint16_t Length)
 {
 	uint8_t ErrorCode;
+	uint8_t portnum = PRNTInterfaceInfo->Config.PortNumber;
 
-	if ((USB_HostState != HOST_STATE_Configured) || !(PRNTInterfaceInfo->State.IsActive))
+	if ((USB_HostState[portnum] != HOST_STATE_Configured) || !(PRNTInterfaceInfo->State.IsActive))
 	  return PIPE_RWSTREAM_DeviceDisconnected;
 
-	Pipe_SelectPipe(PRNTInterfaceInfo->Config.DataOUTPipeNumber);
+	Pipe_SelectPipe(portnum,PRNTInterfaceInfo->Config.DataOUTPipeNumber);
 	Pipe_Unfreeze();
 
-	if ((ErrorCode = Pipe_Write_Stream_LE(Buffer, Length, NULL)) != PIPE_RWSTREAM_NoError)
+	if ((ErrorCode = Pipe_Write_Stream_LE(portnum,Buffer, Length, NULL)) != PIPE_RWSTREAM_NoError)
 	  return ErrorCode;
 
-	Pipe_ClearOUT();
+	Pipe_ClearOUT(portnum);
 
-	ErrorCode = Pipe_WaitUntilReady();
+	ErrorCode = Pipe_WaitUntilReady(portnum);
 
 	Pipe_Freeze();
 
@@ -328,24 +335,26 @@ uint8_t PRNT_Host_SendData(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo,
 
 uint16_t PRNT_Host_BytesReceived(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo)
 {
-	if ((USB_HostState != HOST_STATE_Configured) || !(PRNTInterfaceInfo->State.IsActive))
+	uint8_t portnum = PRNTInterfaceInfo->Config.PortNumber;
+
+	if ((USB_HostState[portnum] != HOST_STATE_Configured) || !(PRNTInterfaceInfo->State.IsActive))
 	  return 0;
 
-	Pipe_SelectPipe(PRNTInterfaceInfo->Config.DataINPipeNumber);
+	Pipe_SelectPipe(portnum,PRNTInterfaceInfo->Config.DataINPipeNumber);
 	Pipe_Unfreeze();
 
-	if (Pipe_IsINReceived())
+	if (Pipe_IsINReceived(portnum))
 	{
-		if (!(Pipe_BytesInPipe()))
+		if (!(Pipe_BytesInPipe(portnum)))
 		{
-			Pipe_ClearIN();
+			Pipe_ClearIN(portnum);
 			Pipe_Freeze();
 			return 0;
 		}
 		else
 		{
 			Pipe_Freeze();
-			return Pipe_BytesInPipe();
+			return Pipe_BytesInPipe(portnum);
 		}
 	}
 	else
@@ -358,21 +367,22 @@ uint16_t PRNT_Host_BytesReceived(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceI
 
 int16_t PRNT_Host_ReceiveByte(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo)
 {
-	if ((USB_HostState != HOST_STATE_Configured) || !(PRNTInterfaceInfo->State.IsActive))
-	  return PIPE_RWSTREAM_DeviceDisconnected;
-
+	uint8_t portnum = PRNTInterfaceInfo->Config.PortNumber;
 	int16_t ReceivedByte = -1;
 
-	Pipe_SelectPipe(PRNTInterfaceInfo->Config.DataINPipeNumber);
+	if ((USB_HostState[portnum] != HOST_STATE_Configured) || !(PRNTInterfaceInfo->State.IsActive))
+	  return PIPE_RWSTREAM_DeviceDisconnected;
+
+	Pipe_SelectPipe(portnum,PRNTInterfaceInfo->Config.DataINPipeNumber);
 	Pipe_Unfreeze();
 
-	if (Pipe_IsINReceived())
+	if (Pipe_IsINReceived(portnum))
 	{
-		if (Pipe_BytesInPipe())
-		  ReceivedByte = Pipe_Read_8();
+		if (Pipe_BytesInPipe(portnum))
+		  ReceivedByte = Pipe_Read_8(portnum);
 
-		if (!(Pipe_BytesInPipe()))
-		  Pipe_ClearIN();
+		if (!(Pipe_BytesInPipe(portnum)))
+		  Pipe_ClearIN(portnum);
 	}
 
 	Pipe_Freeze();
@@ -386,7 +396,7 @@ uint8_t PRNT_Host_GetDeviceID(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo
 {
 	uint8_t  ErrorCode = HOST_SENDCONTROL_Successful;
 	uint16_t DeviceIDStringLength = 0;
-
+	uint8_t portnum = PRNTInterfaceInfo->Config.PortNumber;
 	USB_ControlRequest = (USB_Request_Header_t)
 		{
 			.bmRequestType = (REQDIR_DEVICETOHOST | REQTYPE_CLASS | REQREC_INTERFACE),
@@ -396,9 +406,9 @@ uint8_t PRNT_Host_GetDeviceID(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo
 			.wLength       = sizeof(DeviceIDStringLength),
 		};
 
-	Pipe_SelectPipe(PIPE_CONTROLPIPE);
+	Pipe_SelectPipe(portnum,PIPE_CONTROLPIPE);
 
-	if ((ErrorCode = USB_Host_SendControlRequest(&DeviceIDStringLength)) != HOST_SENDCONTROL_Successful)
+	if ((ErrorCode = USB_Host_SendControlRequest(portnum,&DeviceIDStringLength)) != HOST_SENDCONTROL_Successful)
 	  return ErrorCode;
 
 	if (!(DeviceIDStringLength))
@@ -414,7 +424,7 @@ uint8_t PRNT_Host_GetDeviceID(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo
 
 	USB_ControlRequest.wLength = DeviceIDStringLength;
 
-	if ((ErrorCode = USB_Host_SendControlRequest(DeviceIDString)) != HOST_SENDCONTROL_Successful)
+	if ((ErrorCode = USB_Host_SendControlRequest(portnum,DeviceIDString)) != HOST_SENDCONTROL_Successful)
 	  return ErrorCode;
 
 	memmove(&DeviceIDString[0], &DeviceIDString[2], DeviceIDStringLength - 2);

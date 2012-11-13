@@ -40,24 +40,24 @@
  *  the individual USB driver submodule headers.
  */
 
-/** \defgroup Group_USB USB Core - lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h
+/** \defgroup Group_USB USB Core - lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h
  *
  *  \section Sec_Dependencies Module Source Dependencies
  *  The following files must be built with any user project that uses this module:
- *    - nxpUSBlib/Drivers/USB/Core/ConfigDescriptor.c <i>(Makefile source module name: NXPUSBLIB_SRC_USB)</i>
- *    - nxpUSBlib/Drivers/USB/Core/DeviceStandardReq.c <i>(Makefile source module name: NXPUSBLIB_SRC_USB)</i>
- *    - nxpUSBlib/Drivers/USB/Core/Events.c <i>(Makefile source module name: NXPUSBLIB_SRC_USB)</i>
- *    - nxpUSBlib/Drivers/USB/Core/HostStandardReq.c <i>(Makefile source module name: NXPUSBLIB_SRC_USB)</i>
- *    - nxpUSBlib/Drivers/USB/Core/USBTask.c <i>(Makefile source module name: NXPUSBLIB_SRC_USB)</i>
- *    - nxpUSBlib/Drivers/USB/Core/<i>ARCH</i>/Device_<i>ARCH</i>.c <i>(Makefile source module name: NXPUSBLIB_SRC_USB)</i>
- *    - nxpUSBlib/Drivers/USB/Core/<i>ARCH</i>/Endpoint_<i>ARCH</i>.c <i>(Makefile source module name: NXPUSBLIB_SRC_USB)</i>
- *    - nxpUSBlib/Drivers/USB/Core/<i>ARCH</i>/EndpointStream_<i>ARCH</i>.c <i>(Makefile source module name: NXPUSBLIB_SRC_USB)</i>
- *    - nxpUSBlib/Drivers/USB/Core/<i>ARCH</i>/Host_<i>ARCH</i>.c <i>(Makefile source module name: NXPUSBLIB_SRC_USB)</i>
- *    - nxpUSBlib/Drivers/USB/Core/<i>ARCH</i>/Pipe_<i>ARCH</i>.c <i>(Makefile source module name: NXPUSBLIB_SRC_USB)</i>
- *    - nxpUSBlib/Drivers/USB/Core/<i>ARCH</i>/PipeStream_<i>ARCH</i>.c <i>(Makefile source module name: NXPUSBLIB_SRC_USB)</i>
- *    - nxpUSBlib/Drivers/USB/Core/<i>ARCH</i>/USBController_<i>ARCH</i>.c <i>(Makefile source module name: NXPUSBLIB_SRC_USB)</i>
- *    - nxpUSBlib/Drivers/USB/Core/<i>ARCH</i>/USBInterrupt_<i>ARCH</i>.c <i>(Makefile source module name: NXPUSBLIB_SRC_USB)</i>
- *    - nxpUSBlib/Drivers/USB/Class/Common/HIDParser.c <i>(Makefile source module name: NXPUSBLIB_SRC_USB)</i>
+ *    - LPCUSBlib/Drivers/USB/Core/ConfigDescriptor.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
+ *    - LPCUSBlib/Drivers/USB/Core/DeviceStandardReq.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
+ *    - LPCUSBlib/Drivers/USB/Core/Events.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
+ *    - LPCUSBlib/Drivers/USB/Core/HostStandardReq.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
+ *    - LPCUSBlib/Drivers/USB/Core/USBTask.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
+ *    - LPCUSBlib/Drivers/USB/Core/<i>ARCH</i>/Device_<i>ARCH</i>.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
+ *    - LPCUSBlib/Drivers/USB/Core/<i>ARCH</i>/Endpoint_<i>ARCH</i>.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
+ *    - LPCUSBlib/Drivers/USB/Core/<i>ARCH</i>/EndpointStream_<i>ARCH</i>.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
+ *    - LPCUSBlib/Drivers/USB/Core/<i>ARCH</i>/Host_<i>ARCH</i>.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
+ *    - LPCUSBlib/Drivers/USB/Core/<i>ARCH</i>/Pipe_<i>ARCH</i>.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
+ *    - LPCUSBlib/Drivers/USB/Core/<i>ARCH</i>/PipeStream_<i>ARCH</i>.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
+ *    - LPCUSBlib/Drivers/USB/Core/<i>ARCH</i>/USBController_<i>ARCH</i>.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
+ *    - LPCUSBlib/Drivers/USB/Core/<i>ARCH</i>/USBInterrupt_<i>ARCH</i>.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
+ *    - LPCUSBlib/Drivers/USB/Class/Common/HIDParser.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
  *
  *  \section Sec_ModDescription Module Description
  *  Driver and framework for the USB controller of the selected architecture and microcontroller model. This module

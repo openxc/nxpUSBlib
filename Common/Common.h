@@ -37,7 +37,7 @@
  *  \copydetails Group_Common
  */
 
-/** \defgroup Group_Common Common Utility Headers - nxpUSBlib/Common/Common.h
+/** \defgroup Group_Common Common Utility Headers - LPCUSBlib/Common/Common.h
  *  \brief Common library convenience headers, macros and functions.
  *
  *  Common utility headers containing macros, functions, enums and types which are common to all
@@ -52,8 +52,8 @@
  *  Macros and functions to create and control global interrupts within the device.
  */
 
-#ifndef __NXPUSBLIB_COMMON_H__
-#define __NXPUSBLIB_COMMON_H__
+#ifndef __LPCUSBlib_COMMON_H__
+#define __LPCUSBlib_COMMON_H__
 
 	/* Macros: */
 		#define __INCLUDE_FROM_COMMON_H
@@ -69,7 +69,7 @@
 		#endif
 
 		#if 1	// TODO add control macros later
-			#include "../nxpUSBlibConfig.h"
+			#include "../LPCUSBlibConfig.h"
 		#endif
 
 		#include "ArchitectureSpecific.h"
@@ -139,7 +139,11 @@
 		#elif (ARCH == ARCH_LPC)
 			typedef uint32_t uint_reg_t;
 			#define ARCH_LITTLE_ENDIAN
+			#if !defined(__ICCARM__)
 			#define PROGMEM                  const
+			#else
+			#define PROGMEM
+			#endif                        
 			#define pgm_read_byte(x)         (*x)
 			#define memcmp_P(...)            memcmp(__VA_ARGS__)
 			#define memcpy_P(...)            memcpy(__VA_ARGS__)
@@ -252,7 +256,8 @@
 			 *
 			 *  \param[in] Milliseconds  Number of milliseconds to delay
 			 */
-			static inline void Delay_MS(uint16_t Milliseconds) ATTR_ALWAYS_INLINE;
+PRAGMA_ALWAYS_INLINE
+            static inline void Delay_MS(uint16_t Milliseconds) ATTR_ALWAYS_INLINE;
 			static inline void Delay_MS(uint16_t Milliseconds)
 			{
 				#if (ARCH == ARCH_AVR8)
@@ -301,6 +306,7 @@
 			 *
 			 *  \return  Mask containing the current Global Interrupt Enable Mask bit(s).
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline uint_reg_t GetGlobalInterruptMask(void) ATTR_ALWAYS_INLINE ATTR_WARN_UNUSED_RESULT;
 			static inline uint_reg_t GetGlobalInterruptMask(void)
 			{
@@ -328,6 +334,7 @@
 			 *
 			 *  \param[in] GlobalIntState  Global Interrupt Enable Mask value to use
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline void SetGlobalInterruptMask(const uint_reg_t GlobalIntState) ATTR_ALWAYS_INLINE;
 			static inline void SetGlobalInterruptMask(const uint_reg_t GlobalIntState)
 			{
@@ -353,6 +360,7 @@
 			 *
 			 *  \ingroup Group_GlobalInt
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline void GlobalInterruptEnable(void) ATTR_ALWAYS_INLINE;
 			static inline void GlobalInterruptEnable(void)
 			{
@@ -375,6 +383,7 @@
 			 *
 			 *  \ingroup Group_GlobalInt
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline void GlobalInterruptDisable(void) ATTR_ALWAYS_INLINE;
 			static inline void GlobalInterruptDisable(void)
 			{

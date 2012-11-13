@@ -32,22 +32,23 @@
 
 #include "../Pipe.h"
 
-uint8_t pipeselected;
-USB_Pipe_Data_t PipeInfo[PIPE_TOTAL_PIPES];
+uint8_t pipeselected[MAX_USB_CORE];
+USB_Pipe_Data_t PipeInfo[MAX_USB_CORE][PIPE_TOTAL_PIPES];
 
 HCD_USB_SPEED hostportspeed[MAX_USB_CORE];
 uint8_t hostselected;
 
-bool Pipe_ConfigurePipe(const uint8_t Number,
+bool Pipe_ConfigurePipe(const uint8_t corenum,
+						const uint8_t Number,
                         const uint8_t Type,
                         const uint8_t Token,
                         const uint8_t EndpointNumber,
                         const uint16_t Size,
                         const uint8_t Banks)
 {
-	if ( HCD_STATUS_OK == HcdOpenPipe(hostselected,				/* HostID */
-										(Type == EP_TYPE_CONTROL && USB_HostState < HOST_STATE_Default_PostAddressSet) ? 0 : USB_HOST_DEVICEADDRESS,		/* FIXME DeviceAddr */
-										hostportspeed[hostselected],/* DeviceSpeed */
+	if ( HCD_STATUS_OK == HcdOpenPipe(corenum,				/* HostID */
+										(Type == EP_TYPE_CONTROL && USB_HostState[corenum] < HOST_STATE_Default_PostAddressSet) ? 0 : USB_HOST_DEVICEADDRESS,		/* FIXME DeviceAddr */
+										hostportspeed[corenum],/* DeviceSpeed */
 										EndpointNumber,				/* EndpointNo */
 										(HCD_TRANSFER_TYPE) Type,	/* TransferType */
 										(HCD_TRANSFER_DIR) Token,	/* TransferDir */
@@ -56,14 +57,14 @@ bool Pipe_ConfigurePipe(const uint8_t Number,
 										1,							/* Mult */
 										0,							/* HSHubDevAddr */
 										0,							/* HSHubPortNum */
-										&PipeInfo[Number].PipeHandle			/* PipeHandle */ )
+										&PipeInfo[corenum][Number].PipeHandle			/* PipeHandle */ )
 		)
 	{
-		PipeInfo[Number].ByteTransfered = PipeInfo[Number].StartIdx = 0;
-		PipeInfo[Number].BufferSize = (Type == EP_TYPE_BULK || Type == EP_TYPE_CONTROL) ? PIPE_MAX_SIZE : Size; /* XXX Some devices could have configuration descriptor > 235 bytes (eps speaker, webcame). If not deal with those, not need to have such large pipe size for control */
-		PipeInfo[Number].Buffer = USB_Memory_Alloc( PipeInfo[Number].BufferSize );
-		PipeInfo[Number].EndponitAddress = EndpointNumber;
-		if (PipeInfo[Number].Buffer == NULL)
+		PipeInfo[corenum][Number].ByteTransfered = PipeInfo[corenum][Number].StartIdx = 0;
+		PipeInfo[corenum][Number].BufferSize = (Type == EP_TYPE_BULK || Type == EP_TYPE_CONTROL) ? PIPE_MAX_SIZE : Size; /* XXX Some devices could have configuration descriptor > 235 bytes (eps speaker, webcame). If not deal with those, not need to have such large pipe size for control */
+		PipeInfo[corenum][Number].Buffer = USB_Memory_Alloc( PipeInfo[corenum][Number].BufferSize );
+		PipeInfo[corenum][Number].EndponitAddress = EndpointNumber;
+		if (PipeInfo[corenum][Number].Buffer == NULL)
 		{
 			return false;
 		}
@@ -75,15 +76,15 @@ bool Pipe_ConfigurePipe(const uint8_t Number,
 	}
 }
 
-void Pipe_ClosePipe(uint8_t pipenum)
+void Pipe_ClosePipe(const uint8_t corenum, uint8_t pipenum)
 {
 	if(pipenum < PIPE_TOTAL_PIPES)
 	{
-		HcdClosePipe(PipeInfo[pipenum].PipeHandle);
-		PipeInfo[pipenum].PipeHandle = 0;
-		USB_Memory_Free(PipeInfo[pipenum].Buffer);
-		PipeInfo[pipenum].Buffer = NULL;
-		PipeInfo[pipenum].BufferSize = 0;
+		HcdClosePipe(PipeInfo[corenum][pipenum].PipeHandle);
+		PipeInfo[corenum][pipenum].PipeHandle = 0;
+		USB_Memory_Free(PipeInfo[corenum][pipenum].Buffer);
+		PipeInfo[corenum][pipenum].Buffer = NULL;
+		PipeInfo[corenum][pipenum].BufferSize = 0;
 	}
 }
 
@@ -97,7 +98,7 @@ bool Pipe_IsEndpointBound(const uint8_t EndpointAddress)
 	return false;
 }
 
-uint8_t Pipe_WaitUntilReady(void)
+uint8_t Pipe_WaitUntilReady(const uint8_t corenum)
 {
 /*	#if (USB_STREAM_TIMEOUT_MS < 0xFF)
 	uint8_t  TimeoutMSRem = USB_STREAM_TIMEOUT_MS;
@@ -109,14 +110,14 @@ uint8_t Pipe_WaitUntilReady(void)
 
 	for (;;)
 	{
-		if (Pipe_IsReadWriteAllowed())
+		if (Pipe_IsReadWriteAllowed(corenum))
 		{
 			return PIPE_READYWAIT_NoError;
 		}
 
-		if (Pipe_IsStalled())
+		if (Pipe_IsStalled(corenum))
 		  return PIPE_READYWAIT_PipeStalled;
-		else if (USB_HostState == HOST_STATE_Unattached)
+		else if (USB_HostState[corenum] == HOST_STATE_Unattached)
 		  return PIPE_READYWAIT_DeviceDisconnected;
 
 		/*TODO no timeout yet */
@@ -132,21 +133,21 @@ uint8_t Pipe_WaitUntilReady(void)
 	}
 }
 
-bool Pipe_IsINReceived(void)
+bool Pipe_IsINReceived(const uint8_t corenum)
 {
-	if (HCD_STATUS_OK != HcdGetPipeStatus(PipeInfo[pipeselected].PipeHandle))
+	if (HCD_STATUS_OK != HcdGetPipeStatus(PipeInfo[corenum][pipeselected[corenum]].PipeHandle))
 	{
 		return false;
 	}
 
-	if (Pipe_BytesInPipe())
+	if (Pipe_BytesInPipe(corenum))
 	{
 		return true;
 	}
 	else /* Empty Pipe */
 	{
-		HcdDataTransfer(PipeInfo[pipeselected].PipeHandle, PipeInfo[pipeselected].Buffer,
-				HCD_ENDPOINT_MAXPACKET_XFER_LEN, &PipeInfo[pipeselected].ByteTransfered);
+		HcdDataTransfer(PipeInfo[corenum][pipeselected[corenum]].PipeHandle, PipeInfo[corenum][pipeselected[corenum]].Buffer,
+				HCD_ENDPOINT_MAXPACKET_XFER_LEN, &PipeInfo[corenum][pipeselected[corenum]].ByteTransfered);
 		return false;
 	}
 }

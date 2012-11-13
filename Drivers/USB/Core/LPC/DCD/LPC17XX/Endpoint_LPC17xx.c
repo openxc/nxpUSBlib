@@ -35,16 +35,19 @@
 #define IsOutEndpoint(PhysicalEP)		(! ((PhysicalEP) & 1) )
 
 volatile bool SETUPReceived;
-bool isOutReceived;
-bool isInReady;
+volatile bool isOutReceived;
+volatile bool isInReady;
 
+PRAGMA_ALIGN_128
 uint32_t UDCA[32] __DATA(USBRAM_SECTION) ATTR_ALIGNED(128);
 DMADescriptor dmaDescriptor[USED_PHYSICAL_ENDPOINTS] __DATA(USBRAM_SECTION);
 static uint8_t SetupPackage[8] __DATA(USBRAM_SECTION);
 uint32_t DataInRemainCount,DataInRemainOffset;
 bool IsConfigured,shortpacket;
 uint8_t* ISO_Address;
+PRAGMA_ALIGN_4
 uint8_t iso_buffer[512] ATTR_ALIGNED(4) __DATA(USBRAM_SECTION);
+PRAGMA_WEAK(CALLBACK_HAL_GetISOBufferAddress,Dummy_EPGetISOAddress)
 uint32_t CALLBACK_HAL_GetISOBufferAddress(const uint32_t EPNum,uint32_t* last_packet_size) ATTR_WEAK ATTR_ALIAS(Dummy_EPGetISOAddress);
 uint32_t BufferAddressIso[32] __DATA(USBRAM_SECTION);
 uint32_t SizeAudioTransfer;
@@ -126,6 +129,14 @@ void HAL_Reset (void)
 	IsConfigured = false;
 	isOutReceived = false;
 	isInReady = true;
+	usb_data_buffer_size = 0;
+ 	usb_data_buffer_index = 0;
+
+ 	usb_data_buffer_OUT_size = 0;
+ 	usb_data_buffer_OUT_index = 0;
+	//uint32_t usb_data_buffer_IN_size = 0;
+ 	usb_data_buffer_IN_index = 0;
+	//SIE_WriteCommandData(CMD_SET_MODE, DAT_WR_BYTE(0) );
 //	SIE_WriteCommandData(CMD_SET_MODE, DAT_WR_BYTE(INAK_IO | INAK_BO) ); /* Disable INAK_IO, INAK_BO */
 }
 
@@ -213,6 +224,7 @@ void ReadControlEndpoint( uint8_t *pData )
 	{
 		isOutReceived = true;
 	}
+	usb_data_buffer_size = cnt;
 
 //	SIE_WriteCommamd(CMD_SEL_EP(ENDPOINT_CONTROLEP));
 //	SIE_WriteCommamd(CMD_CLR_BUF);
@@ -330,6 +342,32 @@ void SlaveEndpointISR()
 	}
 }
 
+void Endpoint_Streaming(uint8_t * buffer,uint16_t packetsize,
+						uint16_t totalpackets,uint16_t dummypackets)
+{
+	uint8_t PhyEP = endpointhandle[endpointselected];
+	uint16_t i;
+
+	dummypackets = dummypackets;
+	if(PhyEP&1)
+	{
+		for(i=0;i<totalpackets;i++){
+			while(!Endpoint_IsReadWriteAllowed());
+			Endpoint_Write_Stream_LE((void*)(buffer + i*packetsize), packetsize,NULL);
+			Endpoint_ClearIN();
+		}
+	}
+	else
+	{
+		for(i=0;i<totalpackets;i++){
+			DcdDataTransfer(PhyEP, usb_data_buffer_OUT, packetsize);
+			Endpoint_ClearOUT();
+			while(!Endpoint_IsReadWriteAllowed());
+			Endpoint_Read_Stream_LE((void*)(buffer + i*packetsize),packetsize,NULL);
+		}
+	}
+}
+
 void DcdDataTransfer(uint8_t PhyEP, uint8_t *pData, uint32_t cnt)
 {
 	dmaDescriptor[PhyEP].BufferStartAddr = pData;
@@ -390,7 +428,10 @@ void DMAEndTransferISR()
 					ISO_Address = (uint8_t*)CALLBACK_HAL_GetISOBufferAddress(PhyEP/2,&SizeAudioTransfer);
 					DcdDataTransfer(PhyEP, ISO_Address,512);
 				}
-				usb_data_buffer_size = dmaDescriptor[PhyEP].PresentCount;
+				usb_data_buffer_OUT_size += dmaDescriptor[PhyEP].PresentCount;
+				if((usb_data_buffer_OUT_size + usb_data_buffer_OUT_index +
+								dmaDescriptor[PhyEP].MaxPacketSize) > 512)
+							LPC_USB->USBDMAIntEn &= ~(1<<1);
 			}
 			else			                    /* IN Endpoint */
 			{
@@ -417,7 +458,18 @@ void DMANewTransferRequestISR()
 					DcdDataTransfer(PhyEP, ISO_Address,512);
 				}
 				else
-				DcdDataTransfer(PhyEP, usb_data_buffer, 512);
+				{
+					uint16_t MaxPS = dmaDescriptor[PhyEP].MaxPacketSize;
+					if(usb_data_buffer_OUT_size==0){
+						usb_data_buffer_OUT_index = 0;
+						DcdDataTransfer(PhyEP, usb_data_buffer_OUT, MaxPS);
+						
+					}else{
+						DcdDataTransfer(PhyEP, 
+												&usb_data_buffer_OUT[usb_data_buffer_OUT_size+usb_data_buffer_OUT_index], 
+												MaxPS);
+					}
+				}
 			}
 			else			                    /* IN Endpoint */
 			{
@@ -529,9 +581,10 @@ void DcdIrqHandler (uint8_t DeviceID)
 	if (DMAIntSt & SYS_ERR_INT)            /* System Error Interrupt */
 	{
 		// DMASysErrISR();
+		LPC_USB->USBSysErrIntClr = LPC_USB->USBSysErrIntSt;
 	}
 }
-uint32_t Dummy_EPGetISOAddress(uint32_t EPNum, uint32_t last_packet_size)
+uint32_t Dummy_EPGetISOAddress(uint32_t EPNum, uint32_t *last_packet_size)
 {
 	return (uint32_t)iso_buffer;
 }

@@ -54,12 +54,12 @@
  *  @{
  */
 
-#ifndef __NXPUSBLIB_COMPILERSPEC_H__
-#define __NXPUSBLIB_COMPILERSPEC_H__
+#ifndef __LPCUSBlib_COMPILERSPEC_H__
+#define __LPCUSBlib_COMPILERSPEC_H__
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_COMMON_H)
-			#error Do not include this file directly. Include nxpUSBlib/Common/Common.h instead to gain this functionality.
+			#error Do not include this file directly. Include LPCUSBlib/Common/Common.h instead to gain this functionality.
 		#endif
 
 	/* Public Interface - May be used in end-application: */

@@ -108,6 +108,7 @@ HCD_STATUS HcdInitDriver(uint8_t HostID)
 
 HCD_STATUS HcdDeInitDriver(uint8_t HostID)
 {
+	OHCI_REG(HostID)->OTGStCtrl = 0;
 	return HCD_STATUS_OK;
 }
 
@@ -523,6 +524,7 @@ static void ProcessDoneQueue(uint8_t HostID, uint32_t donehead)
 		if ( pCurTD->ConditionCode ) /* also update ED status if TD complete with error */
 		{
 			HcdED(EdIdx)->status = (HcdED(EdIdx)->hcED.HeadP.Halted == 1) ? HCD_STATUS_TRANSFER_Stall : pCurTD->ConditionCode;
+			HcdED(EdIdx)->hcED.HeadP.Halted = 0;
 			hcd_printf("Error on Endpoint 0x%X has HCD_STATUS code %d\r\n",
 					HcdED(EdIdx)->hcED.FunctionAddr | (HcdED(EdIdx)->hcED.Direction == 2 ? 0x80 : 0x00),
 					pCurTD->ConditionCode);

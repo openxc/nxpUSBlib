@@ -31,7 +31,7 @@
  *  \copydetails Group_PipeManagement_LPC
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h.
+ *        dispatch header located in lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h.
  */
 
 /** \ingroup Group_PipeRW
@@ -94,7 +94,7 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_USB_DRIVER)
-			#error Do not include this file directly. Include lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h instead.
+			#error Do not include this file directly. Include lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h instead.
 		#endif
 
 	/* Public Interface - May be used in end-application: */
@@ -204,8 +204,8 @@
 			extern uint8_t hostselected;
 			extern HCD_USB_SPEED hostportspeed[];
 
-			extern uint8_t pipeselected;
-			extern USB_Pipe_Data_t PipeInfo[PIPE_TOTAL_PIPES];
+			extern uint8_t pipeselected[MAX_USB_CORE];
+			extern USB_Pipe_Data_t PipeInfo[MAX_USB_CORE][PIPE_TOTAL_PIPES];
 
 		/* Inline Functions: */
 			/** Indicates the number of bytes currently stored in the current pipes's selected bank.
@@ -217,10 +217,10 @@
 			 *
 			 *  \return Total number of bytes in the currently selected pipe's FIFO buffer.
 			 */
-			static inline uint16_t Pipe_BytesInPipe(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
-			static inline uint16_t Pipe_BytesInPipe(void)
+			static inline uint16_t Pipe_BytesInPipe(const uint8_t corenum) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
+			static inline uint16_t Pipe_BytesInPipe(const uint8_t corenum)
 			{
-				return (PipeInfo[pipeselected].ByteTransfered - PipeInfo[pipeselected].StartIdx);
+				return (PipeInfo[corenum][pipeselected[corenum]].ByteTransfered - PipeInfo[corenum][pipeselected[corenum]].StartIdx);
 			}
 
 			/** Returns the pipe address of the currently selected pipe. This is typically used to save the
@@ -228,10 +228,10 @@
 			 *
 			 *  \return Index of the currently selected pipe.
 			 */
-			static inline uint8_t Pipe_GetCurrentPipe(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
-			static inline uint8_t Pipe_GetCurrentPipe(void)
+			static inline uint8_t Pipe_GetCurrentPipe(const uint8_t corenum) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
+			static inline uint8_t Pipe_GetCurrentPipe(const uint8_t corenum)
 			{
-				return pipeselected;
+				return pipeselected[corenum];
 			}
 
 			/** Selects the given pipe number. Any pipe operations which do not require the pipe number to be
@@ -239,20 +239,20 @@
 			 *
 			 *  \param[in] PipeNumber  Index of the pipe to select.
 			 */
-			static inline void Pipe_SelectPipe(const uint8_t PipeNumber) ATTR_ALWAYS_INLINE;
-			static inline void Pipe_SelectPipe(const uint8_t PipeNumber)
+			static inline void Pipe_SelectPipe(const uint8_t corenum, const uint8_t PipeNumber) ATTR_ALWAYS_INLINE;
+			static inline void Pipe_SelectPipe(const uint8_t corenum, const uint8_t PipeNumber)
 			{
-				pipeselected = PipeNumber;
+				pipeselected[corenum] = PipeNumber;
 			}
 
 			/** Resets the desired pipe, including the pipe banks and flags.
 			 *
 			 *  \param[in] PipeNumber  Index of the pipe to reset.
 			 */
-			static inline void Pipe_ResetPipe(const uint8_t PipeNumber) ATTR_ALWAYS_INLINE;
-			static inline void Pipe_ResetPipe(const uint8_t PipeNumber)
+			static inline void Pipe_ResetPipe(const uint8_t corenum, const uint8_t PipeNumber) ATTR_ALWAYS_INLINE;
+			static inline void Pipe_ResetPipe(const uint8_t corenum, const uint8_t PipeNumber)
 			{
-				PipeInfo[pipeselected].StartIdx = PipeInfo[pipeselected].ByteTransfered = 0;
+				PipeInfo[corenum][pipeselected[corenum]].StartIdx = PipeInfo[corenum][pipeselected[corenum]].ByteTransfered = 0;
 			}
 
 			/** Enables the currently selected pipe so that data can be sent and received through it to and from
@@ -290,10 +290,10 @@
 			 *
 			 *  \return The current pipe token, as a \c PIPE_TOKEN_* mask.
 			 */
-			static inline uint8_t Pipe_GetPipeToken(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
-			static inline uint8_t Pipe_GetPipeToken(void)
+			static inline uint8_t Pipe_GetPipeToken(const uint8_t corenum) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
+			static inline uint8_t Pipe_GetPipeToken(const uint8_t corenum)
 			{
-				return (PipeInfo[pipeselected].EndponitAddress & PIPE_EPDIR_MASK) ? PIPE_TOKEN_IN : PIPE_TOKEN_OUT;
+				return (PipeInfo[corenum][pipeselected[corenum]].EndponitAddress & PIPE_EPDIR_MASK) ? PIPE_TOKEN_IN : PIPE_TOKEN_OUT;
 			}
 
 			/** Sets the token for the currently selected pipe to one of the tokens specified by the \c PIPE_TOKEN_*
@@ -331,10 +331,10 @@
 			 *
 			 *  \return Boolean \c true if the selected pipe is configured, \c false otherwise.
 			 */
-			static inline bool Pipe_IsConfigured(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
-			static inline bool Pipe_IsConfigured(void)
+			static inline bool Pipe_IsConfigured(const uint8_t corenum) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
+			static inline bool Pipe_IsConfigured(const uint8_t corenum)
 			{
-				return (PipeInfo[pipeselected].Buffer != NULL);// TODO implement using status later
+				return (PipeInfo[corenum][pipeselected[corenum]].Buffer != NULL);// TODO implement using status later
 			}
 
 			/** Retrieves the endpoint address of the endpoint within the attached device that the currently selected
@@ -342,10 +342,10 @@
 			 *
 			 *  \return Endpoint address the currently selected pipe is bound to.
 			 */
-			static inline uint8_t Pipe_GetBoundEndpointAddress(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
-			static inline uint8_t Pipe_GetBoundEndpointAddress(void)
+			static inline uint8_t Pipe_GetBoundEndpointAddress(const uint8_t corenum) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
+			static inline uint8_t Pipe_GetBoundEndpointAddress(const uint8_t corenum)
 			{
-				return PipeInfo[pipeselected].EndponitAddress;
+				return PipeInfo[corenum][pipeselected[corenum]].EndponitAddress;
 			}
 
 			/** Sets the period between interrupts for an INTERRUPT type pipe to a specified number of milliseconds.
@@ -458,7 +458,7 @@
 			 *  \return Boolean \c true if the current pipe has received an IN packet, \c false otherwise.
 			 */
 //			static inline bool Pipe_IsINReceived(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
-			bool Pipe_IsINReceived(void) ATTR_WARN_UNUSED_RESULT;
+			bool Pipe_IsINReceived(const uint8_t corenum) ATTR_WARN_UNUSED_RESULT;
 
 			/** Determines if the currently selected OUT pipe is ready to send an OUT packet to the attached device.
 			 *
@@ -466,10 +466,11 @@
 			 *
 			 *  \return Boolean \c true if the current pipe is ready for an OUT packet, \c false otherwise.
 			 */
-			static inline bool Pipe_IsOUTReady(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
-			static inline bool Pipe_IsOUTReady(void)
+			static inline bool Pipe_IsOUTReady(const uint8_t corenum) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
+			static inline bool Pipe_IsOUTReady(const uint8_t corenum)
 			{
-				return (HcdGetPipeStatus(PipeInfo[pipeselected].PipeHandle) == HCD_STATUS_OK) && (PipeInfo[pipeselected].ByteTransfered < PipeInfo[pipeselected].BufferSize);
+				return (HcdGetPipeStatus(PipeInfo[corenum][pipeselected[corenum]].PipeHandle) == HCD_STATUS_OK)
+						&& (PipeInfo[corenum][pipeselected[corenum]].ByteTransfered < PipeInfo[corenum][pipeselected[corenum]].BufferSize);
 			}
 
 			/** Determines if the currently selected pipe may be read from (if data is waiting in the pipe
@@ -485,15 +486,15 @@
 			 *  \return Boolean \c true if the currently selected pipe may be read from or written to, depending
 			 *          on its direction.
 			 */
-			static inline bool Pipe_IsReadWriteAllowed(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
-			static inline bool Pipe_IsReadWriteAllowed(void)
+			static inline bool Pipe_IsReadWriteAllowed(const uint8_t corenum) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
+			static inline bool Pipe_IsReadWriteAllowed(const uint8_t corenum)
 			{
-				if (Pipe_GetPipeToken() == PIPE_TOKEN_IN)
+				if (Pipe_GetPipeToken(corenum) == PIPE_TOKEN_IN)
 				{
-					return (HCD_STATUS_OK == HcdGetPipeStatus(PipeInfo[pipeselected].PipeHandle)) && Pipe_BytesInPipe();
+					return (HCD_STATUS_OK == HcdGetPipeStatus(PipeInfo[corenum][pipeselected[corenum]].PipeHandle)) && Pipe_BytesInPipe(corenum);
 				}else
 				{
-					return Pipe_IsOUTReady();
+					return Pipe_IsOUTReady(corenum);
 				}
 			}
 
@@ -525,10 +526,10 @@
 			 *
 			 *  \ingroup Group_PipePacketManagement_LPC
 			 */
-			static inline void Pipe_ClearIN(void) ATTR_ALWAYS_INLINE;
-			static inline void Pipe_ClearIN(void)
+			static inline void Pipe_ClearIN(const uint8_t corenum) ATTR_ALWAYS_INLINE;
+			static inline void Pipe_ClearIN(const uint8_t corenum)
 			{
-				PipeInfo[pipeselected].StartIdx = PipeInfo[pipeselected].ByteTransfered = 0;
+				PipeInfo[corenum][pipeselected[corenum]].StartIdx = PipeInfo[corenum][pipeselected[corenum]].ByteTransfered = 0;
 			}
 
 			/** Sends the currently selected pipe's contents to the device as an OUT packet on the selected pipe, freeing
@@ -536,12 +537,14 @@
 			 *
 			 *  \ingroup Group_PipePacketManagement_LPC
 			 */
-			static inline void Pipe_ClearOUT(void) ATTR_ALWAYS_INLINE;
-			static inline void Pipe_ClearOUT(void)
+			static inline void Pipe_ClearOUT(const uint8_t corenum) ATTR_ALWAYS_INLINE;
+			static inline void Pipe_ClearOUT(const uint8_t corenum)
 			{
-				HcdDataTransfer(PipeInfo[pipeselected].PipeHandle, PipeInfo[pipeselected].Buffer,
-								PipeInfo[pipeselected].ByteTransfered, NULL /* FIXME &PipeInfo[pipeselected].ByteTransfered*/);
-				PipeInfo[pipeselected].StartIdx = PipeInfo[pipeselected].ByteTransfered = 0;
+				HcdDataTransfer(PipeInfo[corenum][pipeselected[corenum]].PipeHandle,
+								PipeInfo[corenum][pipeselected[corenum]].Buffer,
+								PipeInfo[corenum][pipeselected[corenum]].ByteTransfered,
+								NULL /* FIXME &PipeInfo[pipeselected].ByteTransfered*/);
+				PipeInfo[corenum][pipeselected[corenum]].StartIdx = PipeInfo[corenum][pipeselected[corenum]].ByteTransfered = 0;
 			}
 
 			/** Determines if the device sent a NAK (Negative Acknowledge) in response to the last sent packet on
@@ -578,10 +581,10 @@
 			 *
 			 *  \return Boolean \c true if the current pipe has been stalled by the attached device, \c false otherwise.
 			 */
-			static inline bool Pipe_IsStalled(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
-			static inline bool Pipe_IsStalled(void)
+			static inline bool Pipe_IsStalled(const uint8_t corenum) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
+			static inline bool Pipe_IsStalled(const uint8_t corenum)
 			{
-				return HcdGetPipeStatus(PipeInfo[pipeselected].PipeHandle) == HCD_STATUS_TRANSFER_Stall;
+				return HcdGetPipeStatus(PipeInfo[corenum][pipeselected[corenum]].PipeHandle) == HCD_STATUS_TRANSFER_Stall;
 			}
 
 			/** Clears the STALL condition detection flag on the currently selected pipe, but does not clear the
@@ -589,10 +592,10 @@
 			 *
 			 *  \ingroup Group_PipePacketManagement_LPC
 			 */
-			static inline void Pipe_ClearStall(void) ATTR_ALWAYS_INLINE;
-			static inline void Pipe_ClearStall(void)
+			static inline void Pipe_ClearStall(const uint8_t corenum) ATTR_ALWAYS_INLINE;
+			static inline void Pipe_ClearStall(const uint8_t corenum)
 			{
-				HcdClearEndpointHalt(PipeInfo[pipeselected].PipeHandle);
+				HcdClearEndpointHalt(PipeInfo[corenum][pipeselected[corenum]].PipeHandle);
 			}
 
 			/** Reads one byte from the currently selected pipe's bank, for OUT direction pipes.
@@ -601,13 +604,13 @@
 			 *
 			 *  \return Next byte in the currently selected pipe's FIFO buffer.
 			 */
-			static inline uint8_t Pipe_Read_8(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
-			static inline uint8_t Pipe_Read_8(void)
+			static inline uint8_t Pipe_Read_8(const uint8_t corenum) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
+			static inline uint8_t Pipe_Read_8(const uint8_t corenum)
 			{
-				if(PipeInfo[pipeselected].StartIdx < PipeInfo[pipeselected].ByteTransfered )
+				if(PipeInfo[corenum][pipeselected[corenum]].StartIdx < PipeInfo[corenum][pipeselected[corenum]].ByteTransfered )
 				{
-					uint8_t temp= PipeInfo[pipeselected].Buffer[ PipeInfo[pipeselected].StartIdx ];
-					PipeInfo[pipeselected].StartIdx++;
+					uint8_t temp= PipeInfo[corenum][pipeselected[corenum]].Buffer[ PipeInfo[corenum][pipeselected[corenum]].StartIdx ];
+					PipeInfo[corenum][pipeselected[corenum]].StartIdx++;
 					return temp;
 				}else
 				{
@@ -621,13 +624,13 @@
 			 *
 			 *  \param[in] Data  Data to write into the the currently selected pipe's FIFO buffer.
 			 */
-			static inline void Pipe_Write_8(const uint8_t Data) ATTR_ALWAYS_INLINE;
-			static inline void Pipe_Write_8(const uint8_t Data)
+			static inline void Pipe_Write_8(const uint8_t corenum, const uint8_t Data) ATTR_ALWAYS_INLINE;
+			static inline void Pipe_Write_8(const uint8_t corenum, const uint8_t Data)
 			{
-				if (PipeInfo[pipeselected].ByteTransfered < PipeInfo[pipeselected].BufferSize)
+				if (PipeInfo[corenum][pipeselected[corenum]].ByteTransfered < PipeInfo[corenum][pipeselected[corenum]].BufferSize)
 				{
-					PipeInfo[pipeselected].Buffer[ PipeInfo[pipeselected].ByteTransfered ] = Data;
-					PipeInfo[pipeselected].ByteTransfered++;
+					PipeInfo[corenum][pipeselected[corenum]].Buffer[ PipeInfo[corenum][pipeselected[corenum]].ByteTransfered ] = Data;
+					PipeInfo[corenum][pipeselected[corenum]].ByteTransfered++;
 				}
 			}
 
@@ -648,14 +651,14 @@
 			 *
 			 *  \return Next two bytes in the currently selected pipe's FIFO buffer.
 			 */
-			static inline uint16_t Pipe_Read_16_LE(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
-			static inline uint16_t Pipe_Read_16_LE(void)
+			static inline uint16_t Pipe_Read_16_LE(const uint8_t corenum) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
+			static inline uint16_t Pipe_Read_16_LE(const uint8_t corenum)
 			{
 				uint16_t tem = 0;
 				uint8_t tem1,tem2;
 
-				tem1 = Pipe_Read_8();
-				tem2 = Pipe_Read_8();
+				tem1 = Pipe_Read_8(corenum);
+				tem2 = Pipe_Read_8(corenum);
 				tem = (tem2<<8) | tem1;
 				return tem;
 			}
@@ -667,14 +670,14 @@
 			 *
 			 *  \return Next two bytes in the currently selected pipe's FIFO buffer.
 			 */
-			static inline uint16_t Pipe_Read_16_BE(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
-			static inline uint16_t Pipe_Read_16_BE(void)
+			static inline uint16_t Pipe_Read_16_BE(const uint8_t corenum) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
+			static inline uint16_t Pipe_Read_16_BE(const uint8_t corenum)
 			{
 				uint16_t tem = 0;
 				uint8_t tem1,tem2;
 
-				tem1 = Pipe_Read_8();
-				tem2 = Pipe_Read_8();
+				tem1 = Pipe_Read_8(corenum);
+				tem2 = Pipe_Read_8(corenum);
 				tem = (tem1<<8) | tem2;
 				return tem;
 			}
@@ -686,11 +689,11 @@
 			 *
 			 *  \param[in] Data  Data to write to the currently selected pipe's FIFO buffer.
 			 */
-			static inline void Pipe_Write_16_LE(const uint16_t Data) ATTR_ALWAYS_INLINE;
-			static inline void Pipe_Write_16_LE(const uint16_t Data)
+			static inline void Pipe_Write_16_LE(const uint8_t corenum, const uint16_t Data) ATTR_ALWAYS_INLINE;
+			static inline void Pipe_Write_16_LE(const uint8_t corenum, const uint16_t Data)
 			{
-				Pipe_Write_8(Data&0xFF);
-				Pipe_Write_8((Data>>8)&0xFF);
+				Pipe_Write_8(corenum, Data&0xFF);
+				Pipe_Write_8(corenum, (Data>>8)&0xFF);
 			}
 
 			/** Writes two bytes to the currently selected pipe's bank in big endian format, for IN
@@ -700,11 +703,11 @@
 			 *
 			 *  \param[in] Data  Data to write to the currently selected pipe's FIFO buffer.
 			 */
-			static inline void Pipe_Write_16_BE(const uint16_t Data) ATTR_ALWAYS_INLINE;
-			static inline void Pipe_Write_16_BE(const uint16_t Data)
+			static inline void Pipe_Write_16_BE(const uint8_t corenum, const uint16_t Data) ATTR_ALWAYS_INLINE;
+			static inline void Pipe_Write_16_BE(const uint8_t corenum, const uint16_t Data)
 			{
-				Pipe_Write_8((Data>>8)&0xFF);
-				Pipe_Write_8(Data&0xFF);
+				Pipe_Write_8(corenum, (Data>>8)&0xFF);
+				Pipe_Write_8(corenum, Data&0xFF);
 			}
 
 			/** Discards two bytes from the currently selected pipe's bank, for OUT direction pipes.
@@ -724,16 +727,16 @@
 			 *
 			 *  \return Next four bytes in the currently selected pipe's FIFO buffer.
 			 */
-			static inline uint32_t Pipe_Read_32_LE(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
-			static inline uint32_t Pipe_Read_32_LE(void)
+			static inline uint32_t Pipe_Read_32_LE(const uint8_t corenum) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
+			static inline uint32_t Pipe_Read_32_LE(const uint8_t corenum)
 			{
 				uint32_t tem = 0;
 				uint8_t tem1,tem2,tem3,tem4;
 
-				tem1 = Pipe_Read_8();
-				tem2 = Pipe_Read_8();
-				tem3 = Pipe_Read_8();
-				tem4 = Pipe_Read_8();
+				tem1 = Pipe_Read_8(corenum);
+				tem2 = Pipe_Read_8(corenum);
+				tem3 = Pipe_Read_8(corenum);
+				tem4 = Pipe_Read_8(corenum);
 				tem = (tem4<<24) |(tem3<<16) |(tem2<<8) | tem1;
 				return tem;
 			}
@@ -745,16 +748,16 @@
 			 *
 			 *  \return Next four bytes in the currently selected pipe's FIFO buffer.
 			 */
-			static inline uint32_t Pipe_Read_32_BE(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
-			static inline uint32_t Pipe_Read_32_BE(void)
+			static inline uint32_t Pipe_Read_32_BE(const uint8_t corenum) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
+			static inline uint32_t Pipe_Read_32_BE(const uint8_t corenum)
 			{
 				uint32_t tem = 0;
 				uint8_t tem1,tem2,tem3,tem4;
 
-				tem1 = Pipe_Read_8();
-				tem2 = Pipe_Read_8();
-				tem3 = Pipe_Read_8();
-				tem4 = Pipe_Read_8();
+				tem1 = Pipe_Read_8(corenum);
+				tem2 = Pipe_Read_8(corenum);
+				tem3 = Pipe_Read_8(corenum);
+				tem4 = Pipe_Read_8(corenum);
 				tem = (tem1<<24) |(tem2<<16) |(tem3<<8) | tem4;
 				return tem;
 			}
@@ -766,13 +769,13 @@
 			 *
 			 *  \param[in] Data  Data to write to the currently selected pipe's FIFO buffer.
 			 */
-			static inline void Pipe_Write_32_LE(const uint32_t Data) ATTR_ALWAYS_INLINE;
-			static inline void Pipe_Write_32_LE(const uint32_t Data)
+			static inline void Pipe_Write_32_LE(const uint8_t corenum, const uint32_t Data) ATTR_ALWAYS_INLINE;
+			static inline void Pipe_Write_32_LE(const uint8_t corenum, const uint32_t Data)
 			{
-				Pipe_Write_8(Data&0xFF);
-				Pipe_Write_8((Data>>8)&0xFF);
-				Pipe_Write_8((Data>>16)&0xFF);
-				Pipe_Write_8((Data>>24)&0xFF);
+				Pipe_Write_8(corenum, Data&0xFF);
+				Pipe_Write_8(corenum, (Data>>8)&0xFF);
+				Pipe_Write_8(corenum, (Data>>16)&0xFF);
+				Pipe_Write_8(corenum, (Data>>24)&0xFF);
 			}
 
 			/** Writes four bytes to the currently selected pipe's bank in big endian format, for IN
@@ -782,13 +785,13 @@
 			 *
 			 *  \param[in] Data  Data to write to the currently selected pipe's FIFO buffer.
 			 */
-			static inline void Pipe_Write_32_BE(const uint32_t Data) ATTR_ALWAYS_INLINE;
-			static inline void Pipe_Write_32_BE(const uint32_t Data)
+			static inline void Pipe_Write_32_BE(const uint8_t corenum, const uint32_t Data) ATTR_ALWAYS_INLINE;
+			static inline void Pipe_Write_32_BE(const uint8_t corenum, const uint32_t Data)
 			{
-				Pipe_Write_8((Data>>24)&0xFF);
-				Pipe_Write_8((Data>>16)&0xFF);
-				Pipe_Write_8((Data>>8)&0xFF);
-				Pipe_Write_8(Data&0xFF);
+				Pipe_Write_8(corenum, (Data>>24)&0xFF);
+				Pipe_Write_8(corenum, (Data>>16)&0xFF);
+				Pipe_Write_8(corenum, (Data>>8)&0xFF);
+				Pipe_Write_8(corenum, Data&0xFF);
 			}
 
 			/** Discards four bytes from the currently selected pipe's bank, for OUT direction pipes.
@@ -858,13 +861,14 @@
 			 *
 			 *  \return Boolean \c true if the configuration succeeded, \c false otherwise.
 			 */
-			bool Pipe_ConfigurePipe(const uint8_t Number,
+			bool Pipe_ConfigurePipe(const uint8_t corenum,
+									const uint8_t Number,
 			                        const uint8_t Type,
 			                        const uint8_t Token,
 			                        const uint8_t EndpointNumber,
 			                        const uint16_t Size,
 			                        const uint8_t Banks);
-			void Pipe_ClosePipe(uint8_t pipenum);
+			void Pipe_ClosePipe(const uint8_t corenum, uint8_t pipenum);
 			/** Spin-loops until the currently selected non-control pipe is ready for the next packed of data to be read
 			 *  or written to it, aborting in the case of an error condition (such as a timeout or device disconnect).
 			 *
@@ -872,7 +876,7 @@
 			 *
 			 *  \return A value from the \ref Pipe_WaitUntilReady_ErrorCodes_t enum.
 			 */
-			uint8_t Pipe_WaitUntilReady(void);
+			uint8_t Pipe_WaitUntilReady(const uint8_t corenum);
 
 			/** Determines if a pipe has been bound to the given device endpoint address. If a pipe which is bound to the given
 			 *  endpoint is found, it is automatically selected.

@@ -9,7 +9,7 @@
 *
 *
 <b>
-<p>nxpUSBlib is a full featured, open-source USB library designed
+<p>LPCUSBlib is a full featured, open-source USB library designed
 to run on all USB capable LPC microcontrollers from NXP.</p>
 </b>
 <p>The library includes support for</p>
@@ -21,9 +21,9 @@ to run on all USB capable LPC microcontrollers from NXP.</p>
 </ul>
 <p>&nbsp;</p>
 <div style="text-align: center;"><a
-href="http://www.lpcware.com/content/project/nxpusblib/get-it">Visit
-http://www.lpcware.com/content/project/nxpusblib to get the
-latest version of nxpUSBlib</a></div>
+href="http://www.lpcware.com/content/project/LPCUSBlib/get-it">Visit
+http://www.lpcware.com/content/project/LPCUSBlib to get the
+latest version of LPCUSBlib</a></div>
 <p>&nbsp;</p>
  *
  */

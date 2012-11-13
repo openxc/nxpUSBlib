@@ -42,13 +42,23 @@
 
 /* Global Variables: */
 /** Share memory buffer. */
+/* Control EP buffer */
 extern uint8_t usb_data_buffer[];
-extern uint32_t usb_data_buffer_size;
+/* Non-Control EP IN buffer */
+extern uint8_t usb_data_buffer_IN[];
+/* Non-Control EP OUT buffer */
+extern uint8_t usb_data_buffer_OUT[];
+/* Control EP buffer size */
+extern volatile int32_t usb_data_buffer_size;
+/* Non-Control EP OUT buffer index */
+extern volatile uint32_t usb_data_buffer_OUT_size;
 /** Indexer rolling along the share memory buffer. Used to determine the offset
  *  of next read/write activities on share memory buffer or the total amount of data
  *  ready to be sent.
  */
-extern uint32_t usb_data_buffer_index;
+extern volatile uint32_t usb_data_buffer_index;
+extern volatile uint32_t usb_data_buffer_IN_index;
+extern volatile uint32_t usb_data_buffer_OUT_index;
 /** Store the current selected endpoint number, always the logical endpint number.
  *  Usually used as index of endpointhandle array.
  */
