@@ -34,7 +34,7 @@
  * @param
  * @return
  *********************************************************************/
- void HAL_USBInit(void)
+ void HAL_USBInit(uint8_t corenum)
  {
 #if defined(__LPC17XX__)
   	LPC_PINCON->PINSEL1 &= ~((3<<26)|(3<<28));  /* P0.29 D+, P0.30 D- */
@@ -65,10 +65,12 @@
   	LPC_SC->PCONP |= (1UL<<31);                	/* USB PCLK -> enable USB Per.*/
 
 #if defined(USB_CAN_BE_DEVICE)
-	LPC_USB->USBClkCtrl = 0x12;                 /* Dev, PortSel, AHB clock enable */
-	while ((LPC_USB->USBClkSt & 0x12) != 0x12);
+	//if(USB_CurrentMode == USB_MODE_Device){
+		LPC_USB->USBClkCtrl = 0x12;                 /* Dev, PortSel, AHB clock enable */
+		while ((LPC_USB->USBClkSt & 0x12) != 0x12);
 
-	HAL_Reset();
+		HAL_Reset();
+	//}
 #endif
  }
 /********************************************************************//**
@@ -76,7 +78,7 @@
  * @param
  * @return
  *********************************************************************/
- void HAL_USBDeInit(void)
+ void HAL_USBDeInit(uint8_t corenum)
  {
  	NVIC_DisableIRQ(USB_IRQn);               	/* disable USB interrupt */
  	LPC_SC->PCONP &= (~(1UL<<31));              /* disable USB Per.      */
@@ -92,7 +94,7 @@
  * @param
  * @return
  *********************************************************************/
-void HAL_EnableUSBInterrupt(void)
+void HAL_EnableUSBInterrupt(uint8_t corenum)
 {
 	NVIC_EnableIRQ(USB_IRQn);               	/* enable USB interrupt */
 }
@@ -101,7 +103,7 @@ void HAL_EnableUSBInterrupt(void)
  * @param
  * @return
  *********************************************************************/
-void HAL_DisableUSBInterrupt(void)
+void HAL_DisableUSBInterrupt(uint8_t corenum)
 {
 	NVIC_DisableIRQ(USB_IRQn);               	/* enable USB interrupt */
 }
@@ -110,24 +112,33 @@ void HAL_DisableUSBInterrupt(void)
  * @param
  * @return
  *********************************************************************/
-void HAL_USBConnect (uint32_t con)
+void HAL_USBConnect (uint8_t corenum, uint32_t con)
 {
-#ifdef USB_CAN_BE_DEVICE
-	HAL17XX_USBConnect(con);
-#endif
+	if (USB_CurrentMode == USB_MODE_Device)
+		{
+			#if defined(USB_CAN_BE_DEVICE)
+				HAL17XX_USBConnect(con);
+			#endif
+		}
 }
 
 // TODO moving stuff to approriate places
 extern void DcdIrqHandler (uint8_t DeviceID);
 void USB_IRQHandler (void)
 {
-#ifdef USB_CAN_BE_HOST
-	HcdIrqHandler(0);
-#endif
+	if (USB_CurrentMode == USB_MODE_Host)
+	{
+		#if defined(USB_CAN_BE_HOST)
+			HcdIrqHandler(0);
+		#endif
+	}
 
-#ifdef USB_CAN_BE_DEVICE
-	DcdIrqHandler(0);
-#endif
+	if (USB_CurrentMode == USB_MODE_Device)
+	{
+		#if defined(USB_CAN_BE_DEVICE)
+			DcdIrqHandler(0);
+		#endif
+	}
 	return;
 }
 

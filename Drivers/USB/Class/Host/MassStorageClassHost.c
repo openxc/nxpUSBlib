@@ -46,6 +46,7 @@ uint8_t MS_Host_ConfigurePipes(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo,
 	USB_Descriptor_Endpoint_t*  DataINEndpoint       = NULL;
 	USB_Descriptor_Endpoint_t*  DataOUTEndpoint      = NULL;
 	USB_Descriptor_Interface_t* MassStorageInterface = NULL;
+	uint8_t portnum = MSInterfaceInfo->Config.PortNumber;
 
 	memset(&MSInterfaceInfo->State, 0x00, sizeof(MSInterfaceInfo->State));
 
@@ -113,7 +114,7 @@ uint8_t MS_Host_ConfigurePipes(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo,
 			continue;
 		}
 
-		if (!(Pipe_ConfigurePipe(PipeNum, Type, Token, EndpointAddress, Size,
+		if (!(Pipe_ConfigurePipe(portnum,PipeNum, Type, Token, EndpointAddress, Size,
 		                         DoubleBanked ? PIPE_BANK_DOUBLE : PIPE_BANK_SINGLE)))
 		{
 			return MS_ENUMERROR_PipeConfigurationFailed;
@@ -173,6 +174,7 @@ static uint8_t MS_Host_SendCommand(USB_ClassInfo_MS_Host_t* const MSInterfaceInf
                                    const void* const BufferPtr)
 {
 	uint8_t ErrorCode = PIPE_RWSTREAM_NoError;
+	uint8_t portnum = MSInterfaceInfo->Config.PortNumber;
 
 	if (++MSInterfaceInfo->State.TransactionTag == 0xFFFFFFFF)
 	  MSInterfaceInfo->State.TransactionTag = 1;
@@ -180,17 +182,17 @@ static uint8_t MS_Host_SendCommand(USB_ClassInfo_MS_Host_t* const MSInterfaceInf
 	SCSICommandBlock->Signature = CPU_TO_LE32(MS_CBW_SIGNATURE);
 	SCSICommandBlock->Tag       = cpu_to_le32(MSInterfaceInfo->State.TransactionTag);
 
-	Pipe_SelectPipe(MSInterfaceInfo->Config.DataOUTPipeNumber);
+	Pipe_SelectPipe(portnum,MSInterfaceInfo->Config.DataOUTPipeNumber);
 	Pipe_Unfreeze();
 
-	if ((ErrorCode = Pipe_Write_Stream_LE(SCSICommandBlock, sizeof(MS_CommandBlockWrapper_t),
+	if ((ErrorCode = Pipe_Write_Stream_LE(portnum,SCSICommandBlock, sizeof(MS_CommandBlockWrapper_t),
 	                                      NULL)) != PIPE_RWSTREAM_NoError)
 	{
 		return ErrorCode;
 	}
 	
-	Pipe_ClearOUT();
-	Pipe_WaitUntilReady();
+	Pipe_ClearOUT(portnum);
+	Pipe_WaitUntilReady(portnum);
 
 	Pipe_Freeze();
 
@@ -213,11 +215,12 @@ static uint8_t MS_Host_WaitForDataReceived(USB_ClassInfo_MS_Host_t* const MSInte
 {
 	uint16_t TimeoutMSRem        = MS_COMMAND_DATA_TIMEOUT_MS;
 	uint16_t PreviousFrameNumber = USB_Host_GetFrameNumber();
+	uint8_t portnum = MSInterfaceInfo->Config.PortNumber;
 
-	Pipe_SelectPipe(MSInterfaceInfo->Config.DataINPipeNumber);
+	Pipe_SelectPipe(portnum,MSInterfaceInfo->Config.DataINPipeNumber);
 	Pipe_Unfreeze();
 
-	while (!(Pipe_IsINReceived()))
+	while (!(Pipe_IsINReceived(portnum)))
 	{
 		uint16_t CurrentFrameNumber = USB_Host_GetFrameNumber();
 
@@ -230,35 +233,35 @@ static uint8_t MS_Host_WaitForDataReceived(USB_ClassInfo_MS_Host_t* const MSInte
 		}
 
 		Pipe_Freeze();
-		Pipe_SelectPipe(MSInterfaceInfo->Config.DataOUTPipeNumber);
+		Pipe_SelectPipe(portnum,MSInterfaceInfo->Config.DataOUTPipeNumber);
 		Pipe_Unfreeze();
 
-		if (Pipe_IsStalled())
+		if (Pipe_IsStalled(portnum))
 		{
-			Pipe_ClearStall();
-			USB_Host_ClearEndpointStall(Pipe_GetBoundEndpointAddress());
+			Pipe_ClearStall(portnum);
+			USB_Host_ClearEndpointStall(portnum,Pipe_GetBoundEndpointAddress(portnum));
 			return PIPE_RWSTREAM_PipeStalled;
 		}
 
 		Pipe_Freeze();
-		Pipe_SelectPipe(MSInterfaceInfo->Config.DataINPipeNumber);
+		Pipe_SelectPipe(portnum,MSInterfaceInfo->Config.DataINPipeNumber);
 		Pipe_Unfreeze();
 
-		if (Pipe_IsStalled())
+		if (Pipe_IsStalled(portnum))
 		{
-			Pipe_ClearStall();
-			USB_Host_ClearEndpointStall(Pipe_GetBoundEndpointAddress());
+			Pipe_ClearStall(portnum);
+			USB_Host_ClearEndpointStall(portnum,Pipe_GetBoundEndpointAddress(portnum));
 			return PIPE_RWSTREAM_PipeStalled;
 		}
 
-		if (USB_HostState == HOST_STATE_Unattached)
+		if (USB_HostState[portnum] == HOST_STATE_Unattached)
 		  return PIPE_RWSTREAM_DeviceDisconnected;
 	};
 
-	Pipe_SelectPipe(MSInterfaceInfo->Config.DataINPipeNumber);
+	Pipe_SelectPipe(portnum,MSInterfaceInfo->Config.DataINPipeNumber);
 	Pipe_Freeze();
 
-	Pipe_SelectPipe(MSInterfaceInfo->Config.DataOUTPipeNumber);
+	Pipe_SelectPipe(portnum,MSInterfaceInfo->Config.DataOUTPipeNumber);
 	Pipe_Freeze();
 
 	return PIPE_RWSTREAM_NoError;
@@ -270,6 +273,7 @@ static uint8_t MS_Host_SendReceiveData(USB_ClassInfo_MS_Host_t* const MSInterfac
 {
 	uint8_t  ErrorCode = PIPE_RWSTREAM_NoError;
 	uint16_t BytesRem  = le32_to_cpu(SCSICommandBlock->DataTransferLength);
+	uint8_t portnum = MSInterfaceInfo->Config.PortNumber;
 
 	if (SCSICommandBlock->Flags & MS_COMMAND_DIR_DATA_IN)
 	{
@@ -279,27 +283,27 @@ static uint8_t MS_Host_SendReceiveData(USB_ClassInfo_MS_Host_t* const MSInterfac
 			return ErrorCode;
 		}
 
-		Pipe_SelectPipe(MSInterfaceInfo->Config.DataINPipeNumber);
+		Pipe_SelectPipe(portnum,MSInterfaceInfo->Config.DataINPipeNumber);
 		Pipe_Unfreeze();
 
-		if ((ErrorCode = Pipe_Read_Stream_LE(BufferPtr, BytesRem, NULL)) != PIPE_RWSTREAM_NoError)
+		if ((ErrorCode = Pipe_Read_Stream_LE(portnum,BufferPtr, BytesRem, NULL)) != PIPE_RWSTREAM_NoError)
 		  return ErrorCode;
 
-		Pipe_ClearIN();
+		Pipe_ClearIN(portnum);
 	}
 	else
 	{
-		Pipe_SelectPipe(MSInterfaceInfo->Config.DataOUTPipeNumber);
+		Pipe_SelectPipe(portnum,MSInterfaceInfo->Config.DataOUTPipeNumber);
 		Pipe_Unfreeze();
 
-		if ((ErrorCode = Pipe_Write_Stream_LE(BufferPtr, BytesRem, NULL)) != PIPE_RWSTREAM_NoError)
+		if ((ErrorCode = Pipe_Write_Stream_LE(portnum,BufferPtr, BytesRem, NULL)) != PIPE_RWSTREAM_NoError)
 		  return ErrorCode;
 
-		Pipe_ClearOUT();
+		Pipe_ClearOUT(portnum);
 
-		while (!(Pipe_IsOUTReady()))
+		while (!(Pipe_IsOUTReady(portnum)))
 		{
-			if (USB_HostState == HOST_STATE_Unattached)
+			if (USB_HostState[portnum] == HOST_STATE_Unattached)
 			  return PIPE_RWSTREAM_DeviceDisconnected;
 		}
 	}
@@ -313,20 +317,21 @@ static uint8_t MS_Host_GetReturnedStatus(USB_ClassInfo_MS_Host_t* const MSInterf
                                          MS_CommandStatusWrapper_t* const SCSICommandStatus)
 {
 	uint8_t ErrorCode = PIPE_RWSTREAM_NoError;
+	uint8_t portnum = MSInterfaceInfo->Config.PortNumber;
 
 	if ((ErrorCode = MS_Host_WaitForDataReceived(MSInterfaceInfo)) != PIPE_RWSTREAM_NoError)
 	  return ErrorCode;
 
-	Pipe_SelectPipe(MSInterfaceInfo->Config.DataINPipeNumber);
+	Pipe_SelectPipe(portnum,MSInterfaceInfo->Config.DataINPipeNumber);
 	Pipe_Unfreeze();
 
-	if ((ErrorCode = Pipe_Read_Stream_LE(SCSICommandStatus, sizeof(MS_CommandStatusWrapper_t),
+	if ((ErrorCode = Pipe_Read_Stream_LE(portnum,SCSICommandStatus, sizeof(MS_CommandStatusWrapper_t),
 	                                     NULL)) != PIPE_RWSTREAM_NoError)
 	{
 		return ErrorCode;
 	}
 
-	Pipe_ClearIN();
+	Pipe_ClearIN(portnum);
 	Pipe_Freeze();
 
 	if (SCSICommandStatus->Status != MS_SCSI_COMMAND_Pass)
@@ -338,7 +343,7 @@ static uint8_t MS_Host_GetReturnedStatus(USB_ClassInfo_MS_Host_t* const MSInterf
 uint8_t MS_Host_ResetMSInterface(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo)
 {
 	uint8_t ErrorCode;
-
+	uint8_t portnum = MSInterfaceInfo->Config.PortNumber;
 	USB_ControlRequest = (USB_Request_Header_t)
 		{
 			.bmRequestType = (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE),
@@ -348,19 +353,19 @@ uint8_t MS_Host_ResetMSInterface(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo)
 			.wLength       = 0,
 		};
 
-	Pipe_SelectPipe(PIPE_CONTROLPIPE);
+	Pipe_SelectPipe(portnum,PIPE_CONTROLPIPE);
 
-	if ((ErrorCode = USB_Host_SendControlRequest(NULL)) != HOST_SENDCONTROL_Successful)
+	if ((ErrorCode = USB_Host_SendControlRequest(portnum,NULL)) != HOST_SENDCONTROL_Successful)
 	  return ErrorCode;
 	
-	Pipe_SelectPipe(MSInterfaceInfo->Config.DataINPipeNumber);
+	Pipe_SelectPipe(portnum,MSInterfaceInfo->Config.DataINPipeNumber);
 	
-	if ((ErrorCode = USB_Host_ClearEndpointStall(Pipe_GetBoundEndpointAddress())) != HOST_SENDCONTROL_Successful)
+	if ((ErrorCode = USB_Host_ClearEndpointStall(portnum,Pipe_GetBoundEndpointAddress(portnum))) != HOST_SENDCONTROL_Successful)
 	  return ErrorCode;
 
-	Pipe_SelectPipe(MSInterfaceInfo->Config.DataOUTPipeNumber);
+	Pipe_SelectPipe(portnum,MSInterfaceInfo->Config.DataOUTPipeNumber);
 
-	if ((ErrorCode = USB_Host_ClearEndpointStall(Pipe_GetBoundEndpointAddress())) != HOST_SENDCONTROL_Successful)
+	if ((ErrorCode = USB_Host_ClearEndpointStall(portnum,Pipe_GetBoundEndpointAddress(portnum))) != HOST_SENDCONTROL_Successful)
 	  return ErrorCode;
 
 	return HOST_SENDCONTROL_Successful;
@@ -370,7 +375,7 @@ uint8_t MS_Host_GetMaxLUN(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo,
                           uint8_t* const MaxLUNIndex)
 {
 	uint8_t ErrorCode;
-
+	uint8_t portnum = MSInterfaceInfo->Config.PortNumber;
 	USB_ControlRequest = (USB_Request_Header_t)
 		{
 			.bmRequestType = (REQDIR_DEVICETOHOST | REQTYPE_CLASS | REQREC_INTERFACE),
@@ -380,9 +385,9 @@ uint8_t MS_Host_GetMaxLUN(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo,
 			.wLength       = 1,
 		};
 
-	Pipe_SelectPipe(PIPE_CONTROLPIPE);
+	Pipe_SelectPipe(portnum,PIPE_CONTROLPIPE);
 
-	if ((ErrorCode = USB_Host_SendControlRequest(MaxLUNIndex)) == HOST_SENDCONTROL_SetupStalled)
+	if ((ErrorCode = USB_Host_SendControlRequest(portnum,MaxLUNIndex)) == HOST_SENDCONTROL_SetupStalled)
 	{
 		*MaxLUNIndex = 0;
 		ErrorCode    = HOST_SENDCONTROL_Successful;
@@ -395,10 +400,10 @@ uint8_t MS_Host_GetInquiryData(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo,
                                const uint8_t LUNIndex,
                                SCSI_Inquiry_Response_t* const InquiryData)
 {
-	if ((USB_HostState != HOST_STATE_Configured) || !(MSInterfaceInfo->State.IsActive))
-	  return HOST_SENDCONTROL_DeviceDisconnected;
-
+	uint8_t portnum = MSInterfaceInfo->Config.PortNumber;
 	uint8_t ErrorCode;
+	if ((USB_HostState[portnum] != HOST_STATE_Configured) || !(MSInterfaceInfo->State.IsActive))
+	  return HOST_SENDCONTROL_DeviceDisconnected;
 
 	MS_CommandBlockWrapper_t SCSICommandBlock = (MS_CommandBlockWrapper_t)
 		{
@@ -426,7 +431,7 @@ uint8_t MS_Host_GetInquiryData(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo,
 uint8_t MS_Host_TestUnitReady(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo,
                               const uint8_t LUNIndex)
 {
-	if ((USB_HostState != HOST_STATE_Configured) || !(MSInterfaceInfo->State.IsActive))
+	if ((USB_HostState[MSInterfaceInfo->Config.PortNumber] != HOST_STATE_Configured) || !(MSInterfaceInfo->State.IsActive))
 	  return HOST_SENDCONTROL_DeviceDisconnected;
 
 	uint8_t ErrorCode;
@@ -458,7 +463,7 @@ uint8_t MS_Host_ReadDeviceCapacity(USB_ClassInfo_MS_Host_t* const MSInterfaceInf
                                    const uint8_t LUNIndex,
                                    SCSI_Capacity_t* const DeviceCapacity)
 {
-	if ((USB_HostState != HOST_STATE_Configured) || !(MSInterfaceInfo->State.IsActive))
+	if ((USB_HostState[MSInterfaceInfo->Config.PortNumber] != HOST_STATE_Configured) || !(MSInterfaceInfo->State.IsActive))
 	  return HOST_SENDCONTROL_DeviceDisconnected;
 
 	uint8_t ErrorCode;
@@ -497,7 +502,7 @@ uint8_t MS_Host_RequestSense(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo,
                              const uint8_t LUNIndex,
                              SCSI_Request_Sense_Response_t* const SenseData)
 {
-	if ((USB_HostState != HOST_STATE_Configured) || !(MSInterfaceInfo->State.IsActive))
+	if ((USB_HostState[MSInterfaceInfo->Config.PortNumber] != HOST_STATE_Configured) || !(MSInterfaceInfo->State.IsActive))
 	  return HOST_SENDCONTROL_DeviceDisconnected;
 
 	uint8_t ErrorCode;
@@ -529,7 +534,7 @@ uint8_t MS_Host_PreventAllowMediumRemoval(USB_ClassInfo_MS_Host_t* const MSInter
                                           const uint8_t LUNIndex,
                                           const bool PreventRemoval)
 {
-	if ((USB_HostState != HOST_STATE_Configured) || !(MSInterfaceInfo->State.IsActive))
+	if ((USB_HostState[MSInterfaceInfo->Config.PortNumber] != HOST_STATE_Configured) || !(MSInterfaceInfo->State.IsActive))
 	  return HOST_SENDCONTROL_DeviceDisconnected;
 
 	uint8_t ErrorCode;
@@ -564,7 +569,7 @@ uint8_t MS_Host_ReadDeviceBlocks(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo,
                                  const uint16_t BlockSize,
                                  void* BlockBuffer)
 {
-	if ((USB_HostState != HOST_STATE_Configured) || !(MSInterfaceInfo->State.IsActive))
+	if ((USB_HostState[MSInterfaceInfo->Config.PortNumber] != HOST_STATE_Configured) || !(MSInterfaceInfo->State.IsActive))
 	  return HOST_SENDCONTROL_DeviceDisconnected;
 
 	uint8_t ErrorCode;
@@ -603,7 +608,7 @@ uint8_t MS_Host_WriteDeviceBlocks(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo
                                   const uint16_t BlockSize,
                                   const void* BlockBuffer)
 {
-	if ((USB_HostState != HOST_STATE_Configured) || !(MSInterfaceInfo->State.IsActive))
+	if ((USB_HostState[MSInterfaceInfo->Config.PortNumber] != HOST_STATE_Configured) || !(MSInterfaceInfo->State.IsActive))
 	  return HOST_SENDCONTROL_DeviceDisconnected;
 
 	uint8_t ErrorCode;

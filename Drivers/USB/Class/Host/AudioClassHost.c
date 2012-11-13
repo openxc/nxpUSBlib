@@ -47,6 +47,7 @@ uint8_t Audio_Host_ConfigurePipes(USB_ClassInfo_Audio_Host_t* const AudioInterfa
 	USB_Descriptor_Endpoint_t*  DataOUTEndpoint         = NULL;
 	USB_Descriptor_Interface_t* AudioControlInterface   = NULL;
 	USB_Descriptor_Interface_t* AudioStreamingInterface = NULL;
+	uint8_t portnum = AudioInterfaceInfo->Config.PortNumber;
 
 	memset(&AudioInterfaceInfo->State, 0x00, sizeof(AudioInterfaceInfo->State));
 
@@ -128,7 +129,7 @@ uint8_t Audio_Host_ConfigurePipes(USB_ClassInfo_Audio_Host_t* const AudioInterfa
 			continue;
 		}
 		
-		if (!(Pipe_ConfigurePipe(PipeNum, Type, Token, EndpointAddress, Size,
+		if (!(Pipe_ConfigurePipe(portnum,PipeNum, Type, Token, EndpointAddress, Size,
 		                         DoubleBanked ? PIPE_BANK_DOUBLE : PIPE_BANK_SINGLE)))
 		{
 			return AUDIO_ENUMERROR_PipeConfigurationFailed;
@@ -206,7 +207,8 @@ uint8_t Audio_Host_StartStopStreaming(USB_ClassInfo_Audio_Host_t* const AudioInt
 	if (!(AudioInterfaceInfo->State.IsActive))
 	  return HOST_SENDCONTROL_DeviceDisconnected;
 
-	return USB_Host_SetInterfaceAltSetting(AudioInterfaceInfo->State.StreamingInterfaceNumber,
+	return USB_Host_SetInterfaceAltSetting(AudioInterfaceInfo->Config.PortNumber,
+										   AudioInterfaceInfo->State.StreamingInterfaceNumber,
 	                                       EnableStreaming ? AudioInterfaceInfo->State.EnabledStreamingAltIndex : 0);
 }
 
@@ -217,19 +219,20 @@ uint8_t Audio_Host_GetSetEndpointProperty(USB_ClassInfo_Audio_Host_t* const Audi
 			                              const uint16_t DataLength,
 			                              void* const Data)
 {
-	if (!(AudioInterfaceInfo->State.IsActive))
-	  return HOST_SENDCONTROL_DeviceDisconnected;
-
+	uint8_t portnum = AudioInterfaceInfo->Config.PortNumber;
 	uint8_t RequestType;
 	uint8_t EndpointAddress;
+
+	if (!(AudioInterfaceInfo->State.IsActive))
+	  return HOST_SENDCONTROL_DeviceDisconnected;
 
 	if (EndpointProperty & 0x80)
 	  RequestType = (REQDIR_DEVICETOHOST | REQTYPE_CLASS | REQREC_ENDPOINT);
 	else
 	  RequestType = (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_ENDPOINT);
 	  
-	Pipe_SelectPipe(DataPipeIndex);
-	EndpointAddress = Pipe_GetBoundEndpointAddress();
+	Pipe_SelectPipe(portnum,DataPipeIndex);
+	EndpointAddress = Pipe_GetBoundEndpointAddress(portnum);
 
 	USB_ControlRequest = (USB_Request_Header_t)
 		{
@@ -240,9 +243,9 @@ uint8_t Audio_Host_GetSetEndpointProperty(USB_ClassInfo_Audio_Host_t* const Audi
 			.wLength       = DataLength,
 		};
 
-	Pipe_SelectPipe(PIPE_CONTROLPIPE);
+	Pipe_SelectPipe(portnum,PIPE_CONTROLPIPE);
 
-	return USB_Host_SendControlRequest(Data);
+	return USB_Host_SendControlRequest(portnum,Data);
 }
 
 #endif

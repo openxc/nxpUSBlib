@@ -39,13 +39,17 @@
 #define  __INCLUDE_FROM_USB_DRIVER
 #include "../../../USBMode.h"
 
-#define USBRAM_SECTION	RAM4
+#define USBRAM_SECTION	RAM2
+
+#if defined(__ICCARM__)
+    #define __DATA(x)       @ "USB_DMA_RAM"
+#endif
 
 /* bit defines for DEVICEADDR register */
 #define USBDEV_ADDR_AD	(1<<24)
 #define USBDEV_ADDR(n)	(((n) & 0x7F)<<25)
 
-#define USB_REG(HostID)			((HostID) ? ((LPC_USB0_Type*) LPC_USB1_BASE) : LPC_USB0)
+#define USB_REG(CoreID)			((CoreID) ? ((LPC_USB0_Type*) LPC_USB1_BASE) : LPC_USB0)
 
 extern void HcdIrqHandler(uint8_t HostID);
 extern void DcdIrqHandler (uint8_t HostID);

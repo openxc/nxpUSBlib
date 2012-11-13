@@ -36,7 +36,7 @@
  *  \copydetails Group_Events
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h.
+ *        dispatch header located in lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h.
  */
 
 /** \ingroup Group_USB
@@ -72,7 +72,7 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_USB_DRIVER)
-			#error Do not include this file directly. Include lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h instead.
+			#error Do not include this file directly. Include lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h instead.
 		#endif
 
 	/* Public Interface - May be used in end-application: */
@@ -102,7 +102,7 @@
 			 *  \note This event does not exist if the \c USB_DEVICE_ONLY token is supplied to the compiler (see
 			 *        \ref Group_USBManagement documentation).
 			 */
-			void EVENT_USB_Host_HostError(const uint8_t ErrorCode);
+			void EVENT_USB_Host_HostError(const uint8_t corenum, const uint8_t ErrorCode);
 
 			/** Event for USB device attachment. This event fires when a the USB interface is in host mode, and
 			 *  a USB device has been connected to the USB interface. This is interrupt driven, thus fires before
@@ -117,7 +117,7 @@
 			 *
 			 *  \see \ref USB_USBTask() for more information on the USB management task and reducing CPU usage.
 			 */
-			void EVENT_USB_Host_DeviceAttached(void);
+			void EVENT_USB_Host_DeviceAttached(const uint8_t corenum);
 
 			/** Event for USB device removal. This event fires when a the USB interface is in host mode, and
 			 *  a USB device has been removed the USB interface whether or not it has been enumerated. This
@@ -131,7 +131,7 @@
 			 *
 			 *  \see \ref USB_USBTask() for more information on the USB management task and reducing CPU usage.
 			 */
-			void EVENT_USB_Host_DeviceUnattached(void);
+			void EVENT_USB_Host_DeviceUnattached(const uint8_t corenum);
 
 			/** Event for USB device enumeration failure. This event fires when a the USB interface is
 			 *  in host mode, and an attached USB device has failed to enumerate completely.
@@ -149,7 +149,8 @@
 			 *  \note This event does not exist if the \c USB_DEVICE_ONLY token is supplied to the compiler (see
 			 *        \ref Group_USBManagement documentation).
 			 */
-			void EVENT_USB_Host_DeviceEnumerationFailed(const uint8_t ErrorCode,
+			void EVENT_USB_Host_DeviceEnumerationFailed(const uint8_t corenum,
+														const uint8_t ErrorCode,
 			                                            const uint8_t SubErrorCode);
 
 			/** Event for USB device enumeration completion. This event fires when a the USB interface is
@@ -160,7 +161,7 @@
 			 *  1 second) when a transaction is waiting to be processed by the device will prevent break communications
 			 *  and cause the host to reset the USB bus.
 			 */
-			void EVENT_USB_Host_DeviceEnumerationComplete(void);
+			void EVENT_USB_Host_DeviceEnumerationComplete(const uint8_t corenum);
 
 			/** Event for USB Start Of Frame detection, when enabled. This event fires at the start of each USB
 			 *  frame, once per millisecond, and is synchronized to the USB bus. This can be used as an accurate
@@ -177,7 +178,7 @@
 			 *  \note This event does not exist if the \c USB_DEVICE_ONLY token is supplied to the compiler (see
 			 *        \ref Group_USBManagement documentation).
 			 */
-			void EVENT_USB_Host_StartOfFrame(void);
+			void EVENT_USB_Host_StartOfFrame(const uint8_t corenum);
 
 			/** Event for USB device connection. This event fires when the microcontroller is in USB Device mode
 			 *  and the device is connected to a USB host, beginning the enumeration process measured by a rising
@@ -329,30 +330,53 @@
 		/* Function Prototypes: */
 			#if defined(__INCLUDE_FROM_EVENTS_C)
 				void USB_Event_Stub(void) ATTR_CONST;
-
+                                #if defined(__ICCARM__)
+                                void USB_Host_HostError_Event_Stub(const uint8_t ErrorCode);
+                                void USB_Host_DeviceEnumerationFailed_Event_Stub(const uint8_t ErrorCode,
+                                                 const uint8_t SubErrorCode);
+                                #endif
 				#if defined(USB_CAN_BE_BOTH)
+PRAGMA_WEAK(EVENT_USB_UIDChange,USB_Event_Stub)				
 					void EVENT_USB_UIDChange(void) ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);
 				#endif
 
 				#if defined(USB_CAN_BE_HOST)
+PRAGMA_WEAK(EVENT_USB_Host_HostError,USB_Event_Stub)		
+                                        #if !defined(__ICCARM__)
 					void EVENT_USB_Host_HostError(const uint8_t ErrorCode) ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);
+                                        #endif
+PRAGMA_WEAK(EVENT_USB_Host_DeviceAttached,USB_Event_Stub)				
 					void EVENT_USB_Host_DeviceAttached(void) ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);
+PRAGMA_WEAK(EVENT_USB_Host_DeviceUnattached,USB_Event_Stub)				
 					void EVENT_USB_Host_DeviceUnattached(void) ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);
+PRAGMA_WEAK(EVENT_USB_Host_DeviceEnumerationComplete,USB_Event_Stub)				
 					void EVENT_USB_Host_DeviceEnumerationComplete(void) ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);
+PRAGMA_WEAK(EVENT_USB_Host_DeviceEnumerationFailed,USB_Event_Stub)	
+                                    #if !defined(__ICCARM__)
 					void EVENT_USB_Host_DeviceEnumerationFailed(const uint8_t ErrorCode,
                                                                 const uint8_t SubErrorCode)
 					                                            ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);
+                                    #endif
+PRAGMA_WEAK(EVENT_USB_Host_StartOfFrame,USB_Event_Stub)				
 					void EVENT_USB_Host_StartOfFrame(void) ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);
 				#endif
 
 				#if defined(USB_CAN_BE_DEVICE)
+PRAGMA_WEAK(EVENT_USB_Device_Connect,USB_Event_Stub)				
 					void EVENT_USB_Device_Connect(void) ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);
+PRAGMA_WEAK(EVENT_USB_Device_Disconnect,USB_Event_Stub)				
 					void EVENT_USB_Device_Disconnect(void) ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);
+PRAGMA_WEAK(EVENT_USB_Device_ControlRequest,USB_Event_Stub)				
 					void EVENT_USB_Device_ControlRequest(void) ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);
+PRAGMA_WEAK(EVENT_USB_Device_ConfigurationChanged,USB_Event_Stub)				
 					void EVENT_USB_Device_ConfigurationChanged(void) ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);
+PRAGMA_WEAK(EVENT_USB_Device_Suspend,USB_Event_Stub)				
 					void EVENT_USB_Device_Suspend(void) ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);
+PRAGMA_WEAK(EVENT_USB_Device_WakeUp,USB_Event_Stub)				
 					void EVENT_USB_Device_WakeUp(void) ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);
+PRAGMA_WEAK(EVENT_USB_Device_Reset,USB_Event_Stub)				
 					void EVENT_USB_Device_Reset(void) ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);
+PRAGMA_WEAK(EVENT_USB_Device_StartOfFrame,USB_Event_Stub)				
 					void EVENT_USB_Device_StartOfFrame(void) ATTR_WEAK ATTR_ALIAS(USB_Event_Stub);
 				#endif
 			#endif

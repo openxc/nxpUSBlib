@@ -31,12 +31,42 @@
 #include "../../../Endpoint.h"
 #include <string.h>
 
-DeviceQueueHead dQueueHead[USED_PHYSICAL_ENDPOINTS] ATTR_ALIGNED(2048) __DATA(USBRAM_SECTION);
+#if defined(USB_DEVICE_ROM_DRIVER)
+PRAGMA_ALIGN_2048
+uint8_t usb_RomDriver_buffer[ROMDRIVER_MEM_SIZE] ATTR_ALIGNED(2048) __DATA(USBRAM_SECTION);
+PRAGMA_ALIGN_4
+uint8_t usb_RomDriver_MSC_buffer[ROMDRIVER_MSC_MEM_SIZE] ATTR_ALIGNED(4) __DATA(USBRAM_SECTION);
+PRAGMA_ALIGN_4
+uint8_t usb_RomDriver_CDC_buffer[ROMDRIVER_CDC_MEM_SIZE] ATTR_ALIGNED(4) __DATA(USBRAM_SECTION);
+/** Endpoint IN buffer, used for DMA operation */
+PRAGMA_ALIGN_4
+uint8_t UsbdCdc_EPIN_buffer[CDC_MAX_BULK_EP_SIZE] ATTR_ALIGNED(4) __DATA(USBRAM_SECTION);
+/** Endpoint OUT buffer, used for DMA operation */
+PRAGMA_ALIGN_4
+uint8_t UsbdCdc_EPOUT_buffer[CDC_MAX_BULK_EP_SIZE] ATTR_ALIGNED(4) __DATA(USBRAM_SECTION);
+PRAGMA_ALIGN_4
+uint8_t usb_RomDriver_HID_buffer[ROMDRIVER_HID_MEM_SIZE] ATTR_ALIGNED(4) __DATA(USBRAM_SECTION);
+
+#endif
+
+#define STREAM_TDs		16
+
+PRAGMA_ALIGN_2048
+volatile DeviceQueueHead dQueueHead[USED_PHYSICAL_ENDPOINTS] ATTR_ALIGNED(2048) __DATA(USBRAM_SECTION);
+PRAGMA_ALIGN_32
 DeviceTransferDescriptor dTransferDescriptor[USED_PHYSICAL_ENDPOINTS] ATTR_ALIGNED(32) __DATA(USBRAM_SECTION);
+PRAGMA_ALIGN_32
+DeviceTransferDescriptor dStreamTD[STREAM_TDs] ATTR_ALIGNED(32) __DATA(USBRAM_SECTION);
+PRAGMA_ALIGN_4
 uint8_t iso_buffer[512] ATTR_ALIGNED(4);
 
+PRAGMA_WEAK(CALLBACK_HAL_GetISOBufferAddress,Dummy_EPGetISOAddress)
 uint32_t CALLBACK_HAL_GetISOBufferAddress(const uint32_t EPNum, uint32_t* last_packet_size) ATTR_WEAK ATTR_ALIAS(Dummy_EPGetISOAddress);
+void DcdInsertTD(uint32_t head, uint32_t newtd);
+void DcdPrepareTD(DeviceTransferDescriptor*  pDTD, uint8_t *pData, uint32_t length, uint8_t IOC);
 
+uint32_t stream_buffer_address,stream_dummy_buffer_address,stream_remain_packets,
+		 stream_dummy_packets,stream_packet_size,stream_total_packets;
 /********************************************************************//**
  * @brief
  * @param
@@ -86,6 +116,15 @@ void HAL_Reset (void)
   for(i=0;i<ENDPOINT_TOTAL_ENDPOINTS;i++)
 	  endpointhandle[i] = 0;
 
+ usb_data_buffer_size = 0;
+ usb_data_buffer_index = 0;
+
+ usb_data_buffer_OUT_size = 0;
+ usb_data_buffer_OUT_index = 0;
+
+ //usb_data_buffer_IN_size = 0;
+ usb_data_buffer_IN_index = 0;
+ stream_total_packets = 0;
   return;
 }
 
@@ -101,7 +140,7 @@ bool Endpoint_ConfigureEndpoint(const uint8_t Number, const uint8_t Type,
 	uint32_t PhyEP = 2*Number + (Direction == ENDPOINT_DIR_OUT ? 0 : 1);
 	uint32_t EndPtCtrl = ENDPTCTRL_REG(Number);
 
-	memset(&dQueueHead[PhyEP], 0, sizeof(DeviceQueueHead) );
+	memset((void*)&dQueueHead[PhyEP], 0, sizeof(DeviceQueueHead) );
 	
 	dQueueHead[PhyEP].MaxPacketSize = Size & 0x3ff;
 	dQueueHead[PhyEP].IntOnSetup = 1;
@@ -138,7 +177,108 @@ bool Endpoint_ConfigureEndpoint(const uint8_t Number, const uint8_t Type,
 	endpointhandle[Number] = (Number==ENDPOINT_CONTROLEP) ? ENDPOINT_CONTROLEP : PhyEP;
 	return true;
 }
+/********************************************************************//**
+ * @brief
+ * @param
+ * @return
+ *********************************************************************/
+void Endpoint_Streaming(uint8_t * buffer,uint16_t packetsize,
+						uint16_t totalpackets,uint16_t dummypackets)
+{
+	uint8_t PhyEP = endpointhandle[endpointselected];
+	uint16_t i;
+#if 0
+	for(i=0;i<totalpackets;i++)
+	{
+		DcdDataTransfer(PhyEP,(uint8_t*)(buffer + i*packetsize),packetsize);
+		while(! (
+					(dQueueHead[PhyEP].overlay.NextTD & LINK_TERMINATE)
+					&& (dQueueHead[PhyEP].overlay.Active == 0)
+				)
+			  );
+	}
+	for(i=0;i<dummypackets;i++)
+	{
+		DcdDataTransfer(PhyEP,buffer,packetsize);
+		while(! (
+					(dQueueHead[PhyEP].overlay.NextTD & LINK_TERMINATE)
+					&& (dQueueHead[PhyEP].overlay.Active == 0)
+				)
+			  );
+	}
+#else
+	uint16_t cnt = 0;
+	dummypackets = dummypackets;
+	while ( USB_REG(USBPortNum)->ENDPTSTAT & _BIT( EP_Physical2BitPosition(PhyEP) ) )	/* Endpoint is already primed */
+	{
+	}
 
+	for(i=0;i<totalpackets;i++)
+	{
+		uint8_t ioc;
+		if(i == STREAM_TDs) break;
+		if((i == totalpackets - 1) || (i == STREAM_TDs - 1))
+			ioc = 1;
+		else
+			ioc = 0;
+
+		DcdPrepareTD(&dStreamTD[i],(uint8_t*)(buffer + i*packetsize),packetsize,ioc);
+		if(i>0) DcdInsertTD((uint32_t)dStreamTD,(uint32_t)&dStreamTD[i]);
+		cnt++;
+	}
+	
+	if(STREAM_TDs < totalpackets)		
+	{
+		stream_remain_packets = totalpackets - STREAM_TDs;
+		stream_buffer_address = (uint32_t)buffer + STREAM_TDs*packetsize;
+		stream_packet_size = packetsize;
+	}
+	else
+	{
+		stream_remain_packets = stream_buffer_address = stream_packet_size = 0;
+	}
+	stream_total_packets = totalpackets;
+
+	dQueueHead[PhyEP].overlay.Halted = 0; /* this should be in USBInt */
+	dQueueHead[PhyEP].overlay.Active = 0; /* this should be in USBInt */
+	dQueueHead[PhyEP].overlay.NextTD = (uint32_t) dStreamTD;
+	dQueueHead[PhyEP].TransferCount = totalpackets*packetsize;
+	dQueueHead[PhyEP].IsOutReceived = 0;
+
+	USB_REG(USBPortNum)->ENDPTPRIME |= _BIT( EP_Physical2BitPosition(PhyEP) ) ;
+#endif
+}
+/********************************************************************//**
+ * @brief
+ * @param
+ * @return
+ *********************************************************************/
+void DcdInsertTD(uint32_t head, uint32_t newtd)
+{
+	DeviceTransferDescriptor* pTD = (DeviceTransferDescriptor*) head;
+	while(!(pTD->NextTD & LINK_TERMINATE)) pTD = (DeviceTransferDescriptor*)pTD->NextTD;
+	pTD->NextTD = newtd;
+}
+/********************************************************************//**
+ * @brief
+ * @param
+ * @return
+ *********************************************************************/
+void DcdPrepareTD(DeviceTransferDescriptor*  pDTD, uint8_t *pData, uint32_t length, uint8_t IOC)
+{
+	/* Zero out the device transfer descriptors */
+	memset((void*)pDTD, 0, sizeof(DeviceTransferDescriptor));
+
+	pDTD->NextTD = LINK_TERMINATE ;
+	pDTD->TotalBytes = length;
+	pDTD->IntOnComplete = IOC;
+	pDTD->Active = 1;
+	pDTD->BufferPage[0] = (uint32_t) pData;
+	pDTD->BufferPage[1] = ((uint32_t) pData + 0x1000) & 0xfffff000;
+//	pDTD->BufferPage[2] = ((uint32_t) pData + 0x2000) & 0xfffff000;
+//	pDTD->BufferPage[3] = ((uint32_t) pData + 0x3000) & 0xfffff000;
+//	pDTD->BufferPage[4] = ((uint32_t) pData + 0x4000) & 0xfffff000;
+}
 /********************************************************************//**
  * @brief
  * @param
@@ -214,8 +354,28 @@ void TransferCompleteISR(void)
 				else
 				{
 					dQueueHead[2*n].TransferCount -= dQueueHead[2*n].overlay.TotalBytes;
-					dQueueHead[2*n].IsOutReceived = 1;
-					usb_data_buffer_size = dQueueHead[2*n].TransferCount;
+
+					if(stream_total_packets > 0)
+					{
+						if(stream_remain_packets > 0)
+						{
+							uint32_t cnt = dQueueHead[2*n].TransferCount;
+							Endpoint_Streaming((uint8_t*)stream_buffer_address,stream_packet_size,stream_remain_packets,0);
+							dQueueHead[2*n].TransferCount = cnt;
+						}
+						else
+							stream_total_packets = 0;
+					}
+					else
+					{
+						stream_total_packets = 0;
+						dQueueHead[2*n].IsOutReceived = 1;
+					}
+					if(n == 0)
+						usb_data_buffer_size = dQueueHead[2*n].TransferCount;
+					else{
+						usb_data_buffer_OUT_size= dQueueHead[2*n].TransferCount;
+					}
 				}
 			}
 			if ( ENDPTCOMPLETE & _BIT( (n+16) ) ) /* IN */
@@ -225,6 +385,17 @@ void TransferCompleteISR(void)
 					uint32_t size;
 					ISO_Address = (uint8_t*)CALLBACK_HAL_GetISOBufferAddress(n, &size);
 					DcdDataTransfer(2*n +1, ISO_Address, size);
+				}
+				else
+				{
+					if(stream_remain_packets > 0)
+					{
+						uint32_t cnt = dQueueHead[2*n].TransferCount;
+						Endpoint_Streaming((uint8_t*)stream_buffer_address,stream_packet_size,stream_remain_packets,0);
+						dQueueHead[2*n].TransferCount = cnt;
+					}
+					else
+						stream_total_packets = 0;
 				}
 			}
 		}
@@ -295,8 +466,19 @@ void DcdIrqHandler (uint8_t HostID)
 						/* Check read OUT flag */
 						if(!dQueueHead[PhyEP].IsOutReceived)
 						{
-							usb_data_buffer_size = 0;
-							DcdDataTransfer(PhyEP, usb_data_buffer, 512);
+							
+							if(PhyEP == 0){
+								usb_data_buffer_size = 0;
+								DcdDataTransfer(PhyEP, usb_data_buffer, 512);
+							}else{
+								if(stream_total_packets == 0)
+								{
+										usb_data_buffer_OUT_size = 0;
+										/* Clear NAK */
+										USB_REG(USBPortNum)->ENDPTNAKEN &= ~(1<<LogicalEP);
+										DcdDataTransfer(PhyEP, usb_data_buffer_OUT, 512/*512*/);
+								}
+							}
 						}
 					}
 				}
@@ -337,5 +519,7 @@ uint32_t Dummy_EPGetISOAddress(uint32_t EPNum, uint32_t* last_packet_size)
 {
 	return (uint32_t)iso_buffer;
 }
+//#endif
+
 
 #endif /*__LPC18XX__*/

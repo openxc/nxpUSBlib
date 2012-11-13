@@ -36,7 +36,7 @@
  *  \copydetails Group_ConfigDescriptorParser
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h.
+ *        dispatch header located in lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h.
  */
 
 /** \ingroup Group_Descriptors
@@ -66,7 +66,7 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_USB_DRIVER)
-			#error Do not include this file directly. Include lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h instead.
+			#error Do not include this file directly. Include lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h instead.
 		#endif
 
 	/* Public Interface - May be used in end-application: */
@@ -164,10 +164,11 @@
 			 *
 			 *  \return A value from the \ref USB_Host_GetConfigDescriptor_ErrorCodes_t enum.
 			 */
-			uint8_t USB_Host_GetDeviceConfigDescriptor(const uint8_t ConfigNumber,
+			uint8_t USB_Host_GetDeviceConfigDescriptor(const uint8_t corenum,
+													   const uint8_t ConfigNumber,
 			                                           uint16_t* const ConfigSizePtr,
 			                                           void* const BufferPtr,
-			                                           const uint16_t BufferSize) ATTR_NON_NULL_PTR_ARG(2) ATTR_NON_NULL_PTR_ARG(3);
+			                                           const uint16_t BufferSize) ATTR_NON_NULL_PTR_ARG(3) ATTR_NON_NULL_PTR_ARG(4);
 
 			/** Skips to the next sub-descriptor inside the configuration descriptor of the specified type value.
 			 *  The bytes remaining value is automatically decremented.

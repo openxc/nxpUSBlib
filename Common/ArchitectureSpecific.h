@@ -51,12 +51,12 @@
  *  @{
  */
 
-#ifndef __NXPUSBLIB_ARCHSPEC_H__
-#define __NXPUSBLIB_ARCHSPEC_H__
+#ifndef __LPCUSBlib_ARCHSPEC_H__
+#define __LPCUSBlib_ARCHSPEC_H__
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_COMMON_H)
-			#error Do not include this file directly. Include nxpUSBlib/Common/Common.h instead to gain this functionality.
+			#error Do not include this file directly. Include LPCUSBlib/Common/Common.h instead to gain this functionality.
 		#endif
 
 	/* Enable C linkage for C++ Compilers: */

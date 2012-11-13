@@ -46,6 +46,7 @@ uint8_t MIDI_Host_ConfigurePipes(USB_ClassInfo_MIDI_Host_t* const MIDIInterfaceI
 	USB_Descriptor_Endpoint_t*  DataINEndpoint  = NULL;
 	USB_Descriptor_Endpoint_t*  DataOUTEndpoint = NULL;
 	USB_Descriptor_Interface_t* MIDIInterface   = NULL;
+	uint8_t portnum = MIDIInterfaceInfo->Config.PortNumber;
 
 	memset(&MIDIInterfaceInfo->State, 0x00, sizeof(MIDIInterfaceInfo->State));
 
@@ -113,7 +114,7 @@ uint8_t MIDI_Host_ConfigurePipes(USB_ClassInfo_MIDI_Host_t* const MIDIInterfaceI
 			continue;
 		}
 
-		if (!(Pipe_ConfigurePipe(PipeNum, Type, Token, EndpointAddress, Size,
+		if (!(Pipe_ConfigurePipe(portnum,PipeNum, Type, Token, EndpointAddress, Size,
 		                         DoubleBanked ? PIPE_BANK_DOUBLE : PIPE_BANK_SINGLE)))
 		{
 			return MIDI_ENUMERROR_PipeConfigurationFailed;
@@ -168,7 +169,7 @@ static uint8_t DCOMP_MIDI_Host_NextMIDIStreamingDataEndpoint(void* const Current
 
 void MIDI_Host_USBTask(USB_ClassInfo_MIDI_Host_t* const MIDIInterfaceInfo)
 {
-	if ((USB_HostState != HOST_STATE_Configured) || !(MIDIInterfaceInfo->State.IsActive))
+	if ((USB_HostState[MIDIInterfaceInfo->Config.PortNumber] != HOST_STATE_Configured) || !(MIDIInterfaceInfo->State.IsActive))
 	  return;
 
 	#if !defined(NO_CLASS_DRIVER_AUTOFLUSH)
@@ -178,18 +179,18 @@ void MIDI_Host_USBTask(USB_ClassInfo_MIDI_Host_t* const MIDIInterfaceInfo)
 
 uint8_t MIDI_Host_Flush(USB_ClassInfo_MIDI_Host_t* const MIDIInterfaceInfo)
 {
-	if ((USB_HostState != HOST_STATE_Configured) || !(MIDIInterfaceInfo->State.IsActive))
+	uint8_t portnum = MIDIInterfaceInfo->Config.PortNumber;
+	uint8_t ErrorCode;
+	if ((USB_HostState[portnum] != HOST_STATE_Configured) || !(MIDIInterfaceInfo->State.IsActive))
 	  return PIPE_RWSTREAM_DeviceDisconnected;
 
-	uint8_t ErrorCode;
+	Pipe_SelectPipe(portnum,MIDIInterfaceInfo->Config.DataOUTPipeNumber);
 
-	Pipe_SelectPipe(MIDIInterfaceInfo->Config.DataOUTPipeNumber);
-
-	if (Pipe_BytesInPipe())
+	if (Pipe_BytesInPipe(portnum))
 	{
-		Pipe_ClearOUT();
+		Pipe_ClearOUT(portnum);
 
-		if ((ErrorCode = Pipe_WaitUntilReady()) != PIPE_READYWAIT_NoError)
+		if ((ErrorCode = Pipe_WaitUntilReady(portnum)) != PIPE_READYWAIT_NoError)
 		  return ErrorCode;
 	}
 
@@ -199,18 +200,18 @@ uint8_t MIDI_Host_Flush(USB_ClassInfo_MIDI_Host_t* const MIDIInterfaceInfo)
 uint8_t MIDI_Host_SendEventPacket(USB_ClassInfo_MIDI_Host_t* const MIDIInterfaceInfo,
                                   MIDI_EventPacket_t* const Event)
 {
-	if ((USB_HostState != HOST_STATE_Configured) || !(MIDIInterfaceInfo->State.IsActive))
+	uint8_t portnum = MIDIInterfaceInfo->Config.PortNumber;
+	uint8_t ErrorCode;
+	if ((USB_HostState[portnum] != HOST_STATE_Configured) || !(MIDIInterfaceInfo->State.IsActive))
 	  return HOST_SENDCONTROL_DeviceDisconnected;
 
-	uint8_t ErrorCode;
+	Pipe_SelectPipe(portnum,MIDIInterfaceInfo->Config.DataOUTPipeNumber);
 
-	Pipe_SelectPipe(MIDIInterfaceInfo->Config.DataOUTPipeNumber);
-
-	if ((ErrorCode = Pipe_Write_Stream_LE(Event, sizeof(MIDI_EventPacket_t), NULL)) != PIPE_RWSTREAM_NoError)
+	if ((ErrorCode = Pipe_Write_Stream_LE(portnum,Event, sizeof(MIDI_EventPacket_t), NULL)) != PIPE_RWSTREAM_NoError)
 	  return ErrorCode;
 
-	if (!(Pipe_IsReadWriteAllowed()))
-	  Pipe_ClearOUT();
+	if (!(Pipe_IsReadWriteAllowed(portnum)))
+	  Pipe_ClearOUT(portnum);
 
 	return PIPE_RWSTREAM_NoError;
 }
@@ -218,18 +219,20 @@ uint8_t MIDI_Host_SendEventPacket(USB_ClassInfo_MIDI_Host_t* const MIDIInterface
 bool MIDI_Host_ReceiveEventPacket(USB_ClassInfo_MIDI_Host_t* const MIDIInterfaceInfo,
                                   MIDI_EventPacket_t* const Event)
 {
-	if ((USB_HostState != HOST_STATE_Configured) || !(MIDIInterfaceInfo->State.IsActive))
+	uint8_t portnum = MIDIInterfaceInfo->Config.PortNumber;
+
+	if ((USB_HostState[portnum] != HOST_STATE_Configured) || !(MIDIInterfaceInfo->State.IsActive))
 	  return HOST_SENDCONTROL_DeviceDisconnected;
 
-	Pipe_SelectPipe(MIDIInterfaceInfo->Config.DataINPipeNumber);
+	Pipe_SelectPipe(portnum,MIDIInterfaceInfo->Config.DataINPipeNumber);
 
-	if (!(Pipe_IsReadWriteAllowed()))
+	if (!(Pipe_IsReadWriteAllowed(portnum)))
 	  return false;
 
-	Pipe_Read_Stream_LE(Event, sizeof(MIDI_EventPacket_t), NULL);
+	Pipe_Read_Stream_LE(portnum,Event, sizeof(MIDI_EventPacket_t), NULL);
 
-	if (!(Pipe_IsReadWriteAllowed()))
-	  Pipe_ClearIN();
+	if (!(Pipe_IsReadWriteAllowed(portnum)))
+	  Pipe_ClearIN(portnum);
 
 	return true;
 }

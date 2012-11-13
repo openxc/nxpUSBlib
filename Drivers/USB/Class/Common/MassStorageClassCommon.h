@@ -37,7 +37,7 @@
  *  Common definitions and declarations for the library USB Mass Storage Class driver.
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB module driver
- *        dispatch header located in nxpUSBlib/Drivers/USB.h.
+ *        dispatch header located in LPCUSBlib/Drivers/USB.h.
  */
 
 /** \ingroup Group_USBClassMS
@@ -63,7 +63,7 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_MS_DRIVER)
-			#error Do not include this file directly. Include nxpUSBlib/Drivers/USB.h instead.
+			#error Do not include this file directly. Include LPCUSBlib/Drivers/USB.h instead.
 		#endif
 
 	/* Macros: */
@@ -263,7 +263,7 @@
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint32_t Signature; /**< Command block signature, must be \ref MS_CBW_SIGNATURE to indicate a valid Command Block. */
 			uint32_t Tag; /**< Unique command ID value, to associate a command block wrapper with its command status wrapper. */
@@ -280,7 +280,7 @@
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint32_t Signature; /**< Status block signature, must be \ref MS_CSW_SIGNATURE to indicate a valid Command Status. */
 			uint32_t Tag; /**< Unique command ID value, to associate a command block wrapper with its command status wrapper. */
@@ -295,7 +295,7 @@
 		 *  device (giving explicit error codes for the last issued command). For details of the
 		 *  structure contents, refer to the SCSI specifications.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t  ResponseCode;
 
@@ -324,7 +324,7 @@
 		 *
 		 *  For details of the structure contents, refer to the SCSI specifications.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			unsigned DeviceType          : 5;
 			unsigned PeripheralQualifier : 3;

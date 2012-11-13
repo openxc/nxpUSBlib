@@ -35,10 +35,21 @@
 uint8_t USB_Device_ControlEndpointSize = ENDPOINT_CONTROLEP_DEFAULT_SIZE;
 #endif
 
+PRAGMA_ALIGN_64
 uint8_t usb_data_buffer[USB_DATA_BUFFER_TEM_LENGTH] ATTR_ALIGNED(64) __DATA(USBRAM_SECTION); /* TODO 11uxx require buffer is 64 byte aligned */
 
-uint32_t usb_data_buffer_size;
-uint32_t usb_data_buffer_index;
+volatile int32_t usb_data_buffer_size = 0;
+volatile uint32_t usb_data_buffer_index = 0;
+
+uint8_t usb_data_buffer_OUT[USB_DATA_BUFFER_TEM_LENGTH] ATTR_ALIGNED(64) __DATA(USBRAM_SECTION); /* TODO 11uxx require buffer is 64 byte aligned */
+
+volatile uint32_t usb_data_buffer_OUT_size = 0;
+volatile uint32_t usb_data_buffer_OUT_index = 0;
+
+uint8_t usb_data_buffer_IN[USB_DATA_BUFFER_TEM_LENGTH] ATTR_ALIGNED(64) __DATA(USBRAM_SECTION); /* TODO 11uxx require buffer is 64 byte aligned */
+
+//volatile uint32_t usb_data_buffer_IN_size = 0;
+volatile uint32_t usb_data_buffer_IN_index = 0;
 
 uint8_t endpointselected;
 uint8_t endpointhandle[ENDPOINT_TOTAL_ENDPOINTS];

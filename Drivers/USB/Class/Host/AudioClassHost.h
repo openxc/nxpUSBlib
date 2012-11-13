@@ -37,7 +37,7 @@
  *  Host mode driver for the library USB Audio 1.0 Class driver.
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB module driver
- *        dispatch header located in nxpUSBlib/Drivers/USB.h.
+ *        dispatch header located in LPCUSBlib/Drivers/USB.h.
  */
 
 /** \ingroup Group_USBClassAudio
@@ -45,7 +45,7 @@
  *
  *  \section Sec_Dependencies Module Source Dependencies
  *  The following files must be built with any user project that uses this module:
- *    - nxpUSBlib/Drivers/USB/Class/Host/Audio.c <i>(Makefile source module name: NXPUSBLIB_SRC_USBCLASS)</i>
+ *    - LPCUSBlib/Drivers/USB/Class/Host/Audio.c <i>(Makefile source module name: LPCUSBlib_SRC_USBCLASS)</i>
  *
  *  \section Sec_ModDescription Module Description
  *  Host Mode USB Class driver framework interface, for the Audio 1.0 USB Class driver.
@@ -67,7 +67,7 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_AUDIO_DRIVER)
-			#error Do not include this file directly. Include nxpUSBlib/Drivers/USB.h instead.
+			#error Do not include this file directly. Include LPCUSBlib/Drivers/USB.h instead.
 		#endif
 
 	/* Public Interface - May be used in end-application: */
@@ -80,7 +80,7 @@
 			 */
 			typedef struct
 			{
-				const struct
+				struct
 				{
 					uint8_t  DataINPipeNumber; /**< Pipe number of the Audio interface's IN data pipe. If this interface should not
 					                            *   bind to an IN endpoint, this may be set to 0 to disable audio input streaming for
@@ -90,6 +90,7 @@
 					                            *   bind to an OUT endpoint, this may be set to 0 to disable audio output streaming for
 					                            *   this driver instance.
 					                            */
+					uint8_t  PortNumber;		/**< Port number that this interface is running.			*/				
 				} Config; /**< Config data for the USB class interface within the device. All elements in this section
 				           *   <b>must</b> be set or the interface will fail to enumerate and operate correctly.
 				           */
@@ -199,14 +200,15 @@
 			                                               ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 			static inline bool Audio_Host_IsSampleReceived(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo)
 			{
-				if ((USB_HostState != HOST_STATE_Configured) || !(AudioInterfaceInfo->State.IsActive))
-				  return false;
-
+				uint8_t portnum = AudioInterfaceInfo->Config.PortNumber;
 				bool SampleReceived = false;
 
-				Pipe_SelectPipe(AudioInterfaceInfo->Config.DataINPipeNumber);
+				if ((USB_HostState[portnum] != HOST_STATE_Configured) || !(AudioInterfaceInfo->State.IsActive))
+				  return false;
+
+				Pipe_SelectPipe(portnum,AudioInterfaceInfo->Config.DataINPipeNumber);
 				Pipe_Unfreeze();
-				SampleReceived = Pipe_IsINReceived();
+				SampleReceived = Pipe_IsINReceived(portnum);
 				Pipe_Freeze();
 
 				return SampleReceived;
@@ -226,11 +228,13 @@
 			                                                   ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 			static inline bool Audio_Host_IsReadyForNextSample(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo)
 			{
-				if ((USB_HostState != HOST_STATE_Configured) || !(AudioInterfaceInfo->State.IsActive))
+				uint8_t portnum = AudioInterfaceInfo->Config.PortNumber;
+
+				if ((USB_HostState[portnum] != HOST_STATE_Configured) || !(AudioInterfaceInfo->State.IsActive))
 				  return false;
 
-				Pipe_SelectPipe(AudioInterfaceInfo->Config.DataOUTPipeNumber);
-				return Pipe_IsOUTReady();
+				Pipe_SelectPipe(portnum,AudioInterfaceInfo->Config.DataOUTPipeNumber);
+				return Pipe_IsOUTReady(portnum);
 			}
 
 			/** Reads the next 8-bit audio sample from the current audio interface.
@@ -247,15 +251,16 @@
 			static inline int8_t Audio_Host_ReadSample8(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo)
 			{
 				int8_t Sample;
+				uint8_t portnum = AudioInterfaceInfo->Config.PortNumber;
 
 				(void)AudioInterfaceInfo;
 
-				Sample = Pipe_Read_8();
+				Sample = Pipe_Read_8(portnum);
 
-				if (!(Pipe_BytesInPipe()))
+				if (!(Pipe_BytesInPipe(portnum)))
 				{
 					Pipe_Unfreeze();
-					Pipe_ClearIN();
+					Pipe_ClearIN(portnum);
 					Pipe_Freeze();
 				}
 
@@ -276,15 +281,15 @@
 			static inline int16_t Audio_Host_ReadSample16(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo)
 			{
 				int16_t Sample;
-
+				uint8_t portnum = AudioInterfaceInfo->Config.PortNumber;
 				(void)AudioInterfaceInfo;
 
-				Sample = (int16_t)Pipe_Read_16_LE();
+				Sample = (int16_t)Pipe_Read_16_LE(portnum);
 
-				if (!(Pipe_BytesInPipe()))
+				if (!(Pipe_BytesInPipe(portnum)))
 				{
 					Pipe_Unfreeze();
-					Pipe_ClearIN();
+					Pipe_ClearIN(portnum);
 					Pipe_Freeze();
 				}
 
@@ -305,15 +310,16 @@
 			static inline int32_t Audio_Host_ReadSample24(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo)
 			{
 				int32_t Sample;
-
+				uint8_t portnum = AudioInterfaceInfo->Config.PortNumber;
 				(void)AudioInterfaceInfo;
 
-				Sample = (((uint32_t)Pipe_Read_8() << 16) | Pipe_Read_16_LE());
+				Sample = (((uint32_t)Pipe_Read_8(portnum) << 16)
+							| Pipe_Read_16_LE(portnum));
 
-				if (!(Pipe_BytesInPipe()))
+				if (!(Pipe_BytesInPipe(portnum)))
 				{
 					Pipe_Unfreeze();
-					Pipe_ClearIN();
+					Pipe_ClearIN(portnum);
 					Pipe_Freeze();
 				}
 
@@ -333,15 +339,17 @@
 			static inline void Audio_Host_WriteSample8(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo,
 			                                           const int8_t Sample)
 			{
-				(void)AudioInterfaceInfo;
-			
-				Pipe_Write_8(Sample);
+				uint8_t portnum = AudioInterfaceInfo->Config.PortNumber;
 
-				if (!(Pipe_IsReadWriteAllowed()))
+				(void)AudioInterfaceInfo;
+
+				Pipe_Write_8(portnum,Sample);
+
+				if (!(Pipe_IsReadWriteAllowed(portnum)))
 				{
 					Pipe_Unfreeze();
-					Pipe_ClearOUT();
-					Pipe_WaitUntilReady();
+					Pipe_ClearOUT(portnum);
+					Pipe_WaitUntilReady(portnum);
 					Pipe_Freeze();
 				}
 			}
@@ -359,15 +367,17 @@
 			static inline void Audio_Host_WriteSample16(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo,
 			                                            const int16_t Sample)
 			{
+				uint8_t portnum = AudioInterfaceInfo->Config.PortNumber;
+
 				(void)AudioInterfaceInfo;
 			
-				Pipe_Write_16_LE(Sample);
+				Pipe_Write_16_LE(portnum,Sample);
 
-				if (!(Pipe_IsReadWriteAllowed()))
+				if (!(Pipe_IsReadWriteAllowed(portnum)))
 				{
 					Pipe_Unfreeze();
-					Pipe_ClearOUT();
-					Pipe_WaitUntilReady();
+					Pipe_ClearOUT(portnum);
+					Pipe_WaitUntilReady(portnum);
 					Pipe_Freeze();
 				}
 			}
@@ -385,16 +395,18 @@
 			static inline void Audio_Host_WriteSample24(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo,
 			                                            const int32_t Sample)
 			{
+				uint8_t portnum = AudioInterfaceInfo->Config.PortNumber;
+
 				(void)AudioInterfaceInfo;
 
-				Pipe_Write_16_LE(Sample);
-				Pipe_Write_8(Sample >> 16);
+				Pipe_Write_16_LE(portnum,Sample);
+				Pipe_Write_8(portnum,Sample >> 16);
 
-				if (!(Pipe_IsReadWriteAllowed()))
+				if (!(Pipe_IsReadWriteAllowed(portnum)))
 				{
 					Pipe_Unfreeze();
-					Pipe_ClearOUT();
-					Pipe_WaitUntilReady();
+					Pipe_ClearOUT(portnum);
+					Pipe_WaitUntilReady(portnum);
 					Pipe_Freeze();
 				}
 			}

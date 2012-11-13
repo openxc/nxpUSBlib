@@ -32,7 +32,7 @@
 	#include "DCD/LPC18XX/Endpoint_LPC18xx.h"
 #elif defined(__LPC17XX__)||defined(__LPC177X_8X__)
 	#include "DCD/LPC17XX/Endpoint_LPC17xx.h"
-#elif defined(__LPC11UXX__)
+#elif defined(__LPC11UXX__)||defined(__LPC13UXX__)
 	#include "DCD/LPC11UXX/Endpoint_LPC11Uxx.h"
 #endif
 
@@ -115,6 +115,7 @@ enum Endpoint_WaitUntilReady_ErrorCodes_t
  *
  *  \return Index of the currently selected endpoint.
  */
+PRAGMA_ALWAYS_INLINE
 static inline uint8_t Endpoint_GetCurrentEndpoint(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint8_t Endpoint_GetCurrentEndpoint(void)
 {
@@ -130,6 +131,7 @@ static inline uint8_t Endpoint_GetCurrentEndpoint(void)
  *
  *  \param[in] EndpointNumber Endpoint number to select.
  */
+PRAGMA_ALWAYS_INLINE
 static inline void Endpoint_SelectEndpoint(const uint8_t EndpointNumber) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_SelectEndpoint(const uint8_t EndpointNumber)
 {
@@ -143,12 +145,21 @@ static inline void Endpoint_SelectEndpoint(const uint8_t EndpointNumber)
  *
  *  \return Next byte in the currently selected endpoint's FIFO buffer.
  */
+PRAGMA_ALWAYS_INLINE
 static inline uint8_t Endpoint_Read_8(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint8_t Endpoint_Read_8(void)
 {
-	uint8_t tem = usb_data_buffer[usb_data_buffer_index];
-	usb_data_buffer_index++;
-	usb_data_buffer_size--;
+	uint8_t tem;
+	if (endpointselected==ENDPOINT_CONTROLEP)
+		{
+		tem = usb_data_buffer[usb_data_buffer_index];
+		usb_data_buffer_index++;
+		usb_data_buffer_size--;
+		}else{
+		tem = usb_data_buffer_OUT[usb_data_buffer_OUT_index];
+		usb_data_buffer_OUT_index++;
+		usb_data_buffer_OUT_size--;
+		}
 	return tem;
 }
 
@@ -156,6 +167,7 @@ static inline uint8_t Endpoint_Read_8(void)
  *
  *  \return The currently selected endpoint's direction, as a \c ENDPOINT_DIR_* mask.
  */
+PRAGMA_ALWAYS_INLINE
 static inline uint8_t Endpoint_GetEndpointDirection(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint8_t Endpoint_GetEndpointDirection(void)
 {
@@ -173,6 +185,7 @@ static inline uint8_t Endpoint_GetEndpointDirection(void)
  *  \return Boolean \c true if the currently selected endpoint may be read from or written to, depending
  *          on its direction.
  */
+PRAGMA_ALWAYS_INLINE
 static inline bool Endpoint_IsReadWriteAllowed(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Endpoint_IsReadWriteAllowed(void)
 {
@@ -184,18 +197,26 @@ static inline bool Endpoint_IsReadWriteAllowed(void)
  *
  *  \param[in] Data  Data to write into the the currently selected endpoint's FIFO buffer.
  */
+PRAGMA_ALWAYS_INLINE
 static inline void Endpoint_Write_8(const uint8_t Data) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Write_8(const uint8_t Data)
 {
-	usb_data_buffer[usb_data_buffer_index] = Data;
-	usb_data_buffer_index++;
-	usb_data_buffer_size++;
+	if (endpointselected==ENDPOINT_CONTROLEP)
+	{
+		usb_data_buffer[usb_data_buffer_index] = Data;
+		usb_data_buffer_index++;
+	}else
+	{
+	usb_data_buffer_IN[usb_data_buffer_IN_index] = Data;
+	usb_data_buffer_IN_index++;
+	}
 }
 
 /** Discards one byte from the currently selected endpoint's bank, for OUT direction endpoints.
  *
  *  \ingroup Group_EndpointPrimitiveRW_LPC
  */
+PRAGMA_ALWAYS_INLINE
 static inline void Endpoint_Discard_8(void) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Discard_8(void)
 {
@@ -210,6 +231,7 @@ static inline void Endpoint_Discard_8(void)
  *
  *  \return Next two bytes in the currently selected endpoint's FIFO buffer.
  */
+PRAGMA_ALWAYS_INLINE
 static inline uint16_t Endpoint_Read_16_LE(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint16_t Endpoint_Read_16_LE(void)
 {
@@ -229,6 +251,7 @@ static inline uint16_t Endpoint_Read_16_LE(void)
  *
  *  \return Next two bytes in the currently selected endpoint's FIFO buffer.
  */
+PRAGMA_ALWAYS_INLINE
 static inline uint16_t Endpoint_Read_16_BE(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint16_t Endpoint_Read_16_BE(void)
 {
@@ -248,6 +271,7 @@ static inline uint16_t Endpoint_Read_16_BE(void)
  *
  *  \param[in] Data  Data to write to the currently selected endpoint's FIFO buffer.
  */
+PRAGMA_ALWAYS_INLINE
 static inline void Endpoint_Write_16_LE(const uint16_t Data) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Write_16_LE(const uint16_t Data)
 {
@@ -262,6 +286,7 @@ static inline void Endpoint_Write_16_LE(const uint16_t Data)
  *
  *  \param[in] Data  Data to write to the currently selected endpoint's FIFO buffer.
  */
+PRAGMA_ALWAYS_INLINE
 static inline void Endpoint_Write_16_BE(const uint16_t Data) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Write_16_BE(const uint16_t Data)
 {
@@ -273,6 +298,7 @@ static inline void Endpoint_Write_16_BE(const uint16_t Data)
  *
  *  \ingroup Group_EndpointPrimitiveRW_LPC
  */
+PRAGMA_ALWAYS_INLINE
 static inline void Endpoint_Discard_16(void) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Discard_16(void)
 {
@@ -287,6 +313,7 @@ static inline void Endpoint_Discard_16(void)
  *
  *  \return Next four bytes in the currently selected endpoint's FIFO buffer.
  */
+PRAGMA_ALWAYS_INLINE
 static inline uint32_t Endpoint_Read_32_LE(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint32_t Endpoint_Read_32_LE(void)
 {
@@ -308,6 +335,7 @@ static inline uint32_t Endpoint_Read_32_LE(void)
  *
  *  \return Next four bytes in the currently selected endpoint's FIFO buffer.
  */
+PRAGMA_ALWAYS_INLINE
 static inline uint32_t Endpoint_Read_32_BE(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint32_t Endpoint_Read_32_BE(void)
 {
@@ -329,6 +357,7 @@ static inline uint32_t Endpoint_Read_32_BE(void)
  *
  *  \param[in] Data  Data to write to the currently selected endpoint's FIFO buffer.
  */
+PRAGMA_ALWAYS_INLINE
 static inline void Endpoint_Write_32_LE(const uint32_t Data) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Write_32_LE(const uint32_t Data)
 {
@@ -345,6 +374,7 @@ static inline void Endpoint_Write_32_LE(const uint32_t Data)
  *
  *  \param[in] Data  Data to write to the currently selected endpoint's FIFO buffer.
  */
+PRAGMA_ALWAYS_INLINE
 static inline void Endpoint_Write_32_BE(const uint32_t Data) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Write_32_BE(const uint32_t Data)
 {
@@ -358,6 +388,7 @@ static inline void Endpoint_Write_32_BE(const uint32_t Data)
  *
  *  \ingroup Group_EndpointPrimitiveRW_LPC
  */
+PRAGMA_ALWAYS_INLINE
 static inline void Endpoint_Discard_32(void) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Discard_32(void)
 {

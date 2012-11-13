@@ -36,7 +36,7 @@
  *  \copydetails Group_StdRequest
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h.
+ *        dispatch header located in lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h.
  */
 
 /** \ingroup Group_USB
@@ -63,7 +63,7 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_USB_DRIVER)
-			#error Do not include this file directly. Include lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h instead.
+			#error Do not include this file directly. Include lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h instead.
 		#endif
 
 	/* Public Interface - May be used in end-application: */
@@ -163,7 +163,7 @@
 			 *
 			 *  \see The USB 2.0 specification for more information on standard control requests.
 			 */
-			typedef struct
+			typedef ATTR_IAR_PACKED struct
 			{
 				uint8_t  bmRequestType; /**< Type of the request. */
 				uint8_t  bRequest; /**< Request command code. */

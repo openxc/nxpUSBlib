@@ -37,7 +37,7 @@
  *  Common definitions and declarations for the library USB CDC Class driver.
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB module driver
- *        dispatch header located in nxpUSBlib/Drivers/USB.h.
+ *        dispatch header located in LPCUSBlib/Drivers/USB.h.
  */
 
 /** \ingroup Group_USBClassCDC
@@ -63,7 +63,7 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_CDC_DRIVER)
-			#error Do not include this file directly. Include nxpUSBlib/Drivers/USB.h instead.
+			#error Do not include this file directly. Include LPCUSBlib/Drivers/USB.h instead.
 		#endif
 
 	/* Macros: */
@@ -227,7 +227,7 @@
 		};
 
 	/* Type Defines: */
-		/** \brief CDC class-specific Functional Header Descriptor (nxpUSBlib naming conventions).
+		/** \brief CDC class-specific Functional Header Descriptor (LPCUSBlib naming conventions).
 		 *
 		 *  Type define for a CDC class-specific functional header descriptor. This indicates to the host that the device
 		 *  contains one or more CDC functional data descriptors, which give the CDC interface's capabilities and configuration.
@@ -237,7 +237,7 @@
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			USB_Descriptor_Header_t Header; /**< Regular descriptor header containing the descriptor's type and length. */
 			uint8_t                 Subtype; /**< Sub type value used to distinguish between CDC class-specific descriptors,
@@ -254,12 +254,12 @@
 		 *  contains one or more CDC functional data descriptors, which give the CDC interface's capabilities and configuration.
 		 *  See the CDC class specification for more details.
 		 *
-		 *  \see \ref USB_CDC_Descriptor_FunctionalHeader_t for the version of this type with non-standard nxpUSBlib specific
+		 *  \see \ref USB_CDC_Descriptor_FunctionalHeader_t for the version of this type with non-standard LPCUSBlib specific
 		 *       element names.
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t  bFunctionLength; /**< Size of the descriptor, in bytes. */
 			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
@@ -271,7 +271,7 @@
 			uint16_t bcdCDC; /**< Version number of the CDC specification implemented by the device, encoded in BCD format. */
 		} ATTR_PACKED USB_CDC_StdDescriptor_FunctionalHeader_t;
 
-		/** \brief CDC class-specific Functional ACM Descriptor (nxpUSBlib naming conventions).
+		/** \brief CDC class-specific Functional ACM Descriptor (LPCUSBlib naming conventions).
 		 *
 		 *  Type define for a CDC class-specific functional ACM descriptor. This indicates to the host that the CDC interface
 		 *  supports the CDC ACM subclass of the CDC specification. See the CDC class specification for more details.
@@ -280,7 +280,7 @@
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			USB_Descriptor_Header_t Header; /**< Regular descriptor header containing the descriptor's type and length. */
 			uint8_t                 Subtype; /**< Sub type value used to distinguish between CDC class-specific descriptors,
@@ -297,12 +297,12 @@
 		 *  Type define for a CDC class-specific functional ACM descriptor. This indicates to the host that the CDC interface
 		 *  supports the CDC ACM subclass of the CDC specification. See the CDC class specification for more details.
 		 *
-		 *  \see \ref USB_CDC_Descriptor_FunctionalACM_t for the version of this type with non-standard nxpUSBlib specific
+		 *  \see \ref USB_CDC_Descriptor_FunctionalACM_t for the version of this type with non-standard LPCUSBlib specific
 		 *       element names.
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t bFunctionLength; /**< Size of the descriptor, in bytes. */
 			uint8_t bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
@@ -317,7 +317,7 @@
 			                         */
 		} ATTR_PACKED USB_CDC_StdDescriptor_FunctionalACM_t;
 
-		/** \brief CDC class-specific Functional Union Descriptor (nxpUSBlib naming conventions).
+		/** \brief CDC class-specific Functional Union Descriptor (LPCUSBlib naming conventions).
 		 *
 		 *  Type define for a CDC class-specific functional Union descriptor. This indicates to the host that specific
 		 *  CDC control and data interfaces are related. See the CDC class specification for more details.
@@ -326,7 +326,7 @@
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			USB_Descriptor_Header_t Header; /**< Regular descriptor header containing the descriptor's type and length. */
 			uint8_t                 Subtype; /**< Sub type value used to distinguish between CDC class-specific descriptors,
@@ -341,12 +341,12 @@
 		 *  Type define for a CDC class-specific functional Union descriptor. This indicates to the host that specific
 		 *  CDC control and data interfaces are related. See the CDC class specification for more details.
 		 *
-		 *  \see \ref USB_CDC_Descriptor_FunctionalUnion_t for the version of this type with non-standard nxpUSBlib specific
+		 *  \see \ref USB_CDC_Descriptor_FunctionalUnion_t for the version of this type with non-standard LPCUSBlib specific
 		 *       element names.
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t bFunctionLength; /**< Size of the descriptor, in bytes. */
 			uint8_t bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
@@ -366,7 +366,7 @@
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint32_t BaudRateBPS; /**< Baud rate of the virtual serial port, in bits per second. */
 			uint8_t  CharFormat; /**< Character format of the virtual serial port, a value from the

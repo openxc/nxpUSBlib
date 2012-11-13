@@ -56,8 +56,8 @@
  *  @{
  */
 
-#ifndef __NXPUSBLIB_ENDIANNESS_H__
-#define __NXPUSBLIB_ENDIANNESS_H__
+#ifndef __LPCUSBlib_ENDIANNESS_H__
+#define __LPCUSBlib_ENDIANNESS_H__
 
 	/* Enable C linkage for C++ Compilers: */
 		#if defined(__cplusplus)
@@ -66,7 +66,7 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_COMMON_H)
-			#error Do not include this file directly. Include nxpUSBlib/Common/Common.h instead to gain this functionality.
+			#error Do not include this file directly. Include LPCUSBlib/Common/Common.h instead to gain this functionality.
 		#endif
 		
 		#if !(defined(ARCH_BIG_ENDIAN) || defined(ARCH_LITTLE_ENDIAN))
