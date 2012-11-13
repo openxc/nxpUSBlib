@@ -36,7 +36,11 @@
 #define  __INCLUDE_FROM_USB_DRIVER
 /* Includes: */
 #include "../../../USBMode.h"
+#if defined(__LPC11UXX__)
 #include "LPC11Uxx.h"
+#elif defined(__LPC13UXX__)
+#include "LPC13Uxx.h"
+#endif
 /* Macros: */
 /** This macro used to declare a variable in a defined section. */
 #define USBRAM_SECTION RAM2
@@ -45,6 +49,10 @@
 	#undef	__DATA(x) 
 	#define __DATA(x)	__attribute__((section("usbram")))  
 #endif
+#if defined(__ICCARM__)
+        #define __DATA(x)       @ "USB_PACKET_MEMORY"
+#endif
+
 /* Type Defines: */
 /** This structure presents the format of an EndpointCommandStatusList of LPC11Uxx. */
 typedef struct {

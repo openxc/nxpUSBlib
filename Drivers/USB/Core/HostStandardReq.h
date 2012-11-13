@@ -38,7 +38,7 @@
  *  when the library is in USB host mode.
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h.
+ *        dispatch header located in lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h.
  */
 
 #ifndef __HOSTSTDREQ_H__
@@ -57,7 +57,7 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_USB_DRIVER)
-			#error Do not include this file directly. Include lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h instead.
+			#error Do not include this file directly. Include lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h instead.
 		#endif
 
 	/* Public Interface - May be used in end-application: */
@@ -117,7 +117,7 @@
 			 *
 			 *  \return A value from the \ref USB_Host_SendControlErrorCodes_t enum to indicate the result.
 			 */
-			uint8_t USB_Host_SendControlRequest(void* const BufferPtr);
+			uint8_t USB_Host_SendControlRequest(const uint8_t corenum, void* const BufferPtr);
 
 			/** Sends a SET CONFIGURATION standard request to the attached device, with the given configuration index.
 			 *
@@ -132,7 +132,7 @@
 			 *
 			 *  \return A value from the \ref USB_Host_SendControlErrorCodes_t enum to indicate the result.
 			 */
-			uint8_t USB_Host_SetDeviceConfiguration(const uint8_t ConfigNumber);
+			uint8_t USB_Host_SetDeviceConfiguration(const uint8_t corenum, const uint8_t ConfigNumber);
 
 			/** Sends a GET DESCRIPTOR standard request to the attached device, requesting the device descriptor.
 			 *  This can be used to easily retrieve information about the device such as its VID, PID and power
@@ -147,7 +147,7 @@
 			 *
 			 *  \return A value from the \ref USB_Host_SendControlErrorCodes_t enum to indicate the result.
 			 */
-			uint8_t USB_Host_GetDeviceDescriptor(void* const DeviceDescriptorPtr) ATTR_NON_NULL_PTR_ARG(1);
+			uint8_t USB_Host_GetDeviceDescriptor(const uint8_t corenum, void* const DeviceDescriptorPtr) ATTR_NON_NULL_PTR_ARG(2);
 
 			/** Sends a GET DESCRIPTOR standard request to the attached device, requesting the string descriptor
 			 *  of the specified index. This can be used to easily retrieve string descriptors from the device by
@@ -164,9 +164,10 @@
 			 *
 			 *  \return A value from the \ref USB_Host_SendControlErrorCodes_t enum to indicate the result.
 			 */
-			uint8_t USB_Host_GetDeviceStringDescriptor(const uint8_t Index,
+			uint8_t USB_Host_GetDeviceStringDescriptor(const uint8_t corenum,
+													   const uint8_t Index,
 			                                           void* const Buffer,
-			                                           const uint8_t BufferLength) ATTR_NON_NULL_PTR_ARG(2);
+			                                           const uint8_t BufferLength) ATTR_NON_NULL_PTR_ARG(3);
 
 			/** Retrieves the current feature status of the attached device, via a GET STATUS standard request. The
 			 *  retrieved feature status can then be examined by masking the retrieved value with the various
@@ -180,7 +181,7 @@
 			 *
 			 *  \return A value from the \ref USB_Host_SendControlErrorCodes_t enum to indicate the result.
 			 */
-			uint8_t USB_Host_GetDeviceStatus(uint8_t* const FeatureStatus) ATTR_NON_NULL_PTR_ARG(1);
+			uint8_t USB_Host_GetDeviceStatus(const uint8_t corenum, uint8_t* const FeatureStatus) ATTR_NON_NULL_PTR_ARG(2);
 
 			/** Clears a stall condition on the given pipe, via a CLEAR FEATURE standard request to the attached device.
 			 *
@@ -192,7 +193,7 @@
 			 *
 			 *  \return A value from the \ref USB_Host_SendControlErrorCodes_t enum to indicate the result.
 			 */
-			uint8_t USB_Host_ClearEndpointStall(const uint8_t EndpointAddress);
+			uint8_t USB_Host_ClearEndpointStall(const uint8_t corenum, const uint8_t EndpointAddress);
 
 			/** Selects a given alternative setting for the specified interface, via a SET INTERFACE standard request to
 			 *  the attached device.
@@ -206,7 +207,8 @@
 			 *
 			 *  \return A value from the \ref USB_Host_SendControlErrorCodes_t enum to indicate the result.
 			 */
-			uint8_t USB_Host_SetInterfaceAltSetting(const uint8_t InterfaceIndex,
+			uint8_t USB_Host_SetInterfaceAltSetting(const uint8_t corenum,
+													const uint8_t InterfaceIndex,
 													const uint8_t AltSetting);
 
 	/* Private Interface - For use in library only: */

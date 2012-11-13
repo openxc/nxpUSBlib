@@ -43,13 +43,15 @@
 	#define __BSS(x)
 #elif defined(__GNUC__)
     #define __DATA(x)  __attribute__((section("usbram")))
+#elif defined(__ICCARM__)
+	#define __BSS(x)
 #endif
 /* Chip Includes: */
 #if defined(__LPC18XX__)||defined(__LPC43XX__)
 	#include "LPC18XX/HAL_LPC18xx.h"
 #elif defined(__LPC17XX__)||defined(__LPC177X_8X__)
 	#include "LPC17XX/HAL_LPC17xx.h"
-#elif defined(__LPC11UXX__)
+#elif defined(__LPC11UXX__)||defined(__LPC13UXX__)
 	#include "LPC11UXX/HAL_LPC11Uxx.h"
 #endif
 /* Function Prototypes: */
@@ -59,17 +61,17 @@
  *     - Setup USB core clock
  *     - Call HAL_RESET to setup needed USB operating registers, set device address 0 if running device mode
  */
-void HAL_USBInit(void);
+void HAL_USBInit(uint8_t corenum);
 /** This function usage is opposite to HAL_USBInit */
-void HAL_USBDeInit(void);
+void HAL_USBDeInit(uint8_t corenum);
 /** This function used to enable USB interrupt */
-void HAL_EnableUSBInterrupt(void);
+void HAL_EnableUSBInterrupt(uint8_t corenum);
 /** This function usage is opposite to HAL_EnableUSBInterrupt */
-void HAL_DisableUSBInterrupt(void);
+void HAL_DisableUSBInterrupt(uint8_t corenum);
 /** This function is used in device mode to pull up resistor on USB pin D+
  *  Normally, this function is called when every setup or initial are done.
  */
-void HAL_USBConnect (uint32_t con);
+void HAL_USBConnect (uint8_t corenum, uint32_t con);
 /* Selected USB Port Number */
 extern uint8_t USBPortNum;
 #endif /*__LPC_HAL_H__*/

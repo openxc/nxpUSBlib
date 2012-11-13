@@ -39,10 +39,13 @@
 #include "EHCI.h"
 
 // === TODO: Unify USBRAM Section ===
-//EHCI_HOST_DATA_Type ehci_data[MAX_USB_CORE] __BSS(USBRAM_SECTION);
-EHCI_HOST_DATA_Type ehci_data __BSS(USBRAM_SECTION);
+PRAGMA_ALIGN_32
+EHCI_HOST_DATA_Type ehci_data[MAX_USB_CORE] __BSS(USBRAM_SECTION);
+//EHCI_HOST_DATA_Type ehci_data __BSS(USBRAM_SECTION);
+PRAGMA_ALIGN_4096
 NextLinkPointer	PeriodFrameList0[FRAME_LIST_SIZE] ATTR_ALIGNED(4096) __DATA(USBRAM_SECTION);		/* Period Frame List */
-//NextLinkPointer	PeriodFrameList1[FRAME_LIST_SIZE] ATTR_ALIGNED(4096) __DATA(USBRAM_SECTION);		/* Period Frame List */
+PRAGMA_ALIGN_4096
+NextLinkPointer	PeriodFrameList1[FRAME_LIST_SIZE] ATTR_ALIGNED(4096) __DATA(USBRAM_SECTION);		/* Period Frame List */
 /*=======================================================================*/
 /* G L O B A L   F U N C T I O N S                                	     */
 /*=======================================================================*/
@@ -157,16 +160,16 @@ HCD_STATUS HcdOpenPipe(uint8_t HostID,
 	{
 		case CONTROL_TRANSFER:
 		case BULK_TRANSFER:
- 			ASSERT_STATUS_OK ( AllocQhd(DeviceAddr, DeviceSpeed, EndpointNumber, TransferType, TransferDir, MaxPacketSize, Interval, Mult, HSHubDevAddr, HSHubPortNum, &HeadIdx) );
+ 			ASSERT_STATUS_OK ( AllocQhd(HostID, DeviceAddr, DeviceSpeed, EndpointNumber, TransferType, TransferDir, MaxPacketSize, Interval, Mult, HSHubDevAddr, HSHubPortNum, &HeadIdx) );
 			DisableAsyncSchedule(HostID);
- 			InsertLinkPointer( &HcdAsyncHead(HostID)->Horizontal, &HcdQHD(HeadIdx)->Horizontal, QHD_TYPE );
+ 			InsertLinkPointer( &HcdAsyncHead(HostID)->Horizontal, &HcdQHD(HostID,HeadIdx)->Horizontal, QHD_TYPE );
 			EnableAsyncSchedule(HostID);
 		break;
 
 		case INTERRUPT_TRANSFER:
-			ASSERT_STATUS_OK ( AllocQhd(DeviceAddr, DeviceSpeed, EndpointNumber, TransferType, TransferDir, MaxPacketSize, Interval, Mult, HSHubDevAddr, HSHubPortNum, &HeadIdx) );
+			ASSERT_STATUS_OK ( AllocQhd(HostID, DeviceAddr, DeviceSpeed, EndpointNumber, TransferType, TransferDir, MaxPacketSize, Interval, Mult, HSHubDevAddr, HSHubPortNum, &HeadIdx) );
 			DisablePeriodSchedule(HostID);
-			InsertLinkPointer( &HcdIntHead(HostID)->Horizontal, &HcdQHD(HeadIdx)->Horizontal, QHD_TYPE );
+			InsertLinkPointer( &HcdIntHead(HostID)->Horizontal, &HcdQHD(HostID,HeadIdx)->Horizontal, QHD_TYPE );
 			EnablePeriodSchedule(HostID);
 		break;
 
@@ -177,7 +180,7 @@ HCD_STATUS HcdOpenPipe(uint8_t HostID,
 				ASSERT_STATUS_OK_MESSAGE(HCD_STATUS_TRANSFER_TYPE_NOT_SUPPORTED, "Highspeed ISO and ISO IN is not supported yet, due to lack of testing");
 			}
 #endif
-			ASSERT_STATUS_OK ( AllocQhd(DeviceAddr, DeviceSpeed, EndpointNumber, TransferType, TransferDir, MaxPacketSize, Interval, Mult, HSHubDevAddr, HSHubPortNum, &HeadIdx) );
+			ASSERT_STATUS_OK ( AllocQhd(HostID, DeviceAddr, DeviceSpeed, EndpointNumber, TransferType, TransferDir, MaxPacketSize, Interval, Mult, HSHubDevAddr, HSHubPortNum, &HeadIdx) );
 		break;
 	}
 
@@ -213,7 +216,7 @@ HCD_STATUS HcdClosePipe(uint32_t PipeHandle)
 		break;
 		
 		case ISOCHRONOUS_TRANSFER:
-			FreeQhd(HeadIdx);
+			FreeQhd(HostID,HeadIdx);
 		break;              
 	}
 	return HCD_STATUS_OK;
@@ -276,7 +279,7 @@ HCD_STATUS HcdCancelTransfer(uint32_t PipeHandle)
 		}
 	}else /*-- Bulk / Control / Interrupt --*/
 	{
-		uint32_t TdLink = HcdQHD(HeadIdx)->FirstQtd;
+		uint32_t TdLink = HcdQHD(HostID,HeadIdx)->FirstQtd;
 
 		/*-- Foreach Qtd in Qhd --*/ /*---------- Deactivate all queued TDs ----------*/
 		while ( isValidLink(TdLink) )
@@ -288,7 +291,7 @@ HCD_STATUS HcdCancelTransfer(uint32_t PipeHandle)
 			pQtd->IntOnComplete = 0; /* no interrupt scenario on this TD */
 			FreeQtd(pQtd);
 		}
-		HcdQHD(HeadIdx)->FirstQtd = LINK_TERMINATE;
+		HcdQHD(HostID,HeadIdx)->FirstQtd = LINK_TERMINATE;
 	}
 
 	EnableSchedule(HostID, (XferType == INTERRUPT_TRANSFER) || (XferType == ISOCHRONOUS_TRANSFER) ? 1 : 0);
@@ -324,32 +327,32 @@ HCD_STATUS HcdControlTransfer(uint32_t PipeHandle, const USB_Request_Header_t* c
 	direction =  pDeviceRequest->bmRequestType & 0x80;
 
 	/*---------- Setup Stage ----------*/
-	ASSERT_STATUS_OK ( AllocQTD(&SetupTdIdx, (uint8_t* const) pDeviceRequest, 8, SETUP_TRANSFER, 0, 0) );		/* Setup TD: DirectionPID=00 - DataToggle=10b (always DATA0) */
+	ASSERT_STATUS_OK ( AllocQTD(HostID, &SetupTdIdx, (uint8_t* const) pDeviceRequest, 8, SETUP_TRANSFER, 0, 0) );		/* Setup TD: DirectionPID=00 - DataToggle=10b (always DATA0) */
 
 	/*---------- Data Stage ----------*/
 	if (Datalength)
 	{
-		ASSERT_STATUS_OK ( AllocQTD(&DataTdIdx, buffer, Datalength, direction ? IN_TRANSFER : OUT_TRANSFER, 1, 0) );
+		ASSERT_STATUS_OK ( AllocQTD(HostID, &DataTdIdx, buffer, Datalength, direction ? IN_TRANSFER : OUT_TRANSFER, 1, 0) );
 	}else
 	{
 		DataTdIdx = SetupTdIdx; /* Data TD is skipped */
 	}
 
 	/*---------- Status Stage ----------*/
-	ASSERT_STATUS_OK ( AllocQTD(&StatusTdIdx, NULL, 0, direction ? OUT_TRANSFER : IN_TRANSFER, 1, 1) );	/* Status TD: Direction=opposite of data direction - DataToggle=11b (always DATA1) */
+	ASSERT_STATUS_OK ( AllocQTD(HostID, &StatusTdIdx, NULL, 0, direction ? OUT_TRANSFER : IN_TRANSFER, 1, 1) );	/* Status TD: Direction=opposite of data direction - DataToggle=11b (always DATA1) */
 
 	/* Hook TDs Together */
-	HcdQTD(SetupTdIdx)->NextQtd = (uint32_t)HcdQTD(DataTdIdx);
-	HcdQTD(DataTdIdx)->NextQtd = (uint32_t)HcdQTD(StatusTdIdx);
+	HcdQTD(HostID,SetupTdIdx)->NextQtd = (uint32_t)HcdQTD(HostID,DataTdIdx);
+	HcdQTD(HostID,DataTdIdx)->NextQtd = (uint32_t)HcdQTD(HostID,StatusTdIdx);
 	
 	/* Hook TDs to QHD */
-	HcdQHD(QhdIdx)->Overlay.NextQtd = (uint32_t) HcdQTD(SetupTdIdx);
-	HcdQHD(QhdIdx)->FirstQtd = Align32( (uint32_t) HcdQTD(SetupTdIdx) );
+	HcdQHD(HostID,QhdIdx)->Overlay.NextQtd = (uint32_t) HcdQTD(HostID,SetupTdIdx);
+	HcdQHD(HostID,QhdIdx)->FirstQtd = Align32( (uint32_t) HcdQTD(HostID,SetupTdIdx) );
 
-	HcdQHD(QhdIdx)->status = (uint32_t) HCD_STATUS_TRANSFER_QUEUED;
+	HcdQHD(HostID,QhdIdx)->status = (uint32_t) HCD_STATUS_TRANSFER_QUEUED;
 
 	/* wait for semaphore compete TDs */
-	ASSERT_STATUS_OK ( WaitForTransferComplete(QhdIdx) );
+	ASSERT_STATUS_OK ( WaitForTransferComplete(HostID,QhdIdx) );
 
 	return HCD_STATUS_OK;
 }
@@ -378,11 +381,11 @@ HCD_STATUS HcdDataTransfer(uint32_t PipeHandle, uint8_t* const buffer, uint32_t 
 
 	ASSERT_STATUS_OK ( PipehandleParse(PipeHandle, &HostID, &XferType, &HeadIdx) );
 
-	ExpectedLength = (length != HCD_ENDPOINT_MAXPACKET_XFER_LEN) ? length : HcdQHD(HeadIdx)->MaxPackageSize; /* LUFA adaption, receive only 1 data transaction */
+	ExpectedLength = (length != HCD_ENDPOINT_MAXPACKET_XFER_LEN) ? length : HcdQHD(HostID,HeadIdx)->MaxPackageSize; /* LUFA adaption, receive only 1 data transaction */
 	
 	if (XferType == ISOCHRONOUS_TRANSFER)
 	{
-		if ( HcdQHD(HeadIdx)->EndpointSpeed == HIGH_SPEED ) /*-- Highspeed ISO --*/
+		if ( HcdQHD(HostID,HeadIdx)->EndpointSpeed == HIGH_SPEED ) /*-- Highspeed ISO --*/
 		{
 			ASSERT_STATUS_OK( QueueITDs( HostID, HeadIdx, buffer,ExpectedLength) );
 		}else	/*-- Full/Low Speed ISO --*/
@@ -393,17 +396,17 @@ HCD_STATUS HcdDataTransfer(uint32_t PipeHandle, uint8_t* const buffer, uint32_t 
 	{
 		/* ASSERT_STATUS_OK( QueueQTDs(&DataTdIdx, buffer, ExpectedLength, HcdQHD(HeadIdx)->Direction ? IN_TRANSFER : OUT_TRANSFER, 0, 1) ); */
 		/* For simplicity, this only queue one TD only */
-		ASSERT_STATUS_OK( AllocQTD(&DataTdIdx, buffer, ExpectedLength, HcdQHD(HeadIdx)->Direction ? IN_TRANSFER : OUT_TRANSFER, 0, 1) );
+		ASSERT_STATUS_OK( AllocQTD(HostID, &DataTdIdx, buffer, ExpectedLength, HcdQHD(HostID,HeadIdx)->Direction ? IN_TRANSFER : OUT_TRANSFER, 0, 1) );
 
 		/*---------- Hook to Queue Head ----------*/
-		HcdQHD(HeadIdx)->Overlay.NextQtd = (uint32_t) HcdQTD(DataTdIdx);
-		HcdQHD(HeadIdx)->FirstQtd = Align32( (uint32_t) HcdQTD(DataTdIdx) );	/* used as TD head to clean up TD chain when transfer done */
+		HcdQHD(HostID,HeadIdx)->Overlay.NextQtd = (uint32_t) HcdQTD(HostID,DataTdIdx);
+		HcdQHD(HostID,HeadIdx)->FirstQtd = Align32( (uint32_t) HcdQTD(HostID,DataTdIdx) );	/* used as TD head to clean up TD chain when transfer done */
 	}
 
-	HcdQHD(HeadIdx)->status = (uint32_t) HCD_STATUS_TRANSFER_QUEUED;
-	HcdQHD(HeadIdx)->pActualTransferCount = pActualTransferred; /* TODO Actual Length get rid of this */
-	if (HcdQHD(HeadIdx)->pActualTransferCount)
-		*(HcdQHD(HeadIdx)->pActualTransferCount) = ExpectedLength;
+	HcdQHD(HostID,HeadIdx)->status = (uint32_t) HCD_STATUS_TRANSFER_QUEUED;
+	HcdQHD(HostID,HeadIdx)->pActualTransferCount = pActualTransferred; /* TODO Actual Length get rid of this */
+	if (HcdQHD(HostID,HeadIdx)->pActualTransferCount)
+		*(HcdQHD(HostID,HeadIdx)->pActualTransferCount) = ExpectedLength;
 
 	return HCD_STATUS_OK;
 }
@@ -415,60 +418,60 @@ HCD_STATUS HcdGetPipeStatus(uint32_t PipeHandle) /* TODO can be implemented base
 
 	ASSERT_STATUS_OK ( PipehandleParse(PipeHandle, &HostID, &XferType, &HeadIdx) );
 
-	return HcdQHD(HeadIdx)->status;
+	return HcdQHD(HostID,HeadIdx)->status;
 }
 /*==========================================================================*/
 /* QUEUE HEAD & QUEUE TD                         											*/
 /*==========================================================================*/
 /*---------- Queue Head Rountines ----------*/
-static void FreeQhd( uint8_t QhdIdx )
+static void FreeQhd(uint8_t HostID, uint8_t QhdIdx )
 {
-	HcdQHD(QhdIdx)->status = HCD_STATUS_STRUCTURE_IS_FREE;
-	HcdQHD(QhdIdx)->Horizontal.Link |= LINK_TERMINATE;
-	HcdQHD(QhdIdx)->inUse = 0;
+	HcdQHD(HostID,QhdIdx)->status = HCD_STATUS_STRUCTURE_IS_FREE;
+	HcdQHD(HostID,QhdIdx)->Horizontal.Link |= LINK_TERMINATE;
+	HcdQHD(HostID,QhdIdx)->inUse = 0;
 }
-static HCD_STATUS AllocQhd( uint8_t DeviceAddr, HCD_USB_SPEED DeviceSpeed, uint8_t EndpointNumber, HCD_TRANSFER_TYPE TransferType, HCD_TRANSFER_DIR TransferDir, uint16_t MaxPacketSize, uint8_t Interval, uint8_t Mult, uint8_t HSHubDevAddr, uint8_t HSHubPortNum, uint32_t* pQhdIdx )
+static HCD_STATUS AllocQhd(uint8_t HostID, uint8_t DeviceAddr, HCD_USB_SPEED DeviceSpeed, uint8_t EndpointNumber, HCD_TRANSFER_TYPE TransferType, HCD_TRANSFER_DIR TransferDir, uint16_t MaxPacketSize, uint8_t Interval, uint8_t Mult, uint8_t HSHubDevAddr, uint8_t HSHubPortNum, uint32_t* pQhdIdx )
 {
 	/* Looking for a free QHD */
-	for ( (*pQhdIdx)=0; (*pQhdIdx) < HCD_MAX_QTD && HcdQHD(*pQhdIdx)->inUse; (*pQhdIdx)++) {}
+	for ( (*pQhdIdx)=0; (*pQhdIdx) < HCD_MAX_QTD && HcdQHD(HostID,*pQhdIdx)->inUse; (*pQhdIdx)++) {}
 
 	if ((*pQhdIdx) == HCD_MAX_QTD )
 		return HCD_STATUS_NOT_ENOUGH_ENDPOINT;
 
-	memset(HcdQHD(*pQhdIdx), 0, sizeof(HCD_QHD) );
+	memset(HcdQHD(HostID,*pQhdIdx), 0, sizeof(HCD_QHD) );
 
 	/* Init Data For Queue Head */
-	HcdQHD(*pQhdIdx)->inUse = 1;
-	HcdQHD(*pQhdIdx)->Direction = (TransferDir==IN_TRANSFER) ? 1 : 0;	/* Control Endpoint should not use this parameter */
-	HcdQHD(*pQhdIdx)->Interval = Interval;
-	HcdQHD(*pQhdIdx)->status = HCD_STATUS_OK;
-	HcdQHD(*pQhdIdx)->FirstQtd = LINK_TERMINATE;
+	HcdQHD(HostID,*pQhdIdx)->inUse = 1;
+	HcdQHD(HostID,*pQhdIdx)->Direction = (TransferDir==IN_TRANSFER) ? 1 : 0;	/* Control Endpoint should not use this parameter */
+	HcdQHD(HostID,*pQhdIdx)->Interval = Interval;
+	HcdQHD(HostID,*pQhdIdx)->status = HCD_STATUS_OK;
+	HcdQHD(HostID,*pQhdIdx)->FirstQtd = LINK_TERMINATE;
 
-	HcdQHD(*pQhdIdx)->Horizontal.Link = LINK_TERMINATE;
-	HcdQHD(*pQhdIdx)->DeviceAddress = DeviceAddr;
+	HcdQHD(HostID,*pQhdIdx)->Horizontal.Link = LINK_TERMINATE;
+	HcdQHD(HostID,*pQhdIdx)->DeviceAddress = DeviceAddr;
 
-	HcdQHD(*pQhdIdx)->InActiveOnNextTransaction = 0;
-	HcdQHD(*pQhdIdx)->EndpointNumber = EndpointNumber;
-	HcdQHD(*pQhdIdx)->EndpointSpeed = (uint32_t) DeviceSpeed;
-	HcdQHD(*pQhdIdx)->DataToggleControl = (TransferType==CONTROL_TRANSFER) ? 1 : 0;
-	HcdQHD(*pQhdIdx)->HeadReclamationFlag = 0;
-	HcdQHD(*pQhdIdx)->MaxPackageSize = MaxPacketSize;
-	HcdQHD(*pQhdIdx)->ControlEndpointFlag = (DeviceSpeed != HIGH_SPEED && TransferType==CONTROL_TRANSFER) ? 1 : 0;
-	HcdQHD(*pQhdIdx)->NakCountReload = 0; /* infinite NAK/NYET */
+	HcdQHD(HostID,*pQhdIdx)->InActiveOnNextTransaction = 0;
+	HcdQHD(HostID,*pQhdIdx)->EndpointNumber = EndpointNumber;
+	HcdQHD(HostID,*pQhdIdx)->EndpointSpeed = (uint32_t) DeviceSpeed;
+	HcdQHD(HostID,*pQhdIdx)->DataToggleControl = (TransferType==CONTROL_TRANSFER) ? 1 : 0;
+	HcdQHD(HostID,*pQhdIdx)->HeadReclamationFlag = 0;
+	HcdQHD(HostID,*pQhdIdx)->MaxPackageSize = MaxPacketSize;
+	HcdQHD(HostID,*pQhdIdx)->ControlEndpointFlag = (DeviceSpeed != HIGH_SPEED && TransferType==CONTROL_TRANSFER) ? 1 : 0;
+	HcdQHD(HostID,*pQhdIdx)->NakCountReload = 0; /* infinite NAK/NYET */
 
 	/*-- Currently All interrupt endpoints will be served as 1 (micro)frame polling, thus Interval parameter is ignored --*/
 	/*-- For High Speed Interval should be used to compute the uFrameSMask --*/
-	HcdQHD(*pQhdIdx)->uFrameSMask = (TransferType == INTERRUPT_TRANSFER) ? (DeviceSpeed == HIGH_SPEED ? 0xFF : 0x01) : 0 ;
-	HcdQHD(*pQhdIdx)->uFrameCMask = (DeviceSpeed != HIGH_SPEED && TransferType == INTERRUPT_TRANSFER) ? 0x1C : 0;	/*-- Schedule Complete Split at uFrame2, uFrame3 and uFrame4 --*/
-	HcdQHD(*pQhdIdx)->HubAddress = HSHubDevAddr;
-	HcdQHD(*pQhdIdx)->PortNumber = HSHubPortNum;
-	HcdQHD(*pQhdIdx)->Mult = (DeviceSpeed == HIGH_SPEED ? Mult : 1);
+	HcdQHD(HostID,*pQhdIdx)->uFrameSMask = (TransferType == INTERRUPT_TRANSFER) ? (DeviceSpeed == HIGH_SPEED ? 0xFF : 0x01) : 0 ;
+	HcdQHD(HostID,*pQhdIdx)->uFrameCMask = (DeviceSpeed != HIGH_SPEED && TransferType == INTERRUPT_TRANSFER) ? 0x1C : 0;	/*-- Schedule Complete Split at uFrame2, uFrame3 and uFrame4 --*/
+	HcdQHD(HostID,*pQhdIdx)->HubAddress = HSHubDevAddr;
+	HcdQHD(HostID,*pQhdIdx)->PortNumber = HSHubPortNum;
+	HcdQHD(HostID,*pQhdIdx)->Mult = (DeviceSpeed == HIGH_SPEED ? Mult : 1);
 
-	HcdQHD(*pQhdIdx)->Overlay.NextQtd = LINK_TERMINATE;
-	HcdQHD(*pQhdIdx)->Overlay.AlterNextQtd = LINK_TERMINATE;
-	HcdQHD(*pQhdIdx)->FirstQtd = LINK_TERMINATE;
+	HcdQHD(HostID,*pQhdIdx)->Overlay.NextQtd = LINK_TERMINATE;
+	HcdQHD(HostID,*pQhdIdx)->Overlay.AlterNextQtd = LINK_TERMINATE;
+	HcdQHD(HostID,*pQhdIdx)->FirstQtd = LINK_TERMINATE;
 	
-	HcdQHD(*pQhdIdx)->Overlay.PingState_Err = (DeviceSpeed == HIGH_SPEED && TransferType != INTERRUPT_TRANSFER && TransferDir == OUT_TRANSFER) ? 1 : 0;
+	HcdQHD(HostID,*pQhdIdx)->Overlay.PingState_Err = (DeviceSpeed == HIGH_SPEED && TransferType != INTERRUPT_TRANSFER && TransferDir == OUT_TRANSFER) ? 1 : 0;
 
 	return HCD_STATUS_OK;
 }
@@ -483,19 +486,19 @@ static HCD_STATUS InsertLinkPointer(NextLinkPointer *pList, NextLinkPointer *pNe
 
 static HCD_STATUS RemoveQueueHead(uint8_t HostID, uint8_t QhdIdx ) 
 {
-	PHCD_QHD pQhd = IsInterruptQhd(QhdIdx) ? HcdIntHead(HostID) : HcdAsyncHead(HostID);
+	PHCD_QHD pQhd = IsInterruptQhd(HostID,QhdIdx) ? HcdIntHead(HostID) : HcdAsyncHead(HostID);
 	/*-- Foreach Qhd in async list --*/
 	while ( isValidLink(pQhd->Horizontal.Link) &&
-			Align32(pQhd->Horizontal.Link) != (uint32_t) HcdQHD(QhdIdx) && 
+			Align32(pQhd->Horizontal.Link) != (uint32_t) HcdQHD(HostID,QhdIdx) &&
 			Align32(pQhd->Horizontal.Link) != (uint32_t) HcdAsyncHead(HostID) )
 	{
 		pQhd = (PHCD_QHD) Align32(pQhd->Horizontal.Link);
 	}
-	if (  Align32(pQhd->Horizontal.Link) != (uint32_t) HcdQHD(QhdIdx) )
+	if (  Align32(pQhd->Horizontal.Link) != (uint32_t) HcdQHD(HostID,QhdIdx) )
 		return HCD_STATUS_PARAMETER_INVALID;
 
-	HcdQHD(QhdIdx)->status = (uint32_t) HCD_STATUS_TO_BE_REMOVED; /* Will be remove in AsyncAdvanceIsr - make use of IAAD */
-	pQhd->Horizontal.Link = HcdQHD(QhdIdx)->Horizontal.Link;
+	HcdQHD(HostID,QhdIdx)->status = (uint32_t) HCD_STATUS_TO_BE_REMOVED; /* Will be remove in AsyncAdvanceIsr - make use of IAAD */
+	pQhd->Horizontal.Link = HcdQHD(HostID,QhdIdx)->Horizontal.Link;
 
 	return HCD_STATUS_OK;
 }
@@ -508,35 +511,35 @@ static void FreeQtd( PHCD_QTD pQtd )
 }
 
 /** Direction, DataToggle parameter only has meaning for control transfer, for other transfer use 0 for these paras */
-static HCD_STATUS AllocQTD (uint32_t* pTdIdx, uint8_t* const BufferPointer, uint32_t xferLen, HCD_TRANSFER_DIR PIDCode, uint8_t DataToggle, uint8_t IOC)
+static HCD_STATUS AllocQTD (uint8_t HostID, uint32_t* pTdIdx, uint8_t* const BufferPointer, uint32_t xferLen, HCD_TRANSFER_DIR PIDCode, uint8_t DataToggle, uint8_t IOC)
 {
-	for((*pTdIdx) =0; (*pTdIdx) < HCD_MAX_QTD && HcdQTD(*pTdIdx)->inUse; (*pTdIdx)++) {}
+	for((*pTdIdx) =0; (*pTdIdx) < HCD_MAX_QTD && HcdQTD(HostID,*pTdIdx)->inUse; (*pTdIdx)++) {}
 
 	if ((*pTdIdx) < HCD_MAX_QTD)
 	{
 		uint8_t idx=1;
 		uint32_t BytesInPage;
 
-		memset(HcdQTD(*pTdIdx), 0, sizeof(HCD_QTD));
+		memset(HcdQTD(HostID,*pTdIdx), 0, sizeof(HCD_QTD));
 
-		HcdQTD(*pTdIdx)->NextQtd = 1;
+		HcdQTD(HostID,*pTdIdx)->NextQtd = 1;
 
-		HcdQTD(*pTdIdx)->AlterNextQtd = LINK_TERMINATE;
-		HcdQTD(*pTdIdx)->inUse = 1;
+		HcdQTD(HostID,*pTdIdx)->AlterNextQtd = LINK_TERMINATE;
+		HcdQTD(HostID,*pTdIdx)->inUse = 1;
 
-		HcdQTD(*pTdIdx)->Active = 1;
-		HcdQTD(*pTdIdx)->PIDCode = (PIDCode == SETUP_TRANSFER) ? 2 : (PIDCode == IN_TRANSFER ? 1 : 0);
-		HcdQTD(*pTdIdx)->TotalBytesToTransfer = xferLen;
-		HcdQTD(*pTdIdx)->DataToggle = DataToggle;
-		HcdQTD(*pTdIdx)->IntOnComplete = IOC;
+		HcdQTD(HostID,*pTdIdx)->Active = 1;
+		HcdQTD(HostID,*pTdIdx)->PIDCode = (PIDCode == SETUP_TRANSFER) ? 2 : (PIDCode == IN_TRANSFER ? 1 : 0);
+		HcdQTD(HostID,*pTdIdx)->TotalBytesToTransfer = xferLen;
+		HcdQTD(HostID,*pTdIdx)->DataToggle = DataToggle;
+		HcdQTD(HostID,*pTdIdx)->IntOnComplete = IOC;
 
-		HcdQTD(*pTdIdx)->BufferPointer[0] = (uint32_t) BufferPointer;
+		HcdQTD(HostID,*pTdIdx)->BufferPointer[0] = (uint32_t) BufferPointer;
 		BytesInPage = 0x1000 - Offset4k((uint32_t)BufferPointer);
 		xferLen -= MIN(xferLen, BytesInPage);	/*-- Trim down xferlen to be multiple of 4k --*/
 
 		for(idx=1; idx <= 4 && xferLen > 0; idx++)
 		{
-			HcdQTD(*pTdIdx)->BufferPointer[idx] = Align4k( HcdQTD((*pTdIdx))->BufferPointer[idx-1] ) + 0x1000 ;
+			HcdQTD(HostID,*pTdIdx)->BufferPointer[idx] = Align4k( HcdQTD(HostID,(*pTdIdx))->BufferPointer[idx-1] ) + 0x1000 ;
 			xferLen -= MIN(xferLen, 0x1000);
 		}
 		return HCD_STATUS_OK;
@@ -591,42 +594,42 @@ static void FreeHsItd( PHCD_HS_ITD pItd )
 	pItd->inUse = 0;
 }
 
-HCD_STATUS AllocHsItd( uint32_t* pTdIdx, uint8_t IhdIdx, uint8_t* dataBuff, uint32_t TDLen, uint8_t XactPerITD, uint8_t IntOnComplete )
+HCD_STATUS AllocHsItd(uint8_t HostID, uint32_t* pTdIdx, uint8_t IhdIdx, uint8_t* dataBuff, uint32_t TDLen, uint8_t XactPerITD, uint8_t IntOnComplete )
 {
-	for((*pTdIdx) =0; (*pTdIdx) < HCD_MAX_HS_ITD && HcdHsITD(*pTdIdx)->inUse; (*pTdIdx)++)
+	for((*pTdIdx) =0; (*pTdIdx) < HCD_MAX_HS_ITD && HcdHsITD(HostID,*pTdIdx)->inUse; (*pTdIdx)++)
 	{
 	}
 	if ((*pTdIdx) < HCD_MAX_HS_ITD)
 	{
 		uint8_t i;
 		uint8_t XactStep = 8 / XactPerITD ;
-		uint32_t MaxXactLen = HcdQHD(IhdIdx)->MaxPackageSize * HcdQHD(IhdIdx)->Mult;
+		uint32_t MaxXactLen = HcdQHD(HostID,IhdIdx)->MaxPackageSize * HcdQHD(HostID,IhdIdx)->Mult;
 
-		memset(HcdHsITD(*pTdIdx), 0, sizeof(HCD_HS_ITD));
+		memset(HcdHsITD(HostID,*pTdIdx), 0, sizeof(HCD_HS_ITD));
 
-		HcdHsITD(*pTdIdx)->inUse = 1;
-		HcdHsITD(*pTdIdx)->IhdIdx = IhdIdx;
+		HcdHsITD(HostID,*pTdIdx)->inUse = 1;
+		HcdHsITD(HostID,*pTdIdx)->IhdIdx = IhdIdx;
 
-		HcdHsITD(*pTdIdx)->Horizontal.Link = LINK_TERMINATE;
+		HcdHsITD(HostID,*pTdIdx)->Horizontal.Link = LINK_TERMINATE;
 		for (i=0; TDLen>0 && i<8; i += XactStep)
 		{
 			uint32_t XactLen = MIN(TDLen, MaxXactLen);
 			TDLen -= XactLen;
 
-			HcdHsITD(*pTdIdx)->BufferPointer[i] = Align4k( (uint32_t) dataBuff );
+			HcdHsITD(HostID,*pTdIdx)->BufferPointer[i] = Align4k( (uint32_t) dataBuff );
 
-			HcdHsITD(*pTdIdx)->Transaction[i].Offset = ( (uint32_t) dataBuff ) & 4095;
-			HcdHsITD(*pTdIdx)->Transaction[i].PageSelect = i;
-			HcdHsITD(*pTdIdx)->Transaction[i].IntOnComplete = (IntOnComplete && TDLen==0) ? 1 : 0;
-			HcdHsITD(*pTdIdx)->Transaction[i].Length = XactLen;
-			HcdHsITD(*pTdIdx)->Transaction[i].Active = 1;
+			HcdHsITD(HostID,*pTdIdx)->Transaction[i].Offset = ( (uint32_t) dataBuff ) & 4095;
+			HcdHsITD(HostID,*pTdIdx)->Transaction[i].PageSelect = i;
+			HcdHsITD(HostID,*pTdIdx)->Transaction[i].IntOnComplete = (IntOnComplete && TDLen==0) ? 1 : 0;
+			HcdHsITD(HostID,*pTdIdx)->Transaction[i].Length = XactLen;
+			HcdHsITD(HostID,*pTdIdx)->Transaction[i].Active = 1;
 
 			dataBuff += XactLen;
 		}
 
-		HcdHsITD(*pTdIdx)->BufferPointer[0] |= (HcdQHD(IhdIdx)->EndpointNumber << 8) | HcdQHD(IhdIdx)->DeviceAddress ;
-		HcdHsITD(*pTdIdx)->BufferPointer[1] |= (HcdQHD(IhdIdx)->Direction << 1) | HcdQHD(IhdIdx)->MaxPackageSize;
-		HcdHsITD(*pTdIdx)->BufferPointer[2] |= HcdQHD(IhdIdx)->Mult;
+		HcdHsITD(HostID,*pTdIdx)->BufferPointer[0] |= (HcdQHD(HostID,IhdIdx)->EndpointNumber << 8) | HcdQHD(HostID,IhdIdx)->DeviceAddress ;
+		HcdHsITD(HostID,*pTdIdx)->BufferPointer[1] |= (HcdQHD(HostID,IhdIdx)->Direction << 1) | HcdQHD(HostID,IhdIdx)->MaxPackageSize;
+		HcdHsITD(HostID,*pTdIdx)->BufferPointer[2] |= HcdQHD(HostID,IhdIdx)->Mult;
 
 		return HCD_STATUS_OK;
 	}else
@@ -657,7 +660,7 @@ static HCD_STATUS QueueITDs( uint8_t HostID, uint8_t IhdIdx, uint8_t* dataBuff, 
 	#define FramePeriod		1
 #endif
 
-	MaxTDLen = XactPerITD * HcdQHD(IhdIdx)->MaxPackageSize * HcdQHD(IhdIdx)->Mult;
+	MaxTDLen = XactPerITD * HcdQHD(HostID,IhdIdx)->MaxPackageSize * HcdQHD(HostID,IhdIdx)->Mult;
 	FrameIdx = USB_REG(HostID)->FRINDEX_H >> 3;
 
 	if (xferLen > MaxTDLen*FRAME_LIST_SIZE)	/*-- Data length overflow the Period FRAME LIST  --*/
@@ -673,11 +676,11 @@ static HCD_STATUS QueueITDs( uint8_t HostID, uint8_t IhdIdx, uint8_t* dataBuff, 
 		TDLen = MIN(xferLen, MaxTDLen);
 		xferLen -= TDLen;
 
-		ASSERT_STATUS_OK( AllocHsItd(&TdIdx, IhdIdx, dataBuff, TDLen, XactPerITD, xferLen ? 0 : 1) );
+		ASSERT_STATUS_OK( AllocHsItd(HostID,&TdIdx, IhdIdx, dataBuff, TDLen, XactPerITD, xferLen ? 0 : 1) );
 
 		FrameIdx = (FrameIdx + FramePeriod) % FRAME_LIST_SIZE;
 		/*-- Hook ITD to Period List Base --*/
-		InsertLinkPointer(&EHCI_FRAME_LIST(HostID)[FrameIdx], &HcdHsITD(TdIdx)->Horizontal, ITD_TYPE);
+		InsertLinkPointer(&EHCI_FRAME_LIST(HostID)[FrameIdx], &HcdHsITD(HostID,TdIdx)->Horizontal, ITD_TYPE);
 		dataBuff += TDLen;
 	}
 
@@ -691,50 +694,50 @@ static void FreeSItd( PHCD_SITD pSItd )
 	pSItd->inUse = 0;
 }
 
-static HCD_STATUS AllocSItd( uint32_t* pTdIdx, uint8_t HeadIdx, uint8_t* dataBuff, uint32_t TDLen, uint8_t IntOnComplete ) 
+static HCD_STATUS AllocSItd(uint8_t HostID, uint32_t* pTdIdx, uint8_t HeadIdx, uint8_t* dataBuff, uint32_t TDLen, uint8_t IntOnComplete )
 {
 #define TCount_Pos 0
 #define TPos_Pos 3
 
-	for((*pTdIdx) =0; (*pTdIdx) < HCD_MAX_SITD && HcdSITD(*pTdIdx)->inUse; (*pTdIdx)++)	{}
+	for((*pTdIdx) =0; (*pTdIdx) < HCD_MAX_SITD && HcdSITD(HostID,*pTdIdx)->inUse; (*pTdIdx)++)	{}
 
 	if ((*pTdIdx) < HCD_MAX_SITD)
 	{
 		uint8_t TCount = TDLen/SPLIT_MAX_LEN_UFRAME + (TDLen%SPLIT_MAX_LEN_UFRAME ? 1 : 0); /*-- Number of Slipt Transactions --*/
 
-		memset( HcdSITD(*pTdIdx), 0, sizeof(HCD_SITD) );
+		memset( HcdSITD(HostID,*pTdIdx), 0, sizeof(HCD_SITD) );
 
-		HcdSITD(*pTdIdx)->inUse = 1;
-		HcdSITD(*pTdIdx)->IhdIdx = HeadIdx;
+		HcdSITD(HostID,*pTdIdx)->inUse = 1;
+		HcdSITD(HostID,*pTdIdx)->IhdIdx = HeadIdx;
 
 		/*-- Word 1 --*/
-		HcdSITD(*pTdIdx)->Horizontal.Link = LINK_TERMINATE;
+		HcdSITD(HostID,*pTdIdx)->Horizontal.Link = LINK_TERMINATE;
 		/*-- Word 2 --*/
-		HcdSITD(*pTdIdx)->DeviceAddress = HcdQHD(HeadIdx)->DeviceAddress;
-		HcdSITD(*pTdIdx)->EndpointNumber = HcdQHD(HeadIdx)->EndpointNumber;
-		HcdSITD(*pTdIdx)->HubAddress = HcdQHD(HeadIdx)->HubAddress;
-		HcdSITD(*pTdIdx)->PortNumber = HcdQHD(HeadIdx)->PortNumber;
-		HcdSITD(*pTdIdx)->Direction = HcdQHD(HeadIdx)->Direction;
+		HcdSITD(HostID,*pTdIdx)->DeviceAddress = HcdQHD(HostID,HeadIdx)->DeviceAddress;
+		HcdSITD(HostID,*pTdIdx)->EndpointNumber = HcdQHD(HostID,HeadIdx)->EndpointNumber;
+		HcdSITD(HostID,*pTdIdx)->HubAddress = HcdQHD(HostID,HeadIdx)->HubAddress;
+		HcdSITD(HostID,*pTdIdx)->PortNumber = HcdQHD(HostID,HeadIdx)->PortNumber;
+		HcdSITD(HostID,*pTdIdx)->Direction = HcdQHD(HostID,HeadIdx)->Direction;
 		/*-- Word 3 --*/
-		HcdSITD(*pTdIdx)->uFrameSMask = (1 << TCount) - 1;
-		HcdSITD(*pTdIdx)->uFrameCMask = 0;
+		HcdSITD(HostID,*pTdIdx)->uFrameSMask = (1 << TCount) - 1;
+		HcdSITD(HostID,*pTdIdx)->uFrameCMask = 0;
 		/*-- Word 4 --*/
-		HcdSITD(*pTdIdx)->Active = 1;
-		HcdSITD(*pTdIdx)->TotalBytesToTransfer = TDLen;
-		HcdSITD(*pTdIdx)->IntOnComplete = IntOnComplete;
+		HcdSITD(HostID,*pTdIdx)->Active = 1;
+		HcdSITD(HostID,*pTdIdx)->TotalBytesToTransfer = TDLen;
+		HcdSITD(HostID,*pTdIdx)->IntOnComplete = IntOnComplete;
 		/*-- Word 5 --*/
-		HcdSITD(*pTdIdx)->BufferPointer[0] = (uint32_t) dataBuff;
+		HcdSITD(HostID,*pTdIdx)->BufferPointer[0] = (uint32_t) dataBuff;
 		/*-- Word 6 --*/
-		HcdSITD(*pTdIdx)->BufferPointer[1] = Align4k( ((uint32_t)dataBuff) + TDLen );
+		HcdSITD(HostID,*pTdIdx)->BufferPointer[1] = Align4k( ((uint32_t)dataBuff) + TDLen );
 		
-		HcdSITD(*pTdIdx)->BufferPointer[1] |= TCount << TCount_Pos;
-		HcdSITD(*pTdIdx)->BufferPointer[1] |= (TCount > 1 ? 1 : 0 ) << TPos_Pos; /*-- TPosition - More than 1 split --> Begin Encoding, Otherwise All Encoding  --*/
+		HcdSITD(HostID,*pTdIdx)->BufferPointer[1] |= TCount << TCount_Pos;
+		HcdSITD(HostID,*pTdIdx)->BufferPointer[1] |= (TCount > 1 ? 1 : 0 ) << TPos_Pos; /*-- TPosition - More than 1 split --> Begin Encoding, Otherwise All Encoding  --*/
 		
 		//HcdSITD(*pTdIdx)->TCount = NoSplits;
 		//HcdSITD(*pTdIdx)->TPosition = (NoSplits > 1) ? 1 : 0 ; /*-- TPosition - More than 1 split --> Begin Encoding, Otherwise All Encoding  --*/
 
 		/*-- Word 7 --*/
-		HcdSITD(*pTdIdx)->BackPointer = LINK_TERMINATE;
+		HcdSITD(HostID,*pTdIdx)->BackPointer = LINK_TERMINATE;
 
 		return HCD_STATUS_OK;
 	}else
@@ -761,7 +764,7 @@ static HCD_STATUS QueueSITDs( uint8_t HostID, uint8_t HeadIdx, uint8_t* dataBuff
 	#define FramePeriod		1
 #endif
 
-	if (xferLen > HcdQHD(HeadIdx)->MaxPackageSize*FRAME_LIST_SIZE)	/*-- Data length overflow the Period FRAME LIST  --*/
+	if (xferLen > HcdQHD(HostID,HeadIdx)->MaxPackageSize*FRAME_LIST_SIZE)	/*-- Data length overflow the Period FRAME LIST  --*/
 	{
 		ASSERT_STATUS_OK_MESSAGE(HCD_STATUS_DATA_OVERFLOW, "ISO data length overflows the Period Frame List size, Please increase size by FRAMELIST_SIZE_BITS or reduce data length");
 	}
@@ -772,14 +775,14 @@ static HCD_STATUS QueueSITDs( uint8_t HostID, uint8_t HeadIdx, uint8_t* dataBuff
 		uint32_t TdIdx;
 		uint32_t TDLen;
 
-		TDLen = MIN(xferLen, HcdQHD(HeadIdx)->MaxPackageSize);
+		TDLen = MIN(xferLen, HcdQHD(HostID,HeadIdx)->MaxPackageSize);
 		xferLen -= TDLen;
 
-		ASSERT_STATUS_OK( AllocSItd(&TdIdx, HeadIdx, dataBuff, TDLen, xferLen ? 0 : 1) );
+		ASSERT_STATUS_OK( AllocSItd(HostID,&TdIdx, HeadIdx, dataBuff, TDLen, xferLen ? 0 : 1) );
 
 		FrameIdx = (FrameIdx + FramePeriod) % FRAME_LIST_SIZE;
 		/*-- Hook SITD to Period List Base --*/
-		InsertLinkPointer(&EHCI_FRAME_LIST(HostID)[FrameIdx], &HcdSITD(TdIdx)->Horizontal, SITD_TYPE);
+		InsertLinkPointer(&EHCI_FRAME_LIST(HostID)[FrameIdx], &HcdSITD(HostID,TdIdx)->Horizontal, SITD_TYPE);
 		dataBuff += TDLen;
 	}
 	return HCD_STATUS_OK;
@@ -788,15 +791,15 @@ static HCD_STATUS QueueSITDs( uint8_t HostID, uint8_t HeadIdx, uint8_t* dataBuff
 /*==========================================================================*/
 /* TRANSFER ROUTINES                        											*/
 /*==========================================================================*/
-static HCD_STATUS WaitForTransferComplete( uint8_t EdIdx ) /* TODO indentical to OHCI now */
+static HCD_STATUS WaitForTransferComplete(uint8_t HostID, uint8_t EdIdx ) /* TODO indentical to OHCI now */
 {
 
 #ifndef __TEST__
-	while ( HcdQHD(EdIdx)->status == HCD_STATUS_TRANSFER_QUEUED )
+	while ( HcdQHD(HostID,EdIdx)->status == HCD_STATUS_TRANSFER_QUEUED )
 	{
 		/* Should have time-out but left blank intentionally for bug catcher */
 	}
-	return (HCD_STATUS) HcdQHD(EdIdx)->status ;
+	return (HCD_STATUS) HcdQHD(HostID,EdIdx)->status ;
 #else
 	return HCD_STATUS_OK;
 #endif
@@ -808,8 +811,8 @@ static HCD_STATUS PipehandleParse(uint32_t Pipehandle, uint8_t* pHostID, HCD_TRA
 
 	if	(	pHandle->HostId >= MAX_USB_CORE ||
 			pHandle->Idx >= HCD_MAX_QTD		||
-			HcdQHD(pHandle->Idx)->inUse == 0	||
-			HcdQHD(pHandle->Idx)->status == HCD_STATUS_TO_BE_REMOVED)
+			HcdQHD(pHandle->HostId,pHandle->Idx)->inUse == 0	||
+			HcdQHD(pHandle->HostId,pHandle->Idx)->status == HCD_STATUS_TO_BE_REMOVED)
 	{
 		return HCD_STATUS_PIPEHANDLE_INVALID;
 	}
@@ -843,35 +846,35 @@ static void PipehandleCreate(uint32_t* pPipeHandle, uint8_t HostID, HCD_TRANSFER
 /*==========================================================================*/
 static __INLINE PHCD_QHD	HcdAsyncHead(uint8_t HostID)
 {
-//	return &(ehci_data[HostID].AsyncHeadQhd);
-	return &(ehci_data.AsyncHeadQhd);
+	return &(ehci_data[HostID].AsyncHeadQhd);
+//	return &(ehci_data.AsyncHeadQhd);
 }
 static __INLINE PHCD_QHD	HcdIntHead(uint8_t HostID)
 {
-//	return &(ehci_data[HostID].IntHeadQhd);
-	return &(ehci_data.IntHeadQhd);
+	return &(ehci_data[HostID].IntHeadQhd);
+//	return &(ehci_data.IntHeadQhd);
 }
 // === TODO: Deal with HostID later ===
-static __INLINE PHCD_QHD	HcdQHD(uint8_t idx)
+static __INLINE PHCD_QHD	HcdQHD(uint8_t HostID,uint8_t idx)
 {
-	//return &(ehci_data[HostID].qHDs[idx]);
-	return &(ehci_data.qHDs[idx]);
+	return &(ehci_data[HostID].qHDs[idx]);
+//	return &(ehci_data.qHDs[idx]);
 }
-static __INLINE PHCD_QTD	HcdQTD(uint8_t idx)
+static __INLINE PHCD_QTD	HcdQTD(uint8_t HostID,uint8_t idx)
 {
-	//return &(ehci_data[HostID].qTDs[idx]);
-	return &(ehci_data.qTDs[idx]);
+	return &(ehci_data[HostID].qTDs[idx]);
+//	return &(ehci_data.qTDs[idx]);
 }
 
-static __INLINE PHCD_SITD	HcdSITD(uint8_t idx)
+static __INLINE PHCD_SITD	HcdSITD(uint8_t HostID, uint8_t idx)
 {
-	// return &(ehci_data[HostID].siTDs[idx]);
-	return &(ehci_data.siTDs[idx]);
+	return &(ehci_data[HostID].siTDs[idx]);
+//	return &(ehci_data.siTDs[idx]);
 }
-static __INLINE PHCD_HS_ITD	HcdHsITD(uint8_t idx)
+static __INLINE PHCD_HS_ITD	HcdHsITD(uint8_t HostID, uint8_t idx)
 {
-	//return &(ehci_data[HostID].iTDs[idx]);
-	return &(ehci_data.iTDs[idx]);
+	return &(ehci_data[HostID].iTDs[idx]);
+//	return &(ehci_data.iTDs[idx]);
 }
 
 static __INLINE Bool		isValidLink(uint32_t link)
@@ -879,9 +882,9 @@ static __INLINE Bool		isValidLink(uint32_t link)
 	return ((link & LINK_TERMINATE) == 0);
 }
 
-static __INLINE Bool IsInterruptQhd (uint8_t QhdIdx)
+static __INLINE Bool IsInterruptQhd (uint8_t HostID,uint8_t QhdIdx)
 {
-	return ( HcdQHD(QhdIdx)->uFrameSMask );
+	return ( HcdQHD(HostID,QhdIdx)->uFrameSMask );
 }
 
 /*==========================================================================*/
@@ -971,6 +974,41 @@ static void RemoveCompletedQTD(PHCD_QHD pQhd)
 	pQhd->FirstQtd = TdLink;
 }
 
+static void RemoveErrorQTD(PHCD_QHD pQhd)
+{
+	PHCD_QTD pQtd;
+	uint32_t TdLink = pQhd->FirstQtd;
+	bool errorfound = false;
+
+	/*-- Scan error Qtd in Qhd --*/
+	while( (isValidLink(TdLink), pQtd = (PHCD_QTD) Align32(TdLink) ) &&
+			pQtd->Active == 0)
+	{
+		TdLink = pQtd->NextQtd;
+
+		if (pQtd->Halted /*|| pQtd->Babble || pQtd->BufferError || pQtd->TransactionError*/)
+		{
+			errorfound = true;
+			pQhd->status = HCD_STATUS_TRANSFER_Stall;
+		}
+	}
+	/*-- Remove error Qtd in Qhd --*/
+	if(errorfound)
+	{
+		TdLink = pQhd->FirstQtd;
+		while(isValidLink(TdLink))
+		{
+			pQtd = (PHCD_QTD) Align32(TdLink);
+			TdLink = pQtd->NextQtd;
+			pQtd->Active = 0;
+			pQtd->IntOnComplete = 0;
+			FreeQtd(pQtd);
+		}
+		pQhd->FirstQtd = LINK_TERMINATE;
+		pQhd->Overlay.Halted = 0;
+	}
+}
+
 /*---------- Interrupt On Compete has occurred, however we have no clues on which QueueHead it happened. Also IOC TD may be advanced already So we will free all TD which is not Active (transferred already) ----------*/
 static void AsyncScheduleIsr( uint8_t HostID ) 
 {
@@ -1012,7 +1050,7 @@ static void PeriodScheduleIsr( uint8_t HostID )
 						pItd->Transaction[6].IntOnComplete == 1 || pItd->Transaction[7].IntOnComplete == 1 )
 					{
 						/*-- request complete, signal on Iso Head --*/
-						HcdQHD(pItd->IhdIdx)->status = HCD_STATUS_OK;
+						HcdQHD(HostID,pItd->IhdIdx)->status = HCD_STATUS_OK;
 					}
 					/*-- remove executed ITD --*/
 					pNextPointer->Link = pItd->Horizontal.Link;
@@ -1028,7 +1066,7 @@ static void PeriodScheduleIsr( uint8_t HostID )
 					if (pSItd->IntOnComplete)
 					{
 						/*-- request complete, signal on Iso Head --*/
-						HcdQHD(pSItd->IhdIdx)->status = HCD_STATUS_OK;
+						HcdQHD(HostID, pSItd->IhdIdx)->status = HCD_STATUS_OK;
 					}
 
 					/*-- removed executed SITD --*/
@@ -1058,11 +1096,15 @@ static void PeriodScheduleIsr( uint8_t HostID )
 
 static void UsbErrorIsr( uint8_t HostID ) 
 {
-	hcd_printf("USB Error occurs or Pipe is stalled");
-// 	while (1)
-// 	{
-// 		/*-- Error Catcher --*/
-// 	}
+	PHCD_QHD pQhd = HcdAsyncHead(HostID);
+
+	/*-- Foreach Qhd in async list --*/
+	while ( isValidLink(pQhd->Horizontal.Link) &&
+		Align32(pQhd->Horizontal.Link) != (uint32_t) HcdAsyncHead(HostID) )
+	{
+		pQhd = (PHCD_QHD) Align32(pQhd->Horizontal.Link);
+		RemoveErrorQTD(pQhd);
+	}
 }
 
 static HCD_STATUS PortStatusChangeIsr( uint8_t HostID, uint32_t deviceConnect )
@@ -1083,9 +1125,9 @@ static void AsyncAdvanceIsr( uint8_t HostID )
 
 	for(QhdIdx = 0; QhdIdx < HCD_MAX_QHD; QhdIdx++)
 	{
-		if ( HcdQHD(QhdIdx)->inUse == 1 && HcdQHD(QhdIdx)->status == HCD_STATUS_TO_BE_REMOVED )
+		if ( HcdQHD(HostID,QhdIdx)->inUse == 1 && HcdQHD(HostID,QhdIdx)->status == HCD_STATUS_TO_BE_REMOVED )
 		{
-			FreeQhd(QhdIdx);
+			FreeQhd(HostID,QhdIdx);
 		}
 	}
 }
@@ -1114,7 +1156,7 @@ static __INLINE HCD_STATUS EHciHostReset(uint8_t HostID)
 	while( USB_REG(HostID)->USBCMD_H & EHC_USBCMD_HostReset ) {}
 	
 	/* Program the controller to be the USB host controller, this can only be done after Reset */
-	USB_REG(HostID)->USBMODE_H = USBMODE_HostController | USBMODE_VBusPowerSelect_High;
+	USB_REG(HostID)->USBMODE_H = 0x23;//USBMODE_HostController | USBMODE_VBusPowerSelect_High;
 	return HCD_STATUS_OK;
 }
 

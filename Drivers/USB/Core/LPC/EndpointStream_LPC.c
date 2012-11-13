@@ -94,9 +94,17 @@ uint8_t Endpoint_Read_Stream_LE(void* const Buffer,
 			                                uint16_t* const BytesProcessed)
 {
 	uint16_t i;
-
+	if (endpointselected==ENDPOINT_CONTROLEP){
+		if(usb_data_buffer_size == 0) return ENDPOINT_RWSTREAM_IncompleteTransfer;
+	}else
+		if(usb_data_buffer_OUT_size == 0) return ENDPOINT_RWSTREAM_IncompleteTransfer;
+	
 	for(i=0;i<Length;i++)
 	{
+		#if defined(__LPC17XX__) || defined(__LPC177X_8X__)
+		if (endpointselected!=ENDPOINT_CONTROLEP)
+			while(usb_data_buffer_OUT_size == 0); /* Current Fix for LPC17xx, havent checked for others */
+		#endif
 		((uint8_t*)Buffer)[i] = Endpoint_Read_8();
 	}
 	return ENDPOINT_RWSTREAM_NoError;

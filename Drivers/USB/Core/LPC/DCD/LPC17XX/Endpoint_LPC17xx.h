@@ -30,7 +30,7 @@
  *  \copydetails Group_EndpointManagement_LPC17xx
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h.
+ *        dispatch header located in lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h.
  */
 
 /** \ingroup Group_EndpointRW
@@ -79,7 +79,7 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_USB_DRIVER)
-			#error Do not include this file directly. Include lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h instead.
+			#error Do not include this file directly. Include lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h instead.
 		#endif
 
 	/* Private Interface - For use in library only: */
@@ -100,6 +100,8 @@
 			void WriteControlEndpoint(uint8_t *pData, uint32_t cnt);
 			void ReadControlEndpoint(uint8_t *pData);
 			void DcdDataTransfer(uint8_t PhyEP, uint8_t *pData, uint32_t cnt);
+			void Endpoint_Streaming(uint8_t * buffer,uint16_t packetsize,
+						uint16_t totalpackets,uint16_t dummypackets);
 		/* Inline Functions: */
 
 		/* Function Prototypes: */
@@ -273,12 +275,12 @@
 			{
 				if (endpointselected==ENDPOINT_CONTROLEP)
 				{
-					return 0;
+					return usb_data_buffer_size;
 				}
 				else
 				{
 					//return (dmaDescriptor[ endpointhandle[endpointselected] ].PresentCount);
-					return usb_data_buffer_sizes[endpointselected];
+					return usb_data_buffer_OUT_sizes[endpointselected];
 				}
 			}
 
@@ -297,7 +299,14 @@
 					return isInReady;
 				}else
 				{
-					return (dmaDescriptor[ endpointhandle[endpointselected] ].Retired) ? true : false;
+					uint8_t SelEP_Data;
+					if (dmaDescriptor[ endpointhandle[endpointselected] ].Retired == true){
+						SIE_WriteCommamd( CMD_SEL_EP(endpointhandle[endpointselected]) );
+						SelEP_Data = SIE_ReadCommandData( DAT_SEL_EP(endpointhandle[endpointselected]) ) ;
+						if((SelEP_Data & 1) == 0)
+							return true;
+					}
+					return false;
 				}
 				
 			}
@@ -346,7 +355,8 @@
 			static inline void Endpoint_ClearSETUP(void)
 			{
 				SETUPReceived = FALSE;
-				usb_data_buffer_indexes[endpointselected] = 0;
+				usb_data_buffer_index = 0;
+				usb_data_buffer_size = 0;
 				SIE_WriteCommamd(CMD_SEL_EP(ENDPOINT_CONTROLEP));
 				SIE_WriteCommamd(CMD_CLR_BUF);
 			}
@@ -361,14 +371,15 @@
 			{
 				if (endpointselected==ENDPOINT_CONTROLEP)
 				{
-					WriteControlEndpoint(usb_data_buffers[endpointselected], usb_data_buffer_indexes[endpointselected]);
+					WriteControlEndpoint(usb_data_buffer, usb_data_buffer_index);
+					usb_data_buffer_index = 0;
+					usb_data_buffer_size = 0;
 				}else
 				{
-					DcdDataTransfer(PHYSICAL_ENDPOINT(endpointselected), usb_data_buffers[endpointselected], usb_data_buffer_indexes[endpointselected]);
-					LPC_USB->USBDMARSet = _BIT(PHYSICAL_ENDPOINT(endpointselected));
+					DcdDataTransfer(PHYSICAL_ENDPOINT(endpointselected), usb_data_IN_buffers[endpointselected], usb_data_buffer_IN_indexes[endpointselected]);
+					LPC_USB->USBDMARSet = _BIT(PhyEP);
+					usb_data_buffer_IN_indexes[endpointselected] = 0;
 				}
-				usb_data_buffer_indexes[endpointselected] = 0;
-				usb_data_buffer_sizes[endpointselected] = 0;
 			}
 
 			/** Acknowledges an OUT packet to the host on the currently selected endpoint, freeing up the endpoint
@@ -387,7 +398,10 @@
 					isOutReceived = false;
 				}else
 				{
+					usb_data_buffer_OUT_index = 0;
+					usb_data_buffer_OUT_size = 0;
 					dmaDescriptor[ endpointhandle[endpointselected] ].Status = 0;
+					LPC_USB->USBDMAIntEn |= (1<<1);
 				}
 			}
 
@@ -412,9 +426,10 @@
 			static inline void Endpoint_ClearStall(void) ATTR_ALWAYS_INLINE;
 			static inline void Endpoint_ClearStall(void)
 			{
-				HAL_DisableUSBInterrupt();
+				
+				HAL_DisableUSBInterrupt(USBPortNum);
 				SIE_WriteCommandData(CMD_SET_EP_STAT(PHYSICAL_ENDPOINT(endpointselected)), DAT_WR_BYTE(0));
-				HAL_EnableUSBInterrupt();
+				HAL_EnableUSBInterrupt(USBPortNum);
 			}
 
 			/** Determines if the currently selected endpoint is stalled, false otherwise.
@@ -428,10 +443,10 @@
 			{
 				bool isStalled;
 
-				HAL_DisableUSBInterrupt();
+				HAL_DisableUSBInterrupt(USBPortNum);
 				SIE_WriteCommamd( CMD_SEL_EP(endpointhandle[endpointselected]) );
 				isStalled = SIE_ReadCommandData( DAT_SEL_EP(endpointhandle[endpointselected]) ) & EP_SEL_ST ? true : false;
-				HAL_EnableUSBInterrupt();
+				HAL_EnableUSBInterrupt(USBPortNum);
 				
 				return isStalled;       /* Device Status */
 			}

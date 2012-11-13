@@ -38,4 +38,17 @@ void USB_Event_Stub(void)
 {
 
 }
+#if defined(__ICCARM__)
+void USB_Host_HostError_Event_Stub(const uint8_t ErrorCode)
+{
+
+}
+
+void USB_Host_DeviceEnumerationFailed_Event_Stub(const uint8_t ErrorCode,
+                                                 const uint8_t SubErrorCode)
+{
+
+}
+#endif
+
 

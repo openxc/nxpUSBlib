@@ -31,7 +31,7 @@
  *  \copydetails Group_Host_LPC
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h.
+ *        dispatch header located in lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h.
  */
 
 /** \ingroup Group_Host
@@ -59,7 +59,7 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_USB_DRIVER)
-			#error Do not include this file directly. Include lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h instead.
+			#error Do not include this file directly. Include lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h instead.
 		#endif
 
 	/* Public Interface - May be used in end-application: */
@@ -135,7 +135,7 @@
 			};
 
 			uint8_t USB_Host_GetActiveHost(void);
-			extern uint8_t USB_Host_ControlPipeSize;
+			extern uint8_t USB_Host_ControlPipeSize[MAX_USB_CORE];
 
 		/* Inline Functions: */
 			#if !defined(NO_SOF_EVENTS)
@@ -335,7 +335,7 @@
 			};
 
 		/* Function Prototypes: */
-			void    USB_Host_ProcessNextHostState(void);
+			void    USB_Host_ProcessNextHostState(uint8_t corenum);
 			uint8_t USB_Host_WaitMS(uint8_t MS);
 			/** Returns the current USB frame number, when in host mode. Every millisecond the USB bus is active (i.e. not suspended)
 			 *  the frame number is incremented by one.

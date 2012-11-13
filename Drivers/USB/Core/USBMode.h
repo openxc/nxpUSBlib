@@ -36,7 +36,7 @@
  *  \copydetails Group_USBMode
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h.
+ *        dispatch header located in lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h.
  */
 
 /** \ingroup Group_USB
@@ -65,10 +65,10 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_USB_DRIVER)
-			#error Do not include this file directly. Include lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h instead.
+			#error Do not include this file directly. Include lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h instead.
 		#endif
 
-		#include "../../../nxpUSBlibConfig.h"
+		#include "../../../LPCUSBlibConfig.h"
 
 	/* Public Interface - May be used in end-application: */
 	#if defined(__DOXYGEN__)
@@ -209,9 +209,21 @@
 				#endif
 
 				#define MAX_USB_CORE					2
+
+				#if defined(USB_HOST_ONLY)
+					#define RUN_MULTI_PORT				(((USB_PORT)== 0xFF)?1:0)
+					#if (RUN_MULTI_PORT)
+						#define USB_MULTI_PORTS
+					#endif
+				#endif
+
 				#define USB_PORT_SELECTED				(((USB_PORT)>=(MAX_USB_CORE))?1:USB_PORT)
-			#elif (defined(__LPC11UXX__))
+			#elif (defined(__LPC11UXX__) || defined(__LPC13UXX__))
 				#define USB_CAN_BE_DEVICE
+
+				#if (USE_USB_ROM_STACK)
+					#define USB_DEVICE_ROM_DRIVER
+				#endif
 
 				#define MAX_USB_CORE					1
 				#define USB_PORT_SELECTED				(0)

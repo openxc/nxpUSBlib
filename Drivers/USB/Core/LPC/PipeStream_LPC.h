@@ -30,7 +30,7 @@
  *  \copydetails Group_PipeStreamRW_LPC
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h.
+ *        dispatch header located in lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h.
  */
 
 /** \ingroup Group_PipeStreamRW
@@ -58,7 +58,7 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_USB_DRIVER)
-			#error Do not include this file directly. Include lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h instead.
+			#error Do not include this file directly. Include lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h instead.
 		#endif
 		
 	/* Public Interface - May be used in end-application: */
@@ -115,7 +115,8 @@
 			 *
 			 *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum.
 			 */
-			uint8_t Pipe_Discard_Stream(uint16_t Length,
+			uint8_t Pipe_Discard_Stream(const uint8_t corenum,
+										uint16_t Length,
 			                            uint16_t* const BytesProcessed) /*ATTR_DEPRECATED*/;
 
 			/** Writes a given number of zeroed bytes to the pipe, sending full pipe packets from the host to the device
@@ -167,7 +168,8 @@
 			 *
 			 *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum.
 			 */
-			uint8_t Pipe_Null_Stream(uint16_t Length,
+			uint8_t Pipe_Null_Stream(const uint8_t corenum,
+									 uint16_t Length,
 			                         uint16_t* const BytesProcessed);
 
 			//@}
@@ -232,7 +234,8 @@
 			 *
 			 *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum.
 			 */
-			uint8_t Pipe_Write_Stream_LE(const void* const Buffer,
+			uint8_t Pipe_Write_Stream_LE(const uint8_t corenum,
+										 const void* const Buffer,
 			                             uint16_t Length,
 			                             uint16_t* const BytesProcessed);
 
@@ -313,7 +316,8 @@
 			 *
 			 *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum.
 			 */
-			uint8_t Pipe_Read_Stream_LE(void* const Buffer,
+			uint8_t Pipe_Read_Stream_LE(const uint8_t corenum,
+										void* const Buffer,
 			                            uint16_t Length,
 			                            uint16_t* const BytesProcessed);
 

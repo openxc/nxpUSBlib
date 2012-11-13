@@ -45,14 +45,14 @@
  *
  *  \section Sec_Dependencies Module Source Dependencies
  *  The following files must be built with any user project that uses this module:
- *    - nxpUSBlib/Drivers/USB/Class/Device/HID.c <i>(Makefile source module name: NXPUSBLIB_SRC_USBCLASS)</i>
- *    - nxpUSBlib/Drivers/USB/Class/Host/HID.c <i>(Makefile source module name: NXPUSBLIB_SRC_USBCLASS)</i>
- *    - nxpUSBlib/Drivers/USB/Class/Host/HIDParser.c <i>(Makefile source module name: NXPUSBLIB_SRC_USB)</i>
+ *    - LPCUSBlib/Drivers/USB/Class/Device/HID.c <i>(Makefile source module name: LPCUSBlib_SRC_USBCLASS)</i>
+ *    - LPCUSBlib/Drivers/USB/Class/Host/HID.c <i>(Makefile source module name: LPCUSBlib_SRC_USBCLASS)</i>
+ *    - LPCUSBlib/Drivers/USB/Class/Host/HIDParser.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
  *
  *  \section Sec_ModDescription Module Description
  *  HID Class Driver module. This module contains an internal implementation of the USB HID Class, for both Device
  *  and Host USB modes. User applications can use this class driver instead of implementing the HID class manually
- *  via the low-level nxpUSBlib APIs.
+ *  via the low-level LPCUSBlib APIs.
  *
  *  This module is designed to simplify the user code by exposing only the required interface needed to interface with
  *  Hosts or Devices using the USB HID Class.
