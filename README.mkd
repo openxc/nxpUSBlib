@@ -22,6 +22,7 @@ license, but are not contributed by anyone officially with NXP.
   (__DATA__(x))
 * Fixed USB enumeration when using compiler optimization (added volatile
   keywords to some global variables)
+    * Fixed in nxpUSBlib v0.98
 * Instead of sharing a single buffer among all endpoints, in both IN and OUT
   directions, use a different buffer per endpoint. This still has the limitation
   that IN and OUT transfers on the same endpoint will share a buffer. This has
