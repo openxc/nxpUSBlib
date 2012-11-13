@@ -37,7 +37,7 @@
  *  Host mode driver for the library USB Still Image Class driver.
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB module driver
- *        dispatch header located in nxpUSBlib/Drivers/USB.h.
+ *        dispatch header located in LPCUSBlib/Drivers/USB.h.
  */
 
 /** \ingroup Group_USBClassSI
@@ -45,7 +45,7 @@
  *
  *  \section Sec_Dependencies Module Source Dependencies
  *  The following files must be built with any user project that uses this module:
- *    - nxpUSBlib/Drivers/USB/Class/Host/StillImage.c <i>(Makefile source module name: NXPUSBLIB_SRC_USBCLASS)</i>
+ *    - LPCUSBlib/Drivers/USB/Class/Host/StillImage.c <i>(Makefile source module name: LPCUSBlib_SRC_USBCLASS)</i>
  *
  *  \section Sec_ModDescription Module Description
  *  Host Mode USB Class driver framework interface, for the Still Image USB Class driver.
@@ -67,7 +67,7 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_SI_DRIVER)
-			#error Do not include this file directly. Include nxpUSBlib/Drivers/USB.h instead.
+			#error Do not include this file directly. Include LPCUSBlib/Drivers/USB.h instead.
 		#endif
 
 	/* Public Interface - May be used in end-application: */
@@ -94,6 +94,8 @@
 
 					uint8_t  EventsPipeNumber; /**< Pipe number of the Still Image interface's IN events endpoint, if used. */
 					bool     EventsPipeDoubleBank; /**< Indicates if the Still Image interface's events data pipe should use double banking. */
+					uint8_t  PortNumber;		/**< Port number that this interface is running.
+												*/
 				} Config; /**< Config data for the USB class interface within the device. All elements in this section
 				           *   <b>must</b> be set or the interface will fail to enumerate and operate correctly.
 				           */

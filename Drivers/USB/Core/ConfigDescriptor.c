@@ -34,7 +34,8 @@
 #include "ConfigDescriptor.h"
 
 #if defined(USB_CAN_BE_HOST)
-uint8_t USB_Host_GetDeviceConfigDescriptor(const uint8_t ConfigNumber,
+uint8_t USB_Host_GetDeviceConfigDescriptor(const uint8_t corenum,
+										   const uint8_t ConfigNumber,
                                            uint16_t* const ConfigSizePtr,
                                            void* const BufferPtr,
                                            const uint16_t BufferSize)
@@ -51,9 +52,9 @@ uint8_t USB_Host_GetDeviceConfigDescriptor(const uint8_t ConfigNumber,
 			.wLength       = sizeof(USB_Descriptor_Configuration_Header_t),
 		};
 
-	Pipe_SelectPipe(PIPE_CONTROLPIPE);
+	Pipe_SelectPipe(corenum,PIPE_CONTROLPIPE);
 
-	if ((ErrorCode = USB_Host_SendControlRequest(ConfigHeader)) != HOST_SENDCONTROL_Successful)
+	if ((ErrorCode = USB_Host_SendControlRequest(corenum,ConfigHeader)) != HOST_SENDCONTROL_Successful)
 	  return ErrorCode;
 
 	*ConfigSizePtr = le16_to_cpu(DESCRIPTOR_PCAST(ConfigHeader, USB_Descriptor_Configuration_Header_t)->TotalConfigurationSize);
@@ -63,7 +64,7 @@ uint8_t USB_Host_GetDeviceConfigDescriptor(const uint8_t ConfigNumber,
 
 	USB_ControlRequest.wLength = *ConfigSizePtr;
 
-	if ((ErrorCode = USB_Host_SendControlRequest(BufferPtr)) != HOST_SENDCONTROL_Successful)
+	if ((ErrorCode = USB_Host_SendControlRequest(corenum,BufferPtr)) != HOST_SENDCONTROL_Successful)
 	  return ErrorCode;
 
 	if (DESCRIPTOR_TYPE(BufferPtr) != DTYPE_Configuration)

@@ -31,7 +31,8 @@
 
 #include "../PipeStream.h"
 
-uint8_t Pipe_Discard_Stream(uint16_t Length,
+uint8_t Pipe_Discard_Stream(const uint8_t corenum,
+							uint16_t Length,
                             uint16_t* const BytesProcessed)
 {
 	uint8_t  ErrorCode;
@@ -39,7 +40,7 @@ uint8_t Pipe_Discard_Stream(uint16_t Length,
 	
 //	Pipe_SetPipeToken(PIPE_TOKEN_IN);
 
-	if ((ErrorCode = Pipe_WaitUntilReady()))
+	if ((ErrorCode = Pipe_WaitUntilReady(corenum)))
 	  return ErrorCode;
 
 	if (BytesProcessed != NULL)
@@ -47,9 +48,9 @@ uint8_t Pipe_Discard_Stream(uint16_t Length,
 
 	while (Length)
 	{
-		if (!(Pipe_IsReadWriteAllowed()))
+		if (!(Pipe_IsReadWriteAllowed(corenum)))
 		{
-			Pipe_ClearIN();
+			Pipe_ClearIN(corenum);
 				
 			if (BytesProcessed != NULL)
 			{
@@ -57,7 +58,7 @@ uint8_t Pipe_Discard_Stream(uint16_t Length,
 				return PIPE_RWSTREAM_IncompleteTransfer;
 			}
 
-			if ((ErrorCode = Pipe_WaitUntilReady()))
+			if ((ErrorCode = Pipe_WaitUntilReady(corenum)))
 			  return ErrorCode;
 		}
 		else
@@ -72,7 +73,8 @@ uint8_t Pipe_Discard_Stream(uint16_t Length,
 	return PIPE_RWSTREAM_NoError;
 }
 
-uint8_t Pipe_Null_Stream(uint16_t Length,
+uint8_t Pipe_Null_Stream(const uint8_t corenum,
+						 uint16_t Length,
                          uint16_t* const BytesProcessed)
 {
 	if (BytesProcessed != NULL)
@@ -80,14 +82,15 @@ uint8_t Pipe_Null_Stream(uint16_t Length,
 
 	while (Length)
 	{
-		Pipe_Write_8(0);
+		Pipe_Write_8(corenum, 0);
 		Length--;
 	}
 
 	return PIPE_RWSTREAM_NoError;
 }
 
-uint8_t Pipe_Write_Stream_LE(const void* const Buffer,
+uint8_t Pipe_Write_Stream_LE(const uint8_t corenum,
+							 const void* const Buffer,
 			                 uint16_t Length,
 			                 uint16_t* const BytesProcessed)
 {
@@ -100,7 +103,7 @@ uint8_t Pipe_Write_Stream_LE(const void* const Buffer,
 
 	while(Length)
 	{
-		Pipe_Write_8(*DataStream);
+		Pipe_Write_8(corenum, *DataStream);
 		DataStream++;
 		Length--;
 	}
@@ -108,14 +111,15 @@ uint8_t Pipe_Write_Stream_LE(const void* const Buffer,
 	return PIPE_RWSTREAM_NoError;
 }
 
-uint8_t Pipe_Read_Stream_LE(void* const Buffer,
+uint8_t Pipe_Read_Stream_LE(const uint8_t corenum,
+							void* const Buffer,
 			                uint16_t Length,
 			                uint16_t* const BytesProcessed) /* TODO Blocking due to Pipe_WaitUntilReady */
 {
 	uint8_t* DataStream = (uint8_t *) Buffer;
 	uint8_t ErrorCode;
 
-	if ((ErrorCode = Pipe_WaitUntilReady()))
+	if ((ErrorCode = Pipe_WaitUntilReady(corenum)))
 	  return ErrorCode;
 
 	if(BytesProcessed != NULL)
@@ -126,17 +130,19 @@ uint8_t Pipe_Read_Stream_LE(void* const Buffer,
 
 	while(Length)
 	{
-		if (Pipe_IsReadWriteAllowed())
+		if (Pipe_IsReadWriteAllowed(corenum))
 		{
-			*DataStream = Pipe_Read_8();
+			*DataStream = Pipe_Read_8(corenum);
 			DataStream++;
 			Length--;
 		}else
 		{
-			Pipe_ClearIN();
-			HcdDataTransfer(PipeInfo[pipeselected].PipeHandle, PipeInfo[pipeselected].Buffer,
-											MIN(Length, PipeInfo[pipeselected].BufferSize), &PipeInfo[pipeselected].ByteTransfered);
-			if ((ErrorCode = Pipe_WaitUntilReady()))
+			Pipe_ClearIN(corenum);
+			HcdDataTransfer(PipeInfo[corenum][pipeselected[corenum]].PipeHandle,
+							PipeInfo[corenum][pipeselected[corenum]].Buffer,
+							MIN(Length,	PipeInfo[corenum][pipeselected[corenum]].BufferSize),
+							&PipeInfo[corenum][pipeselected[corenum]].ByteTransfered);
+			if ((ErrorCode = Pipe_WaitUntilReady(corenum)))
 				return ErrorCode;
 		}
 	}

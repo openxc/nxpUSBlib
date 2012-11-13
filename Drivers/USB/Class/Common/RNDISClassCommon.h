@@ -37,7 +37,7 @@
  *  Common definitions and declarations for the library USB RNDIS Class driver.
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB module driver
- *        dispatch header located in nxpUSBlib/Drivers/USB.h.
+ *        dispatch header located in LPCUSBlib/Drivers/USB.h.
  */
 
 /** \ingroup Group_USBClassRNDIS
@@ -67,7 +67,7 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_RNDIS_DRIVER)
-			#error Do not include this file directly. Include nxpUSBlib/Drivers/USB.h instead.
+			#error Do not include this file directly. Include LPCUSBlib/Drivers/USB.h instead.
 		#endif
 
 	/* Macros: */
@@ -215,7 +215,7 @@
 		 *
 		 *  Type define for a physical MAC address of a device on a network.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t Octets[6]; /**< Individual bytes of a MAC address */
 		} ATTR_PACKED MAC_Address_t;
@@ -226,7 +226,7 @@
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint32_t MessageType; /**< RNDIS message type, a \c REMOTE_NDIS_*_MSG constant */
 			uint32_t MessageLength; /**< Total length of the RNDIS message, in bytes */
@@ -238,7 +238,7 @@
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint32_t MessageType;
 			uint32_t MessageLength;
@@ -259,7 +259,7 @@
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint32_t MessageType;
 			uint32_t MessageLength;
@@ -276,7 +276,7 @@
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint32_t MessageType;
 			uint32_t MessageLength;
@@ -300,7 +300,7 @@
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint32_t MessageType;
 			uint32_t MessageLength;
@@ -313,7 +313,7 @@
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint32_t MessageType;
 			uint32_t MessageLength;
@@ -327,7 +327,7 @@
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint32_t MessageType;
 			uint32_t MessageLength;
@@ -342,7 +342,7 @@
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint32_t MessageType;
 			uint32_t MessageLength;
@@ -360,7 +360,7 @@
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint32_t MessageType;
 			uint32_t MessageLength;
@@ -374,7 +374,7 @@
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint32_t MessageType;
 			uint32_t MessageLength;
@@ -392,7 +392,7 @@
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint32_t MessageType;
 			uint32_t MessageLength;

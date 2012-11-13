@@ -31,7 +31,7 @@
  *  \copydetails Group_EndpointManagement_LPC11Uxx
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h.
+ *        dispatch header located in lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h.
  */
 
 /** \ingroup Group_EndpointRW
@@ -80,7 +80,7 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_USB_DRIVER)
-			#error Do not include this file directly. Include lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h instead.
+			#error Do not include this file directly. Include lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h instead.
 		#endif
 
 	/* Private Interface - For use in library only: */
@@ -88,6 +88,57 @@
 		/* Macros: */
 				#define ENDPOINT_DETAILS_MAXEP             5
 		/* Inline Functions: */
+
+		#if defined(USB_DEVICE_ROM_DRIVER)
+			/*==========================================================================*/
+			/* USB ROM DRIVER DEFINITIONS */
+
+			typedef	struct _ROM {
+			   const unsigned p_usbd;
+			   const unsigned p_clib;
+			   const unsigned p_cand;
+			#ifdef PWRROMD_PRESENT
+			   const PWRD * pPWRD;
+			#else
+			   const unsigned p_pwrd;
+			#endif /* PWRROMD_PRESENT */
+			#ifdef DIVROMD_PRESENT
+			   const LPC_ROM_DIV_STRUCT* pROMDiv;
+			#else
+			   const unsigned p_dev1;
+			#endif /* DIVROMD_PRESENT */
+			   const unsigned p_dev2;
+			   const unsigned p_dev3;
+			   const unsigned p_dev4;
+			}  ROM_FUNCTION_TABLE;
+
+			#define ROM_FUNCTION_TABLE_PTR_ADDR			(0x1FFF1FF8UL)
+			#define ROM_USBD_PTR ((*(ROM_FUNCTION_TABLE **)(ROM_FUNCTION_TABLE_PTR_ADDR))->p_usbd)
+
+
+			#define ROMDRIVER_USB0_BASE LPC_USB_BASE
+			#define ROMDRIVER_USB1_BASE LPC_USB_BASE
+			#define ROMDRIVER_MEM_SIZE	0x500
+			extern uint8_t usb_RomDriver_buffer[ROMDRIVER_MEM_SIZE];
+
+			#define ROMDRIVER_MSC_MEM_SIZE	0x100
+			extern uint8_t usb_RomDriver_MSC_buffer[ROMDRIVER_MSC_MEM_SIZE];
+
+			#define ROMDRIVER_CDC_MEM_SIZE	0x8
+			extern uint8_t usb_RomDriver_CDC_buffer[ROMDRIVER_CDC_MEM_SIZE];
+			#define ROMDRIVER_CDC_DATA_BUFFER_SIZE	64
+			#if (USB_FORCED_FULLSPEED)
+				#define CDC_MAX_BULK_EP_SIZE			64
+			#else
+				#define CDC_MAX_BULK_EP_SIZE			512
+			#endif
+			extern uint8_t UsbdCdc_EPIN_buffer[CDC_MAX_BULK_EP_SIZE];
+			extern uint8_t UsbdCdc_EPOUT_buffer[CDC_MAX_BULK_EP_SIZE];
+
+			#define ROMDRIVER_HID_MEM_SIZE	0x8
+			extern uint8_t usb_RomDriver_HID_buffer[ROMDRIVER_HID_MEM_SIZE];
+			/*==========================================================================*/
+		#endif
 
 		/* Function Prototypes: */
 			void Endpoint_ClearEndpoints(void);
@@ -156,7 +207,8 @@
 
 			void HAL11UXX_WriteEndPoint(uint8_t EPNum, uint8_t *pData, uint32_t cnt);
 			void DcdDataTransfer(uint8_t EPNum, uint8_t *pData, uint32_t length);
-			
+			void Endpoint_Streaming(uint8_t * buffer,uint16_t packetsize,
+									uint16_t totalpackets,uint16_t dummypackets);
 			extern USB_CMD_STAT EndPointCmdStsList[10][2];
 
 		/* Inline Functions: */
@@ -211,6 +263,7 @@
 			 *
 			 *  \param[in] EndpointNumber Endpoint number whose FIFO buffers are to be reset.
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline void Endpoint_ResetEndpoint(const uint8_t EndpointNumber) ATTR_ALWAYS_INLINE;
 			static inline void Endpoint_ResetEndpoint(const uint8_t EndpointNumber)
 			{
@@ -222,6 +275,7 @@
 			 *
 			 *  \note Endpoints must first be configured properly via \ref Endpoint_ConfigureEndpoint().
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline void Endpoint_EnableEndpoint(void) ATTR_ALWAYS_INLINE;
 			static inline void Endpoint_EnableEndpoint(void)
 			{
@@ -231,6 +285,7 @@
 			/** Disables the currently selected endpoint so that data cannot be sent and received through it
 			 *  to and from a host.
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline void Endpoint_DisableEndpoint(void) ATTR_ALWAYS_INLINE;
 			static inline void Endpoint_DisableEndpoint(void)
 			{
@@ -241,6 +296,7 @@
 			 *
 			 * \return Boolean \c true if the currently selected endpoint is enabled, \c false otherwise.
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline bool Endpoint_IsEnabled(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 			static inline bool Endpoint_IsEnabled(void)
 			{
@@ -255,6 +311,7 @@
 			 *
 			 *  \return Total number of busy banks in the selected endpoint.
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline uint8_t Endpoint_GetBusyBanks(void) ATTR_ALWAYS_INLINE ATTR_WARN_UNUSED_RESULT;
 			static inline uint8_t Endpoint_GetBusyBanks(void)
 			{
@@ -277,6 +334,7 @@
 			 *
 			 *  \return Boolean \c true if the currently selected endpoint has been configured, \c false otherwise.
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline bool Endpoint_IsConfigured(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 			static inline bool Endpoint_IsConfigured(void)
 			{
@@ -290,6 +348,7 @@
 			 *
 			 *  \return Mask whose bits indicate which endpoints have interrupted.
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline uint8_t Endpoint_GetEndpointInterrupts(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 			static inline uint8_t Endpoint_GetEndpointInterrupts(void)
 			{
@@ -303,10 +362,50 @@
 			 *
 			 *  \return Boolean \c true if the specified endpoint has interrupted, \c false otherwise.
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline bool Endpoint_HasEndpointInterrupted(const uint8_t EndpointNumber) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 			static inline bool Endpoint_HasEndpointInterrupted(const uint8_t EndpointNumber)
 			{
 				return ((Endpoint_GetEndpointInterrupts() & (1 << EndpointNumber)) ? true : false);
+			}
+
+			/** Enable interrupts on one physical endpoint
+			 *
+			 *  \param[in] Physical endpointNumber
+			 *
+			 *  \return void.
+			 */
+PRAGMA_ALWAYS_INLINE
+			static inline void Endpoint_InterruptEnable(const uint8_t EndpointNumber) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
+			static inline void Endpoint_InterruptEnable(const uint8_t EndpointNumber)
+			{
+				LPC_USB->INTEN |= (1 << EndpointNumber);
+			}
+
+			/** Disable interrupts on one physical endpoint
+			 *
+			 *  \param[in] Physical endpointNumber
+			 *
+			 *  \return void.
+			 */
+PRAGMA_ALWAYS_INLINE
+			static inline void Endpoint_InterruptDisable(const uint8_t EndpointNumber) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
+			static inline void Endpoint_InterruptDisable(const uint8_t EndpointNumber)
+			{
+				LPC_USB->INTEN &= ~(1 << EndpointNumber);
+			}
+
+			/** Clear interrupts on one physical endpoint
+			 *
+			 *  \param[in] Physical endpointNumber
+			 *
+			 *  \return void.
+			 */
+PRAGMA_ALWAYS_INLINE
+			static inline void Endpoint_InterruptClear(const uint8_t EndpointNumber) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
+			static inline void Endpoint_InterruptClear(const uint8_t EndpointNumber)
+			{
+				LPC_USB->INTSTAT |= (1 << EndpointNumber);
 			}
 
 			/** Indicates the number of bytes currently stored in the current endpoint's selected bank.
@@ -318,16 +417,16 @@
 			 *
 			 *  \return Total number of bytes in the currently selected Endpoint's FIFO buffer.
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline uint16_t Endpoint_BytesInEndpoint(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 			static inline uint16_t Endpoint_BytesInEndpoint(void)
 			{
-//				if (endpointhandle[endpointselected]&1) // IN endpoint
-//				{
-//					return EndPointCmdStsList[ endpointhandle[endpointselected] ][0].NBytes;
-//				}
-//				else
-//					return (1023 - EndPointCmdStsList[ endpointhandle[endpointselected] ][0].NBytes);
-				return usb_data_buffer_size;
+				if (endpointselected == ENDPOINT_CONTROLEP)
+				{
+					return usb_data_buffer_size;
+				}
+				else
+					return usb_data_buffer_OUT_size;
 			}
 
 			/** Determines if the selected IN endpoint is ready for a new packet to be sent to the host.
@@ -336,6 +435,7 @@
 			 *
 			 *  \return Boolean \c true if the current endpoint is ready for an IN packet, \c false otherwise.
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline bool Endpoint_IsINReady(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 			static inline bool Endpoint_IsINReady(void)
 			{
@@ -349,11 +449,12 @@
 			 *
 			 *  \return Boolean \c true if current endpoint is has received an OUT packet, \c false otherwise.
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline bool Endpoint_IsOUTReceived(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 			static inline bool Endpoint_IsOUTReceived(void)
 			{
 				return (/*EndPointCmdStsList[ endpointhandle[endpointselected] ][0].Active == 0 &&*/
-						EndPointCmdStsList[ endpointhandle[endpointselected] ][0].NBytes != 0x3FF );
+						EndPointCmdStsList[ endpointhandle[endpointselected] ][0].NBytes != 0x200 );
 			}
 
 			/** Determines if the current CONTROL type endpoint has received a SETUP packet.
@@ -362,6 +463,7 @@
 			 *
 			 *  \return Boolean \c true if the selected endpoint has received a SETUP packet, \c false otherwise.
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline bool Endpoint_IsSETUPReceived(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 			static inline bool Endpoint_IsSETUPReceived(void)
 			{
@@ -375,11 +477,14 @@
 			 *
 			 *  \note This is not applicable for non CONTROL type endpoints.
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline void Endpoint_ClearSETUP(void) ATTR_ALWAYS_INLINE;
 			static inline void Endpoint_ClearSETUP(void)
 			{
 				LPC_USB->DEVCMDSTAT |= USB_SETUP_RCVD;
 				usb_data_buffer_index = 0;
+				usb_data_buffer_size = 0;
+				DcdDataTransfer(ENDPOINT_CONTROLEP, usb_data_buffer, USB_DATA_BUFFER_TEM_LENGTH);
 			}
 
 			/** Sends an IN packet to the host on the currently selected endpoint, freeing up the endpoint for the
@@ -387,12 +492,21 @@
 			 *
 			 *  \ingroup Group_EndpointPacketManagement_LPC11Uxx
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline void Endpoint_ClearIN(void) ATTR_ALWAYS_INLINE;
 			static inline void Endpoint_ClearIN(void)
 			{
 				uint8_t PhyEP = (endpointselected==ENDPOINT_CONTROLEP ? 1: endpointhandle[endpointselected]);
-				DcdDataTransfer(PhyEP, usb_data_buffer, usb_data_buffer_index);
-				usb_data_buffer_index = 0;
+				if(PhyEP==1)
+				{
+					DcdDataTransfer(PhyEP, usb_data_buffer, usb_data_buffer_index);
+					usb_data_buffer_index = 0;
+				}
+				else
+				{
+					DcdDataTransfer(PhyEP, usb_data_buffer_IN, usb_data_buffer_IN_index);
+					usb_data_buffer_IN_index = 0;
+				}
 			}
 
 			/** Acknowledges an OUT packet to the host on the currently selected endpoint, freeing up the endpoint
@@ -400,11 +514,22 @@
 			 *
 			 *  \ingroup Group_EndpointPacketManagement_LPC11Uxx
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline void Endpoint_ClearOUT(void) ATTR_ALWAYS_INLINE;
 			static inline void Endpoint_ClearOUT(void)
 			{
-				usb_data_buffer_index = 0;
-				EndPointCmdStsList[ endpointhandle[endpointselected] ][0].NBytes = 0x3FF;
+				if(endpointselected==ENDPOINT_CONTROLEP)
+				{
+					usb_data_buffer_index = 0;
+					usb_data_buffer_size = 0;
+					DcdDataTransfer(ENDPOINT_CONTROLEP, usb_data_buffer, USB_DATA_BUFFER_TEM_LENGTH);
+				}
+				else
+				{
+					usb_data_buffer_OUT_index = 0;
+					usb_data_buffer_OUT_size = 0;
+					DcdDataTransfer(endpointselected << 1, usb_data_buffer_OUT, USB_DATA_BUFFER_TEM_LENGTH);
+				}
 			}
 
 			/** Stalls the current endpoint, indicating to the host that a logical problem occurred with the
@@ -418,6 +543,7 @@
 			 *
 			 *  \ingroup Group_EndpointPacketManagement_LPC11Uxx
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline void Endpoint_StallTransaction(void) ATTR_ALWAYS_INLINE;
 			static inline void Endpoint_StallTransaction(void)
 			{
@@ -430,6 +556,7 @@
 			 *
 			 *  \ingroup Group_EndpointPacketManagement_LPC11Uxx
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline void Endpoint_ClearStall(void) ATTR_ALWAYS_INLINE;
 			static inline void Endpoint_ClearStall(void)
 			{
@@ -442,6 +569,7 @@
 			 *
 			 *  \return Boolean \c true if the currently selected endpoint is stalled, \c false otherwise.
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline bool Endpoint_IsStalled(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 			static inline bool Endpoint_IsStalled(void)
 			{
@@ -449,6 +577,7 @@
 			}
 
 			/** Resets the data toggle of the currently selected endpoint. */
+PRAGMA_ALWAYS_INLINE
 			static inline void Endpoint_ResetDataToggle(void) ATTR_ALWAYS_INLINE;
 			static inline void Endpoint_ResetDataToggle(void)
 			{

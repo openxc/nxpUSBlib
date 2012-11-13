@@ -47,6 +47,7 @@ uint8_t RNDIS_Host_ConfigurePipes(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfa
 	USB_Descriptor_Endpoint_t*  DataOUTEndpoint       = NULL;
 	USB_Descriptor_Endpoint_t*  NotificationEndpoint  = NULL;
 	USB_Descriptor_Interface_t* RNDISControlInterface = NULL;
+	uint8_t portnum = RNDISInterfaceInfo->Config.PortNumber;
 
 	memset(&RNDISInterfaceInfo->State, 0x00, sizeof(RNDISInterfaceInfo->State));
 
@@ -150,7 +151,7 @@ uint8_t RNDIS_Host_ConfigurePipes(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfa
 			continue;
 		}
 		
-		if (!(Pipe_ConfigurePipe(PipeNum, Type, Token, EndpointAddress, Size,
+		if (!(Pipe_ConfigurePipe(portnum,PipeNum, Type, Token, EndpointAddress, Size,
 		                         DoubleBanked ? PIPE_BANK_DOUBLE : PIPE_BANK_SINGLE)))
 		{
 			return CDC_ENUMERROR_PipeConfigurationFailed;
@@ -241,10 +242,11 @@ static uint8_t RNDIS_SendEncapsulatedCommand(USB_ClassInfo_RNDIS_Host_t* const R
 			.wIndex        = RNDISInterfaceInfo->State.ControlInterfaceNumber,
 			.wLength       = Length,
 		};
+	uint8_t portnum = RNDISInterfaceInfo->Config.PortNumber;
 
-	Pipe_SelectPipe(PIPE_CONTROLPIPE);
+	Pipe_SelectPipe(portnum,PIPE_CONTROLPIPE);
 	
-	return USB_Host_SendControlRequest(Buffer);
+	return USB_Host_SendControlRequest(portnum,Buffer);
 }
 
 static uint8_t RNDIS_GetEncapsulatedResponse(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfaceInfo,
@@ -259,10 +261,11 @@ static uint8_t RNDIS_GetEncapsulatedResponse(USB_ClassInfo_RNDIS_Host_t* const R
 			.wIndex        = RNDISInterfaceInfo->State.ControlInterfaceNumber,
 			.wLength       = Length,
 		};
+	uint8_t portnum = RNDISInterfaceInfo->Config.PortNumber;
 
-	Pipe_SelectPipe(PIPE_CONTROLPIPE);
+	Pipe_SelectPipe(portnum,PIPE_CONTROLPIPE);
 	
-	return USB_Host_SendControlRequest(Buffer);
+	return USB_Host_SendControlRequest(portnum,Buffer);
 }
 
 uint8_t RNDIS_Host_SendKeepAlive(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfaceInfo)
@@ -336,7 +339,14 @@ uint8_t RNDIS_Host_SetRNDISProperty(USB_ClassInfo_RNDIS_Host_t* const RNDISInter
 	struct
 	{
 		RNDIS_Set_Message_t SetMessage;
-		uint8_t             ContiguousBuffer[Length];
+                /* Temporary fix VLA issue on IAR compiler */
+        #if defined(__ICCARM__)
+        #define ContiguousBufferLength 1024
+        #else
+        #define ContiguousBufferLength Length
+        #endif
+                
+		uint8_t             ContiguousBuffer[ContiguousBufferLength];
 	} SetMessageData;
 
 	RNDIS_Set_Complete_t SetMessageResponse;
@@ -382,7 +392,13 @@ uint8_t RNDIS_Host_QueryRNDISProperty(USB_ClassInfo_RNDIS_Host_t* const RNDISInt
 	struct
 	{
 		RNDIS_Query_Complete_t QueryMessageResponse;
-		uint8_t                ContiguousBuffer[MaxLength];
+                /* Temporary fix VLA issue on IAR compiler */
+        #if defined(__ICCARM__)
+        #define ContiguousBufferLength 1024
+        #else
+        #define ContiguousBufferLength MaxLength
+        #endif
+		uint8_t                ContiguousBuffer[ContiguousBufferLength];
 	} QueryMessageResponseData;
 
 	QueryMessage.MessageType    = CPU_TO_LE32(REMOTE_NDIS_QUERY_MSG);
@@ -417,14 +433,15 @@ uint8_t RNDIS_Host_QueryRNDISProperty(USB_ClassInfo_RNDIS_Host_t* const RNDISInt
 bool RNDIS_Host_IsPacketReceived(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfaceInfo)
 {
 	bool PacketWaiting;
+	uint8_t portnum = RNDISInterfaceInfo->Config.PortNumber;
 
-	if ((USB_HostState != HOST_STATE_Configured) || !(RNDISInterfaceInfo->State.IsActive))
+	if ((USB_HostState[portnum] != HOST_STATE_Configured) || !(RNDISInterfaceInfo->State.IsActive))
 	  return false;
 
-	Pipe_SelectPipe(RNDISInterfaceInfo->Config.DataINPipeNumber);
+	Pipe_SelectPipe(portnum,RNDISInterfaceInfo->Config.DataINPipeNumber);
 
 	Pipe_Unfreeze();
-	PacketWaiting = Pipe_IsINReceived();
+	PacketWaiting = Pipe_IsINReceived(portnum);
 	Pipe_Freeze();
 
 	return PacketWaiting;
@@ -435,17 +452,18 @@ uint8_t RNDIS_Host_ReadPacket(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfaceIn
                               uint16_t* const PacketLength)
 {
 	uint8_t ErrorCode;
+	uint8_t portnum = RNDISInterfaceInfo->Config.PortNumber;
 
-	if ((USB_HostState != HOST_STATE_Configured) || !(RNDISInterfaceInfo->State.IsActive))
+	if ((USB_HostState[portnum] != HOST_STATE_Configured) || !(RNDISInterfaceInfo->State.IsActive))
 	  return PIPE_READYWAIT_DeviceDisconnected;
 
-	Pipe_SelectPipe(RNDISInterfaceInfo->Config.DataINPipeNumber);
+	Pipe_SelectPipe(portnum,RNDISInterfaceInfo->Config.DataINPipeNumber);
 	Pipe_Unfreeze();
 
-	if (!(Pipe_IsReadWriteAllowed()))
+	if (!(Pipe_IsReadWriteAllowed(portnum)))
 	{
-		if (Pipe_IsINReceived())
-		  Pipe_ClearIN();
+		if (Pipe_IsINReceived(portnum))
+		  Pipe_ClearIN(portnum);
 
 		*PacketLength = 0;
 		Pipe_Freeze();
@@ -454,7 +472,7 @@ uint8_t RNDIS_Host_ReadPacket(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfaceIn
 
 	RNDIS_Packet_Message_t DeviceMessage;
 
-	if ((ErrorCode = Pipe_Read_Stream_LE(&DeviceMessage, sizeof(RNDIS_Packet_Message_t),
+	if ((ErrorCode = Pipe_Read_Stream_LE(portnum,&DeviceMessage, sizeof(RNDIS_Packet_Message_t),
 	                                     NULL)) != PIPE_RWSTREAM_NoError)
 	{
 		return ErrorCode;
@@ -462,14 +480,14 @@ uint8_t RNDIS_Host_ReadPacket(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfaceIn
 
 	*PacketLength = (uint16_t)le32_to_cpu(DeviceMessage.DataLength);
 
-	Pipe_Discard_Stream(DeviceMessage.DataOffset -
+	Pipe_Discard_Stream(portnum,DeviceMessage.DataOffset -
 	                    (sizeof(RNDIS_Packet_Message_t) - sizeof(RNDIS_Message_Header_t)),
 	                    NULL);
 
-	Pipe_Read_Stream_LE(Buffer, *PacketLength, NULL);
+	Pipe_Read_Stream_LE(portnum,Buffer, *PacketLength, NULL);
 
-	if (!(Pipe_BytesInPipe()))
-	  Pipe_ClearIN();
+	if (!(Pipe_BytesInPipe(portnum)))
+	  Pipe_ClearIN(portnum);
 
 	Pipe_Freeze();
 
@@ -481,8 +499,9 @@ uint8_t RNDIS_Host_SendPacket(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfaceIn
                               const uint16_t PacketLength)
 {
 	uint8_t ErrorCode;
+	uint8_t portnum = RNDISInterfaceInfo->Config.PortNumber;
 
-	if ((USB_HostState != HOST_STATE_Configured) || !(RNDISInterfaceInfo->State.IsActive))
+	if ((USB_HostState[portnum] != HOST_STATE_Configured) || !(RNDISInterfaceInfo->State.IsActive))
 	  return PIPE_READYWAIT_DeviceDisconnected;
 
 	RNDIS_Packet_Message_t DeviceMessage;
@@ -493,17 +512,17 @@ uint8_t RNDIS_Host_SendPacket(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfaceIn
 	DeviceMessage.DataOffset    = CPU_TO_LE32(sizeof(RNDIS_Packet_Message_t) - sizeof(RNDIS_Message_Header_t));
 	DeviceMessage.DataLength    = cpu_to_le32(PacketLength);
 
-	Pipe_SelectPipe(RNDISInterfaceInfo->Config.DataOUTPipeNumber);
+	Pipe_SelectPipe(portnum,RNDISInterfaceInfo->Config.DataOUTPipeNumber);
 	Pipe_Unfreeze();
 
-	if ((ErrorCode = Pipe_Write_Stream_LE(&DeviceMessage, sizeof(RNDIS_Packet_Message_t),
+	if ((ErrorCode = Pipe_Write_Stream_LE(portnum,&DeviceMessage, sizeof(RNDIS_Packet_Message_t),
 	                                      NULL)) != PIPE_RWSTREAM_NoError)
 	{
 		return ErrorCode;
 	}
 
-	Pipe_Write_Stream_LE(Buffer, PacketLength, NULL);
-	Pipe_ClearOUT();
+	Pipe_Write_Stream_LE(portnum,Buffer, PacketLength, NULL);
+	Pipe_ClearOUT(portnum);
 
 	Pipe_Freeze();
 

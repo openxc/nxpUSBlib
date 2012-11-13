@@ -37,7 +37,7 @@
  *  Common definitions and declarations for the library USB HID Class driver.
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB module driver
- *        dispatch header located in nxpUSBlib/Drivers/USB.h.
+ *        dispatch header located in LPCUSBlib/Drivers/USB.h.
  */
 
 /** \ingroup Group_USBClassHID
@@ -64,7 +64,7 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_HID_DRIVER)
-			#error Do not include this file directly. Include nxpUSBlib/Drivers/USB.h instead.
+			#error Do not include this file directly. Include LPCUSBlib/Drivers/USB.h instead.
 		#endif
 
 	/* Macros: */
@@ -573,7 +573,7 @@
 			HID_REPORT_ITEM_Feature = 2, /**< Indicates that the item is a FEATURE report type. */
 		};
 
-		/** \brief HID class-specific HID Descriptor (nxpUSBlib naming conventions).
+		/** \brief HID class-specific HID Descriptor (LPCUSBlib naming conventions).
 		 *
 		 *  Type define for the HID class-specific HID descriptor, to describe the HID device's specifications. Refer to the HID
 		 *  specification for details on the structure elements.
@@ -582,7 +582,7 @@
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			USB_Descriptor_Header_t Header; /**< Regular descriptor header containing the descriptor's type and length. */
 
@@ -600,12 +600,12 @@
 		 *  Type define for the HID class-specific HID descriptor, to describe the HID device's specifications. Refer to the HID
 		 *  specification for details on the structure elements.
 		 *
-		 *  \see \ref USB_HID_Descriptor_HID_t for the version of this type with non-standard nxpUSBlib specific
+		 *  \see \ref USB_HID_Descriptor_HID_t for the version of this type with non-standard LPCUSBlib specific
 		 *       element names.
 		 *
 		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t  bLength; /**< Size of the descriptor, in bytes. */
 			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
@@ -625,7 +625,7 @@
 		 *
 		 *  Type define for a standard Boot Protocol Mouse report
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t Button; /**< Button mask for currently pressed buttons in the mouse. */
 			int8_t  X; /**< Current delta X movement of the mouse. */
@@ -636,7 +636,7 @@
 		 *
 		 *  Type define for a standard Boot Protocol Keyboard report
 		 */
-		typedef struct
+		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t Modifier; /**< Keyboard modifier byte, indicating pressed modifier keys (a combination of
 			                   *   \c HID_KEYBOARD_MODIFER_* masks).

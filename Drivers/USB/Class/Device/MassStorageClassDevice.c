@@ -124,9 +124,14 @@ void MS_Device_USBTask(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo)
 		if (MS_Device_ReadInCommandBlock(MSInterfaceInfo))
 		{
 			if (MSInterfaceInfo->State.CommandBlock.Flags & MS_COMMAND_DIR_DATA_IN)
-			  Endpoint_SelectEndpoint(MSInterfaceInfo->Config.DataINEndpointNumber);
+				Endpoint_SelectEndpoint(MSInterfaceInfo->Config.DataINEndpointNumber);
 
 			bool SCSICommandResult = CALLBACK_MS_Device_SCSICommandReceived(MSInterfaceInfo);
+
+			Endpoint_SelectEndpoint(MSInterfaceInfo->Config.DataOUTEndpointNumber);// for streaming
+			Endpoint_ClearOUT();
+			if (MSInterfaceInfo->State.CommandBlock.Flags & MS_COMMAND_DIR_DATA_IN)
+				Endpoint_SelectEndpoint(MSInterfaceInfo->Config.DataINEndpointNumber);
 
 			MSInterfaceInfo->State.CommandStatus.Status              = (SCSICommandResult) ? MS_SCSI_COMMAND_Pass : MS_SCSI_COMMAND_Fail;
 			MSInterfaceInfo->State.CommandStatus.Signature           = CPU_TO_LE32(MS_CSW_SIGNATURE);
@@ -192,8 +197,8 @@ static bool MS_Device_ReadInCommandBlock(USB_ClassInfo_MS_Device_t* const MSInte
 		if (MSInterfaceInfo->State.IsMassStoreReset)
 		  return false;
 	}
-
-	Endpoint_ClearOUT();
+	// for streaming, clear out later
+//	Endpoint_ClearOUT();
 
 	return true;
 }

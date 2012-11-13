@@ -51,12 +51,12 @@
  *  @{
  */
 
-#ifndef __NXPUSBLIB_BOARDTYPES_H__
-#define __NXPUSBLIB_BOARDTYPES_H__
+#ifndef __LPCUSBlib_BOARDTYPES_H__
+#define __LPCUSBlib_BOARDTYPES_H__
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_COMMON_H)
-			#error Do not include this file directly. Include nxpUSBlib/Common/Common.h instead to gain this functionality.
+			#error Do not include this file directly. Include LPCUSBlib/Common/Common.h instead to gain this functionality.
 		#endif
 
 	/* Public Interface - May be used in end-application: */
@@ -77,8 +77,8 @@
 			#define BOARD_ATAVRUSBRF01  4
 
 			/** Selects the user-defined board drivers, which should be placed in the user project's folder
-			 *  under a directory named \c /Board/. Each board driver should be named identically to the nxpUSBlib
-			 *  master board driver (i.e., driver in the \c nxpUSBlib/Drivers/Board directory) so that the library
+			 *  under a directory named \c /Board/. Each board driver should be named identically to the LPCUSBlib
+			 *  master board driver (i.e., driver in the \c LPCUSBlib/Drivers/Board directory) so that the library
 			 *  can correctly identify it.
 			 */
 			#define BOARD_USER          5

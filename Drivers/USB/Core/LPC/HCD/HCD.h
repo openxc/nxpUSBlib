@@ -164,7 +164,7 @@ HCD_STATUS HcdControlTransfer(uint32_t PipeHandle, const USB_Request_Header_t* c
 HCD_STATUS HcdDataTransfer(uint32_t PipeHandle, uint8_t* const buffer, uint32_t const length, uint16_t* const pActualTransferred);
 HCD_STATUS HcdGetPipeStatus(uint32_t PipeHandle);
 
-#ifdef NXPUSBLIB_DEBUG
+#ifdef LPCUSBlib_DEBUG
 	#define hcd_printf			printf
 	void assert_status_ok_message(HCD_STATUS status, char const * mess, char const * func, char const * file, uint32_t const line);
 #else

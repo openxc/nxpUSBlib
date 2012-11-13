@@ -45,7 +45,7 @@
  *
  *  \section Sec_Dependencies Module Source Dependencies
  *  The following files must be built with any user project that uses this module:
- *    - nxpUSBlib/Drivers/USB/Class/Host/HIDParser.c <i>(Makefile source module name: NXPUSBLIB_SRC_USB)</i>
+ *    - LPCUSBlib/Drivers/USB/Class/Host/HIDParser.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
  *
  *  \section Sec_ModDescription Module Description
  *  Human Interface Device (HID) class report descriptor parser. This module implements a parser than is

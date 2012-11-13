@@ -38,7 +38,7 @@ volatile bool        USB_IsInitialized;
 USB_Request_Header_t USB_ControlRequest __DATA(USBRAM_SECTION);
 
 #if defined(USB_CAN_BE_HOST) && !defined(HOST_STATE_AS_GPIOR)
-volatile uint8_t     USB_HostState;
+volatile uint8_t     USB_HostState[MAX_USB_CORE];
 #endif
 
 #if defined(USB_CAN_BE_DEVICE) && !defined(DEVICE_STATE_AS_GPIOR)
@@ -79,13 +79,18 @@ static void USB_DeviceTask(void)
 #if defined(USB_CAN_BE_HOST)
 static void USB_HostTask(void)
 {
-	uint8_t PrevPipe = Pipe_GetCurrentPipe();
+	uint8_t i = USB_PORT_SELECTED;
+#if defined(USB_MULTI_PORTS)
+	for(i=0;i<MAX_USB_CORE;i++)
+#endif
+	{
+		uint8_t PrevPipe;
 
-	Pipe_SelectPipe(PIPE_CONTROLPIPE);
-
-	USB_Host_ProcessNextHostState();
-
-	Pipe_SelectPipe(PrevPipe);
+		PrevPipe = Pipe_GetCurrentPipe(i);
+		Pipe_SelectPipe(i,PIPE_CONTROLPIPE);
+		USB_Host_ProcessNextHostState(i);
+		Pipe_SelectPipe(i,PrevPipe);
+	}
 }
 #endif
 

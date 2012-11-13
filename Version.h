@@ -33,23 +33,23 @@
 
 /** \file
  *
- *  \brief nxpUSBlib library version constants.
+ *  \brief LPCUSBlib library version constants.
  *
  *  Version constants for informational purposes and version-specific macro creation. This header file contains the
- *  current nxpUSBlib version number in several forms, for use in the user-application (for example, for printing out
+ *  current LPCUSBlib version number in several forms, for use in the user-application (for example, for printing out
  *  whilst debugging, or for testing for version compatibility).
  */
 
-#ifndef __NXPUSBLIB_VERSION_H__
-#define __NXPUSBLIB_VERSION_H__
+#ifndef __LPCUSBlib_VERSION_H__
+#define __LPCUSBlib_VERSION_H__
 
 	/* Public Interface - May be used in end-application: */
 		/* Macros: */
 			/** Indicates the version number of the library, as an integer. */
-			#define NXPUSBLIB_VERSION_INTEGER     0x000000
+			#define LPCUSBlib_VERSION_INTEGER     0x000000
 
 			/** Indicates the version number of the library, as a string. */
-			#define NXPUSBLIB_VERSION_STRING      "XXXXXX"
+			#define LPCUSBlib_VERSION_STRING      "XXXXXX"
 
 #endif
 

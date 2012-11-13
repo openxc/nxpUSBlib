@@ -31,7 +31,7 @@
  *  \copydetails Group_Device_LPC11Uxx
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h.
+ *        dispatch header located in lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h.
  */
 
 /** \ingroup Group_Device
@@ -53,6 +53,10 @@
 		#include "../../../USBInterrupt.h"
 		#include "../../../Endpoint.h"
 		
+		#if defined(USB_DEVICE_ROM_DRIVER)
+			#include "../USBRom/usbd_rom_api.h"
+		#endif
+
 	/* Enable C linkage for C++ Compilers: */
 		#if defined(__cplusplus)
 			extern "C" {
@@ -60,7 +64,7 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_USB_DRIVER)
-			#error Do not include this file directly. Include lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h instead.
+			#error Do not include this file directly. Include lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h instead.
 		#endif
 
 		#if (defined(USE_RAM_DESCRIPTORS) && defined(USE_EEPROM_DESCRIPTORS))
@@ -147,6 +151,7 @@
 			/** Returns the current USB frame number, when in device mode. Every millisecond the USB bus is active (i.e. enumerated to a host)
 			 *  the frame number is incremented by one.
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline uint16_t USB_Device_GetFrameNumber(void) ATTR_ALWAYS_INLINE ATTR_WARN_UNUSED_RESULT;
 			static inline uint16_t USB_Device_GetFrameNumber(void)
 			{
@@ -160,6 +165,7 @@
 				 *
 				 *  \note Not available when the \c NO_SOF_EVENTS compile time token is defined.
 				 */
+PRAGMA_ALWAYS_INLINE
 				static inline void USB_Device_EnableSOFEvents(void) ATTR_ALWAYS_INLINE;
 				static inline void USB_Device_EnableSOFEvents(void)
 				{
@@ -171,6 +177,7 @@
 				 *
 				 *  \note Not available when the \c NO_SOF_EVENTS compile time token is defined.
 				 */
+PRAGMA_ALWAYS_INLINE
 				static inline void USB_Device_DisableSOFEvents(void) ATTR_ALWAYS_INLINE;
 				static inline void USB_Device_DisableSOFEvents(void)
 				{
@@ -182,12 +189,14 @@
 	#if !defined(__DOXYGEN__)
 		/* Inline Functions: */
 			#if defined(USB_DEVICE_OPT_LOWSPEED)
+PRAGMA_ALWAYS_INLINE
 			static inline void USB_Device_SetLowSpeed(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_Device_SetLowSpeed(void)
 			{
 // 				UDCON |=  (1 << LSM);
 			}
 
+PRAGMA_ALWAYS_INLINE
 			static inline void USB_Device_SetFullSpeed(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_Device_SetFullSpeed(void)
 			{
@@ -195,12 +204,14 @@
 			}
 			#endif
 
+PRAGMA_ALWAYS_INLINE
 			static inline void USB_Device_SetDeviceAddress(const uint8_t Address) ATTR_ALWAYS_INLINE;
 			static inline void USB_Device_SetDeviceAddress(const uint8_t Address)
 			{
 				HAL_SetDeviceAddress(Address);
 			}
 
+PRAGMA_ALWAYS_INLINE
 			static inline bool USB_Device_IsAddressSet(void) ATTR_ALWAYS_INLINE ATTR_WARN_UNUSED_RESULT;
 			static inline bool USB_Device_IsAddressSet(void)
 			{

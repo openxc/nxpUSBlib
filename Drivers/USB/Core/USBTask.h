@@ -38,7 +38,7 @@
  *  from the user application to ensure that the USB connection to or from a connected USB device is maintained.
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h.
+ *        dispatch header located in lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h.
  */
 
 #ifndef __USBTASK_H__
@@ -67,7 +67,7 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_USB_DRIVER)
-			#error Do not include this file directly. Include lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h instead.
+			#error Do not include this file directly. Include lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h instead.
 		#endif
 
 	/* Public Interface - May be used in end-application: */
@@ -113,7 +113,7 @@
 					 *
 					 *  \ingroup Group_Host
 					 */
-					extern volatile uint8_t USB_HostState;
+					extern volatile uint8_t USB_HostState[MAX_USB_CORE];
 				#else
 					#define _GET_HOST_GPIOR_NAME2(y) GPIOR ## y
 					#define _GET_HOST_GPIOR_NAME(x)  _GET_HOST_GPIOR_NAME2(x)
@@ -193,7 +193,7 @@
 			#endif
 
 		/* Macros: */
-			#define HOST_TASK_NONBLOCK_WAIT(Duration, NextState) MACROS{ USB_HostState   = HOST_STATE_WaitForDevice; \
+			#define HOST_TASK_NONBLOCK_WAIT(CoreID, Duration, NextState) MACROS{ USB_HostState[(CoreID)]   = HOST_STATE_WaitForDevice; \
 			                                                             WaitMSRemaining = (Duration);               \
 			                                                             PostWaitState   = (NextState);              }MACROE
 	#endif

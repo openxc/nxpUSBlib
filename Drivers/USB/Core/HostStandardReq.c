@@ -42,33 +42,39 @@ uint8_t USB_Host_ConfigurationNumber;
 
 #if 1
 
-uint8_t USB_Host_SendControlRequest(void* const BufferPtr)
+uint8_t USB_Host_SendControlRequest(const uint8_t corenum, void* const BufferPtr)
 {
 	uint8_t* DataStream   = (uint8_t*)BufferPtr;
 	uint16_t DataLen      = USB_ControlRequest.wLength;
+	uint8_t ret;
 
 	if ((USB_ControlRequest.bmRequestType & CONTROL_REQTYPE_DIRECTION) == REQDIR_HOSTTODEVICE)
 	{
-		Pipe_Write_Stream_LE(BufferPtr, DataLen, NULL);
+		Pipe_Write_Stream_LE(corenum, BufferPtr, DataLen, NULL);
 	}
 
-	HcdControlTransfer(PipeInfo[pipeselected].PipeHandle, &USB_ControlRequest, PipeInfo[pipeselected].Buffer);
-	/* TODO Control Transfer Status */
+	ret = (uint8_t)HcdControlTransfer(PipeInfo[corenum][pipeselected[corenum]].PipeHandle, &USB_ControlRequest,
+					   PipeInfo[corenum][pipeselected[corenum]].Buffer);
 
-	if ((USB_ControlRequest.bmRequestType & CONTROL_REQTYPE_DIRECTION) == REQDIR_DEVICETOHOST)
+	if(ret == (uint8_t)HOST_SENDCONTROL_Successful)
 	{
-		PipeInfo[pipeselected].ByteTransfered = USB_ControlRequest.wLength; // FIXME assume no errors
-		while(DataLen)
+		if ((USB_ControlRequest.bmRequestType & CONTROL_REQTYPE_DIRECTION) == REQDIR_DEVICETOHOST)
 		{
-			*(DataStream++) = Pipe_Read_8();
-			DataLen--;
+			PipeInfo[corenum][pipeselected[corenum]].ByteTransfered = USB_ControlRequest.wLength;
+			while(DataLen)
+			{
+				*(DataStream++) = Pipe_Read_8(corenum);
+				DataLen--;
+			}
+			/* Pipe_Read_Stream_LE(BufferPtr, DataLen, NULL); cannot use read stream as it call HcdDataTransfer*/
 		}
-		/* Pipe_Read_Stream_LE(BufferPtr, DataLen, NULL); cannot use read stream as it call HcdDataTransfer*/ 
+		PipeInfo[corenum][pipeselected[corenum]].StartIdx = PipeInfo[corenum][pipeselected[corenum]].ByteTransfered = 0; /* Clear Control Pipe */
+		return HOST_SENDCONTROL_Successful;
 	}
-
-	PipeInfo[pipeselected].StartIdx = PipeInfo[pipeselected].ByteTransfered = 0; /* Clear Control Pipe */
-
-	return HOST_SENDCONTROL_Successful;
+	else
+	{
+		return HOST_SENDCONTROL_PipeError;
+	}
 }
 
 #else // The following code is deprecated
@@ -215,7 +221,7 @@ static uint8_t USB_Host_WaitForIOS(const uint8_t WaitType)
 }
 #endif
 
-uint8_t USB_Host_SetDeviceConfiguration(const uint8_t ConfigNumber)
+uint8_t USB_Host_SetDeviceConfiguration(const uint8_t corenum, const uint8_t ConfigNumber)
 {
 	uint8_t ErrorCode;
 
@@ -228,18 +234,18 @@ uint8_t USB_Host_SetDeviceConfiguration(const uint8_t ConfigNumber)
 			.wLength       = 0,
 		};
 
-	Pipe_SelectPipe(PIPE_CONTROLPIPE);
+	Pipe_SelectPipe(corenum, PIPE_CONTROLPIPE);
 	
-	if ((ErrorCode = USB_Host_SendControlRequest(NULL)) == HOST_SENDCONTROL_Successful)
+	if ((ErrorCode = USB_Host_SendControlRequest(corenum, NULL)) == HOST_SENDCONTROL_Successful)
 	{
 		USB_Host_ConfigurationNumber = ConfigNumber;
-		USB_HostState                = (ConfigNumber) ? HOST_STATE_Configured : HOST_STATE_Addressed;
+		USB_HostState[corenum]       = (ConfigNumber) ? HOST_STATE_Configured : HOST_STATE_Addressed;
 	}
 
 	return ErrorCode;
 }
 
-uint8_t USB_Host_GetDeviceDescriptor(void* const DeviceDescriptorPtr)
+uint8_t USB_Host_GetDeviceDescriptor(const uint8_t corenum, void* const DeviceDescriptorPtr)
 {
 	USB_ControlRequest = (USB_Request_Header_t)
 		{
@@ -250,12 +256,13 @@ uint8_t USB_Host_GetDeviceDescriptor(void* const DeviceDescriptorPtr)
 			.wLength       = sizeof(USB_Descriptor_Device_t),
 		};
 
-	Pipe_SelectPipe(PIPE_CONTROLPIPE);
+	Pipe_SelectPipe(corenum, PIPE_CONTROLPIPE);
 
-	return USB_Host_SendControlRequest(DeviceDescriptorPtr);
+	return USB_Host_SendControlRequest(corenum,DeviceDescriptorPtr);
 }
 
-uint8_t USB_Host_GetDeviceStringDescriptor(const uint8_t Index,
+uint8_t USB_Host_GetDeviceStringDescriptor(const uint8_t corenum,
+										   const uint8_t Index,
                                            void* const Buffer,
                                            const uint8_t BufferLength)
 {
@@ -268,12 +275,12 @@ uint8_t USB_Host_GetDeviceStringDescriptor(const uint8_t Index,
 			.wLength       = BufferLength,
 		};
 
-	Pipe_SelectPipe(PIPE_CONTROLPIPE);
+	Pipe_SelectPipe(corenum, PIPE_CONTROLPIPE);
 
-	return USB_Host_SendControlRequest(Buffer);
+	return USB_Host_SendControlRequest(corenum,Buffer);
 }
 
-uint8_t USB_Host_GetDeviceStatus(uint8_t* const FeatureStatus)
+uint8_t USB_Host_GetDeviceStatus(const uint8_t corenum, uint8_t* const FeatureStatus)
 {
 	USB_ControlRequest = (USB_Request_Header_t)
 		{
@@ -284,12 +291,12 @@ uint8_t USB_Host_GetDeviceStatus(uint8_t* const FeatureStatus)
 			.wLength       = 0,
 		};
 
-	Pipe_SelectPipe(PIPE_CONTROLPIPE);
+	Pipe_SelectPipe(corenum, PIPE_CONTROLPIPE);
 
-	return USB_Host_SendControlRequest(FeatureStatus);
+	return USB_Host_SendControlRequest(corenum, FeatureStatus);
 }
 
-uint8_t USB_Host_ClearEndpointStall(const uint8_t EndpointAddress)
+uint8_t USB_Host_ClearEndpointStall(const uint8_t corenum, const uint8_t EndpointAddress)
 {
 	USB_ControlRequest = (USB_Request_Header_t)
 		{
@@ -300,12 +307,13 @@ uint8_t USB_Host_ClearEndpointStall(const uint8_t EndpointAddress)
 			.wLength       = 0,
 		};
 
-	Pipe_SelectPipe(PIPE_CONTROLPIPE);
+	Pipe_SelectPipe(corenum, PIPE_CONTROLPIPE);
 
-	return USB_Host_SendControlRequest(NULL);
+	return USB_Host_SendControlRequest(corenum,NULL);
 }
 
-uint8_t USB_Host_SetInterfaceAltSetting(const uint8_t InterfaceIndex,
+uint8_t USB_Host_SetInterfaceAltSetting(const uint8_t corenum,
+										const uint8_t InterfaceIndex,
                                         const uint8_t AltSetting)
 {
 	USB_ControlRequest = (USB_Request_Header_t)
@@ -317,9 +325,9 @@ uint8_t USB_Host_SetInterfaceAltSetting(const uint8_t InterfaceIndex,
 			.wLength       = 0,
 		};
 
-	Pipe_SelectPipe(PIPE_CONTROLPIPE);
+	Pipe_SelectPipe(corenum, PIPE_CONTROLPIPE);
 
-	return USB_Host_SendControlRequest(NULL);
+	return USB_Host_SendControlRequest(corenum,NULL);
 }
 
 #endif

@@ -34,12 +34,12 @@
 #include "../Host.h"
 
 static uint8_t CurrentHostID = 0;
-uint8_t USB_Host_ControlPipeSize = PIPE_CONTROLPIPE_DEFAULT_SIZE;
+uint8_t USB_Host_ControlPipeSize[MAX_USB_CORE];
 
 void USB_Host_SetDeviceSpeed(uint8_t hostid, HCD_USB_SPEED speed);
 HCD_USB_SPEED USB_Host_GetDeviceSpeed(uint8_t hostid);
 
-void USB_Host_ProcessNextHostState(void)
+void USB_Host_ProcessNextHostState(uint8_t corenum)
 {
 	uint8_t ErrorCode    = HOST_ENUMERROR_NoError;
 	uint8_t SubErrorCode = HOST_ENUMERROR_NoError;
@@ -47,27 +47,27 @@ void USB_Host_ProcessNextHostState(void)
 	static uint16_t WaitMSRemaining;
 	static uint8_t  PostWaitState;
 
-	switch (USB_HostState)
+	switch (USB_HostState[corenum])
 	{
 		case HOST_STATE_WaitForDevice:
 			if (WaitMSRemaining)
 			{
 				if ((SubErrorCode = USB_Host_WaitMS(1)) != HOST_WAITERROR_Successful)
 				{
-					USB_HostState = PostWaitState;
+					USB_HostState[corenum] = PostWaitState;
 					ErrorCode     = HOST_ENUMERROR_WaitStage;
 					break;
 				}
 
 				if (!(--WaitMSRemaining))
-				  USB_HostState = PostWaitState;
+				  USB_HostState[corenum] = PostWaitState;
 			}
 			break;
 
 		case HOST_STATE_Powered:
 			WaitMSRemaining = HOST_DEVICE_SETTLE_DELAY_MS;
 
-			USB_HostState = HOST_STATE_Powered_WaitForDeviceSettle;
+			USB_HostState[corenum] = HOST_STATE_Powered_WaitForDeviceSettle;
 			break;
 
 		case HOST_STATE_Powered_WaitForDeviceSettle:
@@ -84,26 +84,26 @@ void USB_Host_ProcessNextHostState(void)
 				USB_Host_VBUS_Auto_Enable();
 				USB_Host_VBUS_Auto_On();
 
-				USB_HostState = HOST_STATE_Powered_WaitForConnect;
+				USB_HostState[corenum] = HOST_STATE_Powered_WaitForConnect;
 			}
 			break;
 
 		case HOST_STATE_Powered_WaitForConnect:
-			HOST_TASK_NONBLOCK_WAIT(100, HOST_STATE_Powered_DoReset);
+			HOST_TASK_NONBLOCK_WAIT(corenum, 100, HOST_STATE_Powered_DoReset);
 			break;
 
 		case HOST_STATE_Powered_DoReset:
 		{
 			HCD_USB_SPEED DeviceSpeed;
-			HcdRhPortReset(CurrentHostID,1);
-			HcdGetDeviceSpeed(CurrentHostID, 1, &DeviceSpeed); // skip checking status
-			USB_Host_SetDeviceSpeed(CurrentHostID,DeviceSpeed);
-			HOST_TASK_NONBLOCK_WAIT(200, HOST_STATE_Powered_ConfigPipe);
+			HcdRhPortReset(corenum,1);
+			HcdGetDeviceSpeed(corenum, 1, &DeviceSpeed); // skip checking status
+			USB_Host_SetDeviceSpeed(corenum,DeviceSpeed);
+			HOST_TASK_NONBLOCK_WAIT(corenum, 200, HOST_STATE_Powered_ConfigPipe);
 		}
 			break;
 
 		case HOST_STATE_Powered_ConfigPipe:
-			if (!Pipe_ConfigurePipe(PIPE_CONTROLPIPE, EP_TYPE_CONTROL,
+			if (!Pipe_ConfigurePipe(corenum, PIPE_CONTROLPIPE, EP_TYPE_CONTROL,
 							   PIPE_TOKEN_SETUP, ENDPOINT_CONTROLEP,
 							   PIPE_CONTROLPIPE_DEFAULT_SIZE, PIPE_BANK_SINGLE) )
 			{
@@ -112,7 +112,7 @@ void USB_Host_ProcessNextHostState(void)
 				break;
 			}
 
-			USB_HostState = HOST_STATE_Default;
+			USB_HostState[corenum] = HOST_STATE_Default;
 			break;
 
 		case HOST_STATE_Default:
@@ -127,25 +127,25 @@ void USB_Host_ProcessNextHostState(void)
 					.wLength       = 8,
 				};
 
-			if ((SubErrorCode = USB_Host_SendControlRequest(&DevDescriptor)) != HOST_SENDCONTROL_Successful)
+			if ((SubErrorCode = USB_Host_SendControlRequest(corenum, &DevDescriptor)) != HOST_SENDCONTROL_Successful)
 			{
 				ErrorCode = HOST_ENUMERROR_ControlError;
 				break;
 			}
 
-			USB_Host_ControlPipeSize = DevDescriptor.Endpoint0Size;
+			USB_Host_ControlPipeSize[corenum] = DevDescriptor.Endpoint0Size;
 
-			Pipe_ClosePipe(PIPE_CONTROLPIPE);
-			HcdRhPortReset(CurrentHostID,1);
+			Pipe_ClosePipe(corenum, PIPE_CONTROLPIPE);
+			HcdRhPortReset(corenum,1);
 
-			HOST_TASK_NONBLOCK_WAIT(200, HOST_STATE_Default_PostReset);
+			HOST_TASK_NONBLOCK_WAIT(corenum, 200, HOST_STATE_Default_PostReset);
 		}
 			break;
 
 		case HOST_STATE_Default_PostReset:
-			if (!Pipe_ConfigurePipe(PIPE_CONTROLPIPE, EP_TYPE_CONTROL,
+			if (!Pipe_ConfigurePipe(corenum, PIPE_CONTROLPIPE, EP_TYPE_CONTROL,
 			                   PIPE_TOKEN_SETUP, ENDPOINT_CONTROLEP,
-			                   USB_Host_ControlPipeSize, PIPE_BANK_SINGLE) )
+			                   USB_Host_ControlPipeSize[corenum], PIPE_BANK_SINGLE) )
 			{
 				ErrorCode    = HOST_ENUMERROR_PipeConfigError;
 				SubErrorCode = 0;
@@ -161,38 +161,38 @@ void USB_Host_ProcessNextHostState(void)
 					.wLength       = 0,
 				};
 
-			if ((SubErrorCode = USB_Host_SendControlRequest(NULL)) != HOST_SENDCONTROL_Successful)
+			if ((SubErrorCode = USB_Host_SendControlRequest(corenum, NULL)) != HOST_SENDCONTROL_Successful)
 			{
 				ErrorCode = HOST_ENUMERROR_ControlError;
 				break;
 			}
 
-			Pipe_ClosePipe(PIPE_CONTROLPIPE);
-			HOST_TASK_NONBLOCK_WAIT(100, HOST_STATE_Default_PostAddressSet);
+			Pipe_ClosePipe(corenum, PIPE_CONTROLPIPE);
+			HOST_TASK_NONBLOCK_WAIT(corenum, 100, HOST_STATE_Default_PostAddressSet);
 			break;
 
 		case HOST_STATE_Default_PostAddressSet:
-			Pipe_ConfigurePipe(PIPE_CONTROLPIPE, EP_TYPE_CONTROL,
+			Pipe_ConfigurePipe(corenum, PIPE_CONTROLPIPE, EP_TYPE_CONTROL,
 								PIPE_TOKEN_SETUP, ENDPOINT_CONTROLEP,
-								USB_Host_ControlPipeSize, PIPE_BANK_SINGLE);
+								USB_Host_ControlPipeSize[corenum], PIPE_BANK_SINGLE);
 
 			USB_Host_SetDeviceAddress(USB_HOST_DEVICEADDRESS);
 
-			USB_HostState = HOST_STATE_Addressed;
+			USB_HostState[corenum] = HOST_STATE_Addressed;
 
-			EVENT_USB_Host_DeviceEnumerationComplete();
+			EVENT_USB_Host_DeviceEnumerationComplete(corenum);
 			break;
 	}
 
-	if ((ErrorCode != HOST_ENUMERROR_NoError) && (USB_HostState != HOST_STATE_Unattached))
+	if ((ErrorCode != HOST_ENUMERROR_NoError) && (USB_HostState[corenum] != HOST_STATE_Unattached))
 	{
-		EVENT_USB_Host_DeviceEnumerationFailed(ErrorCode, SubErrorCode);
+		EVENT_USB_Host_DeviceEnumerationFailed(corenum, ErrorCode, SubErrorCode);
 
 		USB_Host_VBUS_Auto_Off();
 
-		EVENT_USB_Host_DeviceUnattached();
+		EVENT_USB_Host_DeviceUnattached(corenum);
 
-		USB_ResetInterface();
+		USB_ResetInterface(corenum);
 	}
 }
 
@@ -203,27 +203,27 @@ uint8_t USB_Host_WaitMS(uint8_t MS)
 
 void USB_Host_Enumerate (uint8_t HostId) /* Part of Interrupt Service Routine */
 {
-	CurrentHostID = HostId;
-	hostselected = HostId;
-	EVENT_USB_Host_DeviceAttached();
-	USB_HostState = HOST_STATE_Powered;
+//	CurrentHostID = HostId;
+//	hostselected = HostId;
+	EVENT_USB_Host_DeviceAttached(HostId);
+	USB_HostState[HostId] = HOST_STATE_Powered;
 }
 
 void USB_Host_DeEnumerate(uint8_t HostId) /* Part of Interrupt Service Routine */
 {
 	uint8_t i;
 
-	Pipe_ClosePipe(PIPE_CONTROLPIPE); // FIXME close only relevant pipes , take long time in ISR
+	Pipe_ClosePipe(HostId, PIPE_CONTROLPIPE); // FIXME close only relevant pipes , take long time in ISR
 	for(i = PIPE_CONTROLPIPE+1; i < PIPE_TOTAL_PIPES; i++)
 	{
-		if(PipeInfo[i].PipeHandle != 0)
+		if(PipeInfo[HostId][i].PipeHandle != 0)
 		{
-			Pipe_ClosePipe(i);
+			Pipe_ClosePipe(HostId, i);
 		}
 	}
 
-	EVENT_USB_Host_DeviceUnattached();
-	USB_HostState = HOST_STATE_Unattached;
+	EVENT_USB_Host_DeviceUnattached(HostId);
+	USB_HostState[HostId] = HOST_STATE_Unattached;
 }
 
 /********************************************************************//**

@@ -36,7 +36,7 @@
  *  \copydetails Group_Device
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h.
+ *        dispatch header located in lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h.
  */
 
 /** \ingroup Group_USB
@@ -66,13 +66,13 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_USB_DRIVER)
-			#error Do not include this file directly. Include lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h instead.
+			#error Do not include this file directly. Include lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h instead.
 		#endif
 
 	/* Public Interface - May be used in end-application: */
 		/* Enums: */
 			/** Enum for the various states of the USB Device state machine. Only some states are
-			 *  implemented in the nxpUSBlib library - other states are left to the user to implement.
+			 *  implemented in the LPCUSBlib library - other states are left to the user to implement.
 			 *
 			 *  For information on each possible USB device state, refer to the USB 2.0 specification.
 			 *
