@@ -36,7 +36,7 @@
  *  \copydetails Group_StdDescriptors
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h.
+ *        dispatch header located in lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h.
  */
 
 /** \ingroup Group_USB
@@ -64,11 +64,16 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_USB_DRIVER)
-			#error Do not include this file directly. Include lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h instead.
+			#error Do not include this file directly. Include lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h instead.
 		#endif
 
 	/* Public Interface - May be used in end-application: */
 		/* Macros: */
+
+			/** Utility macro used in the formation of descriptors
+			*/
+			#define WBVAL(x) ((x) & 0xFF),(((x) >> 8) & 0xFF)
+
 			/** Indicates that a given descriptor does not exist in the device. This can be used inside descriptors
 			 *  for string descriptor indexes, or may be use as a return value for GetDescriptor when the specified
 			 *  descriptor does not exist.
@@ -232,16 +237,16 @@
 			};
 
 		/* Type Defines: */
-			/** \brief Standard USB Descriptor Header (nxpUSBlib naming conventions).
+			/** \brief Standard USB Descriptor Header (LPCUSBlib naming conventions).
 			 *
              *  Type define for all descriptors' standard header, indicating the descriptor's length and type. This structure
-			 *  uses nxpUSBlib-specific element names to make each element's purpose clearer.
+			 *  uses LPCUSBlib-specific element names to make each element's purpose clearer.
 			 *
 			 *  \see \ref USB_StdDescriptor_Header_t for the version of this type with standard element names.
 			 *
 			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
-			typedef struct
+			typedef ATTR_IAR_PACKED struct
 			{
 				uint8_t Size; /**< Size of the descriptor, in bytes. */
 				uint8_t Type; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
@@ -254,11 +259,11 @@
 			 *  Type define for all descriptors' standard header, indicating the descriptor's length and type. This structure
 			 *  uses the relevant standard's given element names to ensure compatibility with the standard.
 			 *
-			 *  \see \ref USB_Descriptor_Header_t for the version of this type with non-standard nxpUSBlib specific element names.
+			 *  \see \ref USB_Descriptor_Header_t for the version of this type with non-standard LPCUSBlib specific element names.
 			 *
 			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
-			typedef struct
+			typedef ATTR_IAR_PACKED struct
 			{
 				uint8_t bLength; /**< Size of the descriptor, in bytes. */
 				uint8_t bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
@@ -266,16 +271,16 @@
 				                          */
 			} ATTR_PACKED USB_StdDescriptor_Header_t;
 
-			/** \brief Standard USB Device Descriptor (nxpUSBlib naming conventions).
+			/** \brief Standard USB Device Descriptor (LPCUSBlib naming conventions).
 			 *
-			 *  Type define for a standard Device Descriptor. This structure uses nxpUSBlib-specific element names to make each
+			 *  Type define for a standard Device Descriptor. This structure uses LPCUSBlib-specific element names to make each
 			 *  element's purpose clearer.
 			 *
 			 *  \see \ref USB_StdDescriptor_Device_t for the version of this type with standard element names.
 			 *
 			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
-			typedef struct
+			typedef ATTR_IAR_PACKED struct
 			{
 				USB_Descriptor_Header_t Header; /**< Descriptor header, including type and size. */
 
@@ -322,11 +327,11 @@
 			 *  Type define for a standard Device Descriptor. This structure uses the relevant standard's given element names
 			 *  to ensure compatibility with the standard.
 			 *
-			 *  \see \ref USB_Descriptor_Device_t for the version of this type with non-standard nxpUSBlib specific element names.
+			 *  \see \ref USB_Descriptor_Device_t for the version of this type with non-standard LPCUSBlib specific element names.
 			 *
 			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
-			typedef struct
+			typedef ATTR_IAR_PACKED struct
 			{
 				uint8_t  bLength; /**< Size of the descriptor, in bytes. */
 				uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
@@ -367,14 +372,14 @@
 				                              */
 			} ATTR_PACKED USB_StdDescriptor_Device_t;
 
-			/** \brief Standard USB Device Qualifier Descriptor (nxpUSBlib naming conventions).
+			/** \brief Standard USB Device Qualifier Descriptor (LPCUSBlib naming conventions).
 			 *
-			 *  Type define for a standard Device Qualifier Descriptor. This structure uses nxpUSBlib-specific element names
+			 *  Type define for a standard Device Qualifier Descriptor. This structure uses LPCUSBlib-specific element names
 			 *  to make each element's purpose clearer.
 			 *
 			 *  \see \ref USB_StdDescriptor_DeviceQualifier_t for the version of this type with standard element names.
 			 */
-			typedef struct
+			typedef ATTR_IAR_PACKED struct
 			{
 				USB_Descriptor_Header_t Header; /**< Descriptor header, including type and size. */
 
@@ -395,9 +400,9 @@
 			 *  Type define for a standard Device Qualifier Descriptor. This structure uses the relevant standard's given element names
 			 *  to ensure compatibility with the standard.
 			 *
-			 *  \see \ref USB_Descriptor_DeviceQualifier_t for the version of this type with non-standard nxpUSBlib specific element names.
+			 *  \see \ref USB_Descriptor_DeviceQualifier_t for the version of this type with non-standard LPCUSBlib specific element names.
 			 */
-			typedef struct
+			typedef ATTR_IAR_PACKED struct
 			{
 				uint8_t  bLength; /**< Size of the descriptor, in bytes. */
 				uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
@@ -414,16 +419,16 @@
 				uint8_t  bReserved; /**< Reserved for future use, must be 0. */
 			} ATTR_PACKED USB_StdDescriptor_DeviceQualifier_t;
 
-			/** \brief Standard USB Configuration Descriptor (nxpUSBlib naming conventions).
+			/** \brief Standard USB Configuration Descriptor (LPCUSBlib naming conventions).
 			 *
-			 *  Type define for a standard Configuration Descriptor header. This structure uses nxpUSBlib-specific element names
+			 *  Type define for a standard Configuration Descriptor header. This structure uses LPCUSBlib-specific element names
 			 *  to make each element's purpose clearer.
 			 *
 			 *  \see \ref USB_StdDescriptor_Configuration_Header_t for the version of this type with standard element names.
 			 *
 			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
-			typedef struct
+			typedef ATTR_IAR_PACKED struct
 			{
 				USB_Descriptor_Header_t Header; /**< Descriptor header, including type and size. */
 
@@ -450,11 +455,11 @@
 			 *  Type define for a standard Configuration Descriptor header. This structure uses the relevant standard's given element names
 			 *  to ensure compatibility with the standard.
 			 *
-			 *  \see \ref USB_Descriptor_Device_t for the version of this type with non-standard nxpUSBlib specific element names.
+			 *  \see \ref USB_Descriptor_Device_t for the version of this type with non-standard LPCUSBlib specific element names.
 			 *
 			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
-			typedef struct
+			typedef ATTR_IAR_PACKED struct
 			{
 				uint8_t  bLength; /**< Size of the descriptor, in bytes. */
 				uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
@@ -475,16 +480,16 @@
 				                     */
 			} ATTR_PACKED USB_StdDescriptor_Configuration_Header_t;
 
-			/** \brief Standard USB Interface Descriptor (nxpUSBlib naming conventions).
+			/** \brief Standard USB Interface Descriptor (LPCUSBlib naming conventions).
 			 *
-			 *  Type define for a standard Interface Descriptor. This structure uses nxpUSBlib-specific element names
+			 *  Type define for a standard Interface Descriptor. This structure uses LPCUSBlib-specific element names
 			 *  to make each element's purpose clearer.
 			 *
 			 *  \see \ref USB_StdDescriptor_Interface_t for the version of this type with standard element names.
 			 *
 			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
-			typedef struct
+			typedef ATTR_IAR_PACKED struct
 			{
 				USB_Descriptor_Header_t Header; /**< Descriptor header, including type and size. */
 
@@ -508,11 +513,11 @@
 			 *  Type define for a standard Interface Descriptor. This structure uses the relevant standard's given element names
 			 *  to ensure compatibility with the standard.
 			 *
-			 *  \see \ref USB_Descriptor_Interface_t for the version of this type with non-standard nxpUSBlib specific element names.
+			 *  \see \ref USB_Descriptor_Interface_t for the version of this type with non-standard LPCUSBlib specific element names.
 			 *
 			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
-			typedef struct
+			typedef ATTR_IAR_PACKED struct
 			{
 				uint8_t bLength; /**< Size of the descriptor, in bytes. */
 				uint8_t bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
@@ -533,9 +538,9 @@
 				                     */
 			} ATTR_PACKED USB_StdDescriptor_Interface_t;
 
-			/** \brief Standard USB Interface Association Descriptor (nxpUSBlib naming conventions).
+			/** \brief Standard USB Interface Association Descriptor (LPCUSBlib naming conventions).
 			 *
-			 *  Type define for a standard Interface Association Descriptor. This structure uses nxpUSBlib-specific element names
+			 *  Type define for a standard Interface Association Descriptor. This structure uses LPCUSBlib-specific element names
 			 *  to make each element's purpose clearer.
 			 *
 			 *  This descriptor has been added as a supplement to the USB2.0 standard, in the ECN located at
@@ -548,7 +553,7 @@
 			 *
 			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
-			typedef struct
+			typedef ATTR_IAR_PACKED struct
 			{
 				USB_Descriptor_Header_t Header; /**< Descriptor header, including type and size. */
 
@@ -575,12 +580,12 @@
 			 *  together at the point of enumeration, loading one generic driver for all the interfaces in the single
 			 *  function. Read the ECN for more information.
 			 *
-			 *  \see \ref USB_Descriptor_Interface_Association_t for the version of this type with non-standard nxpUSBlib specific
+			 *  \see \ref USB_Descriptor_Interface_Association_t for the version of this type with non-standard LPCUSBlib specific
 			 *       element names.
 			 *
 			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
-			typedef struct
+			typedef ATTR_IAR_PACKED struct
 			{
 				uint8_t bLength; /**< Size of the descriptor, in bytes. */
 				uint8_t bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
@@ -596,16 +601,16 @@
 				                    */
 			} ATTR_PACKED USB_StdDescriptor_Interface_Association_t;
 
-			/** \brief Standard USB Endpoint Descriptor (nxpUSBlib naming conventions).
+			/** \brief Standard USB Endpoint Descriptor (LPCUSBlib naming conventions).
 			 *
-			 *  Type define for a standard Endpoint Descriptor. This structure uses nxpUSBlib-specific element names
+			 *  Type define for a standard Endpoint Descriptor. This structure uses LPCUSBlib-specific element names
 			 *  to make each element's purpose clearer.
 			 *
 			 *  \see \ref USB_StdDescriptor_Endpoint_t for the version of this type with standard element names.
 			 *
 			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
-			typedef struct
+			typedef ATTR_IAR_PACKED struct
 			{
 				USB_Descriptor_Header_t Header; /**< Descriptor header, including type and size. */
 
@@ -628,12 +633,12 @@
 			 *  Type define for a standard Endpoint Descriptor. This structure uses the relevant standard's given
 			 *  element names to ensure compatibility with the standard.
 			 *
-			 *  \see \ref USB_Descriptor_Endpoint_t for the version of this type with non-standard nxpUSBlib specific
+			 *  \see \ref USB_Descriptor_Endpoint_t for the version of this type with non-standard LPCUSBlib specific
 			 *       element names.
 			 *
 			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
-			typedef struct
+			typedef ATTR_IAR_PACKED struct
 			{
 				uint8_t  bLength; /**< Size of the descriptor, in bytes. */
 				uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a
@@ -653,7 +658,7 @@
 				                     */
 			} ATTR_PACKED USB_StdDescriptor_Endpoint_t;
 
-			/** \brief Standard USB String Descriptor (nxpUSBlib naming conventions).
+			/** \brief Standard USB String Descriptor (LPCUSBlib naming conventions).
 			 *
 			 *  Type define for a standard string descriptor. Unlike other standard descriptors, the length
 			 *  of the descriptor for placement in the descriptor header must be determined by the \ref USB_STRING_LEN()
@@ -662,13 +667,13 @@
 			 *  This structure should also be used for string index 0, which contains the supported language IDs for
 			 *  the device as an array.
 			 *
-			 *  This structure uses nxpUSBlib-specific element names to make each element's purpose clearer.
+			 *  This structure uses LPCUSBlib-specific element names to make each element's purpose clearer.
 			 *
 			 *  \see \ref USB_StdDescriptor_String_t for the version of this type with standard element names.
 			 *
 			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
-			typedef struct
+			typedef ATTR_IAR_PACKED struct
 			{
 				USB_Descriptor_Header_t Header; /**< Descriptor header, including type and size. */
 
@@ -701,12 +706,12 @@
 			 *
 			 *  This structure uses the relevant standard's given element names to ensure compatibility with the standard.
 			 *
-			 *  \see \ref USB_Descriptor_String_t for the version of this type with with non-standard nxpUSBlib specific
+			 *  \see \ref USB_Descriptor_String_t for the version of this type with with non-standard LPCUSBlib specific
 			 *       element names.
 			 *
 			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
-			typedef struct
+			typedef ATTR_IAR_PACKED struct
 			{
 				uint8_t bLength; /**< Size of the descriptor, in bytes. */
 				uint8_t bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t

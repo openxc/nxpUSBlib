@@ -31,7 +31,7 @@
  *  \copydetails Group_EndpointManagement_LPC18xx
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h.
+ *        dispatch header located in lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h.
  */
 
 /** \ingroup Group_EndpointRW
@@ -79,7 +79,7 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_USB_DRIVER)
-			#error Do not include this file directly. Include lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h instead.
+			#error Do not include this file directly. Include lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h instead.
 		#endif
 
 	/* Private Interface - For use in library only: */
@@ -87,6 +87,51 @@
 		/* Macros: */
 				#define ENDPOINT_DETAILS_MAXEP             6
 
+
+			#if defined(USB_DEVICE_ROM_DRIVER)
+				/*==========================================================================*/
+				/* USB ROM DRIVER DEFINITIONS */
+
+				/* A table of pointers to the chip's main ROM functions contained in ROM is located at the
+				   address contained at this location */
+				typedef	struct _ROM {
+				   const unsigned p_otp;
+				   const unsigned p_aes;
+				   const unsigned p_pwd;
+				   const unsigned p_clk;
+				   const unsigned p_ipc;
+				   const unsigned p_spifi;
+				   const unsigned p_usbd;
+				}  ROM_FUNCTION_TABLE;
+
+				/* A table of pointers to the USBD functions contained in ROM is located at the
+				   address contained at this location */
+				#define ROM_FUNCTION_TABLE_PTR_ADDR			(0x10400104UL)
+				#define ROM_USBD_PTR (((ROM_FUNCTION_TABLE *)(ROM_FUNCTION_TABLE_PTR_ADDR))->p_usbd)
+
+				#define ROMDRIVER_USB0_BASE LPC_USB0_BASE
+				#define ROMDRIVER_USB1_BASE LPC_USB1_BASE
+				#define ROMDRIVER_MEM_SIZE	0x1000
+				extern uint8_t usb_RomDriver_buffer[ROMDRIVER_MEM_SIZE];
+
+				#define ROMDRIVER_MSC_MEM_SIZE	0x1000
+				extern uint8_t usb_RomDriver_MSC_buffer[ROMDRIVER_MSC_MEM_SIZE];
+
+				#define ROMDRIVER_CDC_MEM_SIZE	0x800
+				extern uint8_t usb_RomDriver_CDC_buffer[ROMDRIVER_CDC_MEM_SIZE];
+				#define ROMDRIVER_CDC_DATA_BUFFER_SIZE	640
+				#if (USB_FORCED_FULLSPEED)
+					#define CDC_MAX_BULK_EP_SIZE			64
+				#else
+					#define CDC_MAX_BULK_EP_SIZE			512
+				#endif
+				extern uint8_t UsbdCdc_EPIN_buffer[CDC_MAX_BULK_EP_SIZE];
+				extern uint8_t UsbdCdc_EPOUT_buffer[CDC_MAX_BULK_EP_SIZE];
+
+				#define ROMDRIVER_HID_MEM_SIZE	0x800
+				extern uint8_t usb_RomDriver_HID_buffer[ROMDRIVER_HID_MEM_SIZE];
+				/*==========================================================================*/
+			#endif
 
 				/*==========================================================================*/
 				/* DEVICE REGISTER DEFINITIONS                        											*/
@@ -226,14 +271,15 @@
 					__IO uint8_t SetupPackage[8];
 
 					uint16_t TransferCount;
-					uint16_t IsOutReceived; // === TODO: IsOutReceived should be refractor to QueueHead Status ===
+					__IO uint16_t IsOutReceived; // === TODO: IsOutReceived should be refractor to QueueHead Status ===
 					uint16_t reserved[6];
 				} DeviceQueueHead, *PDeviceQueueHead;
 				
-				extern DeviceQueueHead dQueueHead[USED_PHYSICAL_ENDPOINTS];
+				extern volatile DeviceQueueHead dQueueHead[USED_PHYSICAL_ENDPOINTS];
 				extern DeviceTransferDescriptor dTransferDescriptor[USED_PHYSICAL_ENDPOINTS];
 				void DcdDataTransfer(uint8_t EPNum, uint8_t *pData, uint32_t cnt);
-				
+				void Endpoint_Streaming(uint8_t * buffer,uint16_t packetsize,
+										uint16_t totalpackets,uint16_t dummypackets);
 		/* Inline Functions: */
 
 		/* Function Prototypes: */
@@ -417,7 +463,10 @@
 			{
 				//return usb_data_buffer_index;			// TODO not implemented yet
 				//uint8_t PhyEP = (endpointselected==ENDPOINT_CONTROLEP ? 1: endpointhandle[endpointselected]);
-                return usb_data_buffer_sizes[endpointselected];
+				if(endpointselected==ENDPOINT_CONTROLEP)
+					return usb_data_buffer_size;
+				else
+					return usb_data_buffer_OUT_sizes[endpointselected];
 			}
 
 			/** Determines if the selected IN endpoint is ready for a new packet to be sent to the host.
@@ -482,8 +531,16 @@
 			static inline void Endpoint_ClearIN(void) ATTR_ALWAYS_INLINE;
 			static inline void Endpoint_ClearIN(void)
 			{
-                DcdDataTransfer(PHYSICAL_ENDPOINT(endpointselected), usb_data_buffers[endpointselected], usb_data_buffer_indexes[endpointselected]);
-				usb_data_buffer_indexes[endpointselected] = 0;
+				uint8_t PhyEP = endpointselected==ENDPOINT_CONTROLEP ? 1: endpointhandle[endpointselected];
+				if(endpointselected==ENDPOINT_CONTROLEP){
+				DcdDataTransfer(PhyEP, usb_data_buffer, usb_data_buffer_index);
+				usb_data_buffer_index = 0;
+				}else{
+                    DcdDataTransfer(PHYSICAL_ENDPOINT(endpointselected), usb_data_IN_buffers[endpointselected], usb_data_buffer_IN_indexes[endpointselected]);
+                    usb_data_buffer_IN_indexes[endpointselected] = 0;
+					DcdDataTransfer(PhyEP, usb_data_buffer_IN, usb_data_buffer_IN_index);
+					usb_data_buffer_IN_index = 0;
+				}
 			}
 
 			/** Acknowledges an OUT packet to the host on the currently selected endpoint, freeing up the endpoint
@@ -494,8 +551,15 @@
 			static inline void Endpoint_ClearOUT(void) ATTR_ALWAYS_INLINE;
 			static inline void Endpoint_ClearOUT(void)
 			{
-				usb_data_buffer_indexes[endpointselected] = 0;
-				dQueueHead[endpointhandle[endpointselected]].IsOutReceived = 0;
+				if(endpointselected == ENDPOINT_CONTROLEP){
+					usb_data_buffer_index = 0;
+					dQueueHead[endpointhandle[endpointselected]].IsOutReceived = 0;
+				}else{
+                    usb_data_buffer_OUT_indexes[endpointselected] = 0;
+					dQueueHead[endpointhandle[endpointselected]].IsOutReceived = 0;
+					USB_REG(USBPortNum)->ENDPTNAKEN |= (1<<endpointselected);
+				}
+				
 			}
 
 			/** Stalls the current endpoint, indicating to the host that a logical problem occurred with the

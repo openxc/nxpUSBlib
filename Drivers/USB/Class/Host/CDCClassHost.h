@@ -37,7 +37,7 @@
  *  Host mode driver for the library USB CDC Class driver.
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB module driver
- *        dispatch header located in nxpUSBlib/Drivers/USB.h.
+ *        dispatch header located in LPCUSBlib/Drivers/USB.h.
  */
 
 /** \ingroup Group_USBClassCDC
@@ -45,7 +45,7 @@
  *
  *  \section Sec_Dependencies Module Source Dependencies
  *  The following files must be built with any user project that uses this module:
- *    - nxpUSBlib/Drivers/USB/Class/Host/CDC.c <i>(Makefile source module name: NXPUSBLIB_SRC_USBCLASS)</i>
+ *    - LPCUSBlib/Drivers/USB/Class/Host/CDC.c <i>(Makefile source module name: LPCUSBlib_SRC_USBCLASS)</i>
  *
  *  \section Sec_ModDescription Module Description
  *  Host Mode USB Class driver framework interface, for the CDC USB Class driver.
@@ -69,7 +69,7 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_CDC_DRIVER)
-			#error Do not include this file directly. Include nxpUSBlib/Drivers/USB.h instead.
+			#error Do not include this file directly. Include LPCUSBlib/Drivers/USB.h instead.
 		#endif
 
 	/* Public Interface - May be used in end-application: */
@@ -92,6 +92,9 @@
 
 					uint8_t  NotificationPipeNumber; /**< Pipe number of the CDC interface's IN notification endpoint, if used. */
 					bool     NotificationPipeDoubleBank; /**< Indicates if the CDC interface's notification pipe should use double banking. */
+
+					uint8_t  PortNumber;		/**< Port number that this interface is running.
+												*/
 				} Config; /**< Config data for the USB class interface within the device. All elements in this section
 				           *   <b>must</b> be set or the interface will fail to enumerate and operate correctly.
 				           */

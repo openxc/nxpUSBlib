@@ -37,7 +37,7 @@
  *  Device mode driver for the library USB CDC Class driver.
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB module driver
- *        dispatch header located in nxpUSBlib/Drivers/USB.h.
+ *        dispatch header located in LPCUSBlib/Drivers/USB.h.
  */
 
 /** \ingroup Group_USBClassCDC
@@ -45,7 +45,7 @@
  *
  *  \section Sec_Dependencies Module Source Dependencies
  *  The following files must be built with any user project that uses this module:
- *    - nxpUSBlib/Drivers/USB/Class/Device/CDCClassDevice.c <i>(Makefile source module name: NXPUSBLIB_SRC_USBCLASS)</i>
+ *    - LPCUSBlib/Drivers/USB/Class/Device/CDCClassDevice.c <i>(Makefile source module name: LPCUSBlib_SRC_USBCLASS)</i>
  *
  *  \section Sec_ModDescription Module Description
  *  Device Mode USB Class driver framework interface, for the CDC USB Class driver.
@@ -86,7 +86,7 @@
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_CDC_DRIVER)
-			#error Do not include this file directly. Include nxpUSBlib/Drivers/USB.h instead.
+			#error Do not include this file directly. Include LPCUSBlib/Drivers/USB.h instead.
 		#endif
 
 	/* Public Interface - May be used in end-application: */
@@ -336,15 +336,19 @@
 				static int CDC_Device_getchar_Blocking(FILE* Stream) ATTR_NON_NULL_PTR_ARG(1);
 				#endif
 
-				void CDC_Device_Event_Stub(void) ATTR_CONST;
+				void CDC_Device_Event_Stub(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo) ATTR_CONST;
+				void CDC_Device_Event_Stub2(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo, const uint8_t Duration) ATTR_CONST;
 
+PRAGMA_WEAK(EVENT_CDC_Device_LineEncodingChanged,CDC_Device_Event_Stub)				
 				void EVENT_CDC_Device_LineEncodingChanged(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo)
 				                                          ATTR_WEAK ATTR_NON_NULL_PTR_ARG(1) ATTR_ALIAS(CDC_Device_Event_Stub);
+PRAGMA_WEAK(EVENT_CDC_Device_ControLineStateChanged,CDC_Device_Event_Stub)				
 				void EVENT_CDC_Device_ControLineStateChanged(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo)
 				                                             ATTR_WEAK ATTR_NON_NULL_PTR_ARG(1) ATTR_ALIAS(CDC_Device_Event_Stub);
+PRAGMA_WEAK(EVENT_CDC_Device_BreakSent,CDC_Device_Event_Stub2)				
 				void EVENT_CDC_Device_BreakSent(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo,
 				                                const uint8_t Duration) ATTR_WEAK ATTR_NON_NULL_PTR_ARG(1)
-				                                ATTR_ALIAS(CDC_Device_Event_Stub);
+				                                ATTR_ALIAS(CDC_Device_Event_Stub2);
 			#endif
 
 	#endif

@@ -31,7 +31,7 @@
  *  \copydetails Group_USBManagement_LPC
  *
  *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h.
+ *        dispatch header located in lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h.
  */
 
 /** \ingroup Group_USBManagement
@@ -75,7 +75,7 @@
 
 	/* Preprocessor Checks and Defines: */
 		#if !defined(__INCLUDE_FROM_USB_DRIVER)
-			#error Do not include this file directly. Include lpcroot/libraries/nxpUSBLib/Drivers/USB/USB.h instead.
+			#error Do not include this file directly. Include lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h instead.
 		#endif
 
 
@@ -130,6 +130,7 @@
 				 *
 				 *  \return Boolean \c true if the VBUS line is currently detecting power from a host, \c false otherwise.
 				 */
+PRAGMA_ALWAYS_INLINE
 				static inline bool USB_VBUS_GetStatus(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 				static inline bool USB_VBUS_GetStatus(void)
 				{
@@ -141,6 +142,7 @@
 			 *  attached host, ceasing USB communications. If no host is present, this prevents any host from
 			 *  enumerating the device once attached until \ref USB_Attach() is called.
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline void USB_Detach(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_Detach(void)
 			{
@@ -155,6 +157,7 @@
 			 *  attachment of a device to the host. This is despite the bit being located in the device-mode
 			 *  register and despite the datasheet making no mention of its requirement in host mode.
 			 */
+PRAGMA_ALWAYS_INLINE
 			static inline void USB_Attach(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_Attach(void)
 			{
@@ -215,7 +218,7 @@
 			/** Resets the interface, when already initialized. This will re-enumerate the device if already connected
 			 *  to a host, or re-enumerate an already attached device when in host mode.
 			 */
-			void USB_ResetInterface(void);
+			void USB_ResetInterface(uint8_t corenum);
 
 		/* Global Variables: */
 			#if (!defined(USB_HOST_ONLY) && !defined(USB_DEVICE_ONLY)) || defined(__DOXYGEN__)
@@ -271,15 +274,16 @@
 		/* Function Prototypes: */
 			#if defined(__INCLUDE_FROM_USB_CONTROLLER_C)
 				#if defined(USB_CAN_BE_DEVICE)
-				static void USB_Init_Device(void);
+				static void USB_Init_Device(uint8_t corenum);
 				#endif
 
 				#if defined(USB_CAN_BE_HOST)
-				static void USB_Init_Host(void);
+				static void USB_Init_Host(uint8_t corenum);
 				#endif
 			#endif
 
 		/* Inline Functions: */
+PRAGMA_ALWAYS_INLINE
 			static inline void USB_PLL_On(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_PLL_On(void)
 			{
@@ -287,66 +291,77 @@
 
 			}
 
+PRAGMA_ALWAYS_INLINE
 			static inline void USB_PLL_Off(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_PLL_Off(void)
 			{
 
 			}
 
+PRAGMA_ALWAYS_INLINE
 			static inline bool USB_PLL_IsReady(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 			static inline bool USB_PLL_IsReady(void)
 			{
 				return true; // implement later if needed
 			}
 
+PRAGMA_ALWAYS_INLINE
 			static inline void USB_REG_On(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_REG_On(void)
 			{
 
 			}
 
+PRAGMA_ALWAYS_INLINE
 			static inline void USB_REG_Off(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_REG_Off(void)
 			{
 
 			}
 
+PRAGMA_ALWAYS_INLINE
 			static inline void USB_OTGPAD_On(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_OTGPAD_On(void)
 			{
 
 			}
 
+PRAGMA_ALWAYS_INLINE
 			static inline void USB_OTGPAD_Off(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_OTGPAD_Off(void)
 			{
 
 			}
 
+PRAGMA_ALWAYS_INLINE
 			static inline void USB_CLK_Freeze(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_CLK_Freeze(void)
 			{
 
 			}
 
+PRAGMA_ALWAYS_INLINE
 			static inline void USB_CLK_Unfreeze(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_CLK_Unfreeze(void)
 			{
 
 			}
 
+PRAGMA_ALWAYS_INLINE
 			static inline void USB_Controller_Enable(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_Controller_Enable(void)
 			{
 
 			}
 
+PRAGMA_ALWAYS_INLINE
 			static inline void USB_Controller_Disable(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_Controller_Disable(void)
 			{
 
 			}
 
+PRAGMA_ALWAYS_INLINE
 			static inline void USB_Controller_Reset(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_Controller_Reset(void)
 			{
@@ -354,13 +369,15 @@
 			}
 
 			#if defined(USB_CAN_BE_BOTH)
+PRAGMA_ALWAYS_INLINE
 			static inline uint8_t USB_GetUSBModeFromUID(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 			static inline uint8_t USB_GetUSBModeFromUID(void)
 			{
-				if (USBSTA & (1 << ID))
-				  return USB_MODE_Device;
-				else
-				  return USB_MODE_Host;
+				//if (USBSTA & (1 << ID))
+				//  return USB_MODE_Device;
+				//else
+				//  return USB_MODE_Host;
+				return 0;
 			}
 			#endif
 

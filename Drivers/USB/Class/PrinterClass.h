@@ -45,14 +45,14 @@
  *
  *  \section Sec_Dependencies Module Source Dependencies
  *  The following files must be built with any user project that uses this module:
- *    - nxpUSBlib/Drivers/USB/Class/Host/Printer.c <i>(Makefile source module name: NXPUSBLIB_SRC_USBCLASS)</i>
+ *    - LPCUSBlib/Drivers/USB/Class/Host/Printer.c <i>(Makefile source module name: LPCUSBlib_SRC_USBCLASS)</i>
  *
  *  \section Sec_ModDescription Module Description
  *  Printer Class Driver module. This module contains an internal implementation of the USB Printer Class, for the base
  *  USB Printer transport layer for USB Host mode only. Note that printers are free to implement whatever printer language
  *  they choose on top of this (e.g. Postscript), and so this driver exposes low level data transport functions only rather
  *  than high level raster or text functions. User applications can use this class driver instead of implementing the Printer
- *  class manually via the low-level nxpUSBlib APIs.
+ *  class manually via the low-level LPCUSBlib APIs.
  *
  *  This module is designed to simplify the user code by exposing only the required interface needed to interface with
  *  Devices using the USB Printer Class.

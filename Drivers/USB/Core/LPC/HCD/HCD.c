@@ -39,7 +39,7 @@
 /* Private Functions to OHCI EHCI                        											*/
 /*==========================================================================*/
 
-#ifdef NXPUSBLIB_DEBUG
+#ifdef LPCUSBlib_DEBUG
 void assert_status_ok_message(HCD_STATUS status, char const * mess, char const * func, char const * file, uint32_t const line )
 {
 	if (HCD_STATUS_OK != status)

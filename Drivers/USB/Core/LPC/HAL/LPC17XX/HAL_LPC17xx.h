@@ -46,6 +46,9 @@
 	#define __DATA(x)	__attribute__((section("usbram")))
 #endif
 #endif
+#if defined(__ICCARM__)
+    #define __DATA(x)       @ "USB_DMA_RAM"
+#endif
 
 extern void HcdIrqHandler(uint8_t HostID);
 

@@ -32,7 +32,7 @@
 	#include "DCD/LPC18XX/Device_LPC18xx.h"
 #elif defined(__LPC17XX__)||defined(__LPC177X_8X__)
 	#include "DCD/LPC17XX/Device_LPC17xx.h"
-#elif defined(__LPC11UXX__)
+#elif defined(__LPC11UXX__)||defined(__LPC13UXX__)
 	#include "DCD/LPC11UXX/Device_LPC11Uxx.h"
 #endif
 

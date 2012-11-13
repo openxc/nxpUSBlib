@@ -24,7 +24,7 @@
 * this code.
 */
 
-#if defined(__LPC11UXX__)
+#if defined(__LPC11UXX__) || defined(__LPC13UXX__)
 
 #include "../HAL_LPC.h"
 #include "../../../USBTask.h"
@@ -35,7 +35,7 @@
  * @param
  * @return
  *********************************************************************/
- void HAL_USBInit(void)
+ void HAL_USBInit(uint8_t corenum)
  {
   /* Enable AHB clock to the USB block and USB RAM. */
   LPC_SYSCON->SYSAHBCLKCTRL |= ((0x1<<14)|(0x1<<27));
@@ -45,7 +45,10 @@
   /* configure usb_soft connect */
   LPC_IOCON->PIO0_6 = 0x01;
 
+#if !defined(USB_DEVICE_ROM_DRIVER)
   HAL_Reset();
+#endif
+
   return;
  }
 /********************************************************************//**
@@ -53,7 +56,7 @@
  * @param
  * @return
  *********************************************************************/
- void HAL_USBDeInit(void)
+ void HAL_USBDeInit(uint8_t corenum)
  {
 	 NVIC_DisableIRQ(USB_IRQn);								/* disable USB interrupt */
 	 LPC_SYSCON->SYSAHBCLKCTRL &= ~((0x1<<14)|(0x1<<27));	/* disable USB clock     */
@@ -63,7 +66,7 @@
  * @param
  * @return
  *********************************************************************/
-void HAL_EnableUSBInterrupt(void)
+void HAL_EnableUSBInterrupt(uint8_t corenum)
 {
 	NVIC_EnableIRQ(USB_IRQn);
 }
@@ -72,7 +75,7 @@ void HAL_EnableUSBInterrupt(void)
  * @param
  * @return
  *********************************************************************/
-void HAL_DisableUSBInterrupt(void)
+void HAL_DisableUSBInterrupt(uint8_t corenum)
 {
 	NVIC_DisableIRQ(USB_IRQn);
 }
@@ -93,7 +96,7 @@ void HAL_SetDeviceAddress (uint8_t Address)
  * @param
  * @return
  *********************************************************************/
-void HAL_USBConnect (uint32_t con)
+void HAL_USBConnect (uint8_t corenum, uint32_t con)
 {
 #ifdef USB_CAN_BE_DEVICE
 	if ( con )
@@ -106,4 +109,4 @@ void HAL_USBConnect (uint32_t con)
 	}
 #endif
 }
-#endif /*__LPC11UXX__*/
+#endif /*__LPC11UXX__ || __LPC13UXX__*/

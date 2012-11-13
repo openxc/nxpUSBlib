@@ -37,36 +37,73 @@ uint8_t USBPortNum;
 
 void USB_Init(void)
 {
+#if defined(USB_MULTI_PORTS)
+	uint8_t i;
+	USB_Memory_Init(USBRAM_BUFFER_SIZE);
+	for(i = 0;i<MAX_USB_CORE;i++)
+	{
+		HAL_USBInit(i);
+		USB_ResetInterface(i);
+	}
+#else
 	USBPortNum = (uint8_t)USB_PORT_SELECTED;
+	HAL_USBInit(USBPortNum);
+	#if defined(USB_CAN_BE_HOST) 
+	USB_Memory_Init(USBRAM_BUFFER_SIZE);
+	#endif
+	USB_ResetInterface(USBPortNum);
+#endif
 	USB_IsInitialized = true;
-	HAL_USBInit();
-	USB_ResetInterface();
 }
 
 void USB_Disable(void)
 {
 	USB_IsInitialized = false;
-	HAL_USBDeInit();
+	if (USB_CurrentMode == USB_MODE_Device)
+	{
+		#if defined(USB_CAN_BE_DEVICE)
+		HAL_USBConnect(USBPortNum,0);
+		HAL_USBDeInit(USBPortNum);
+		#endif
+	}
+	if (USB_CurrentMode == USB_MODE_Host)
+	{
+		#if defined(USB_CAN_BE_HOST)
+
+		#if defined(USB_MULTI_PORTS)
+			uint8_t i;
+			for(i=0;i<MAX_USB_CORE;i++)
+			{
+				HcdDeInitDriver(i);
+				HAL_USBDeInit(i);
+			}
+		#else
+			HcdDeInitDriver(USBPortNum);
+			HAL_USBDeInit(USBPortNum);
+		#endif
+
+		#endif
+	}
 }
 
-void USB_ResetInterface(void)
+void USB_ResetInterface(uint8_t corenum)
 {
 	if (USB_CurrentMode == USB_MODE_Device)
 	{
 		#if defined(USB_CAN_BE_DEVICE)
-		USB_Init_Device();
+		USB_Init_Device(corenum);
 		#endif
 	}
 	else if (USB_CurrentMode == USB_MODE_Host)
 	{
 		#if defined(USB_CAN_BE_HOST)
-		USB_Init_Host();
+		USB_Init_Host(corenum);
 		#endif
 	}
 }
 
 #if defined(USB_CAN_BE_DEVICE)
-static void USB_Init_Device(void)
+static void USB_Init_Device(uint8_t corenum)
 {
 	USB_DeviceState          = DEVICE_STATE_Unattached;
 	USB_Device_ConfigurationNumber  = 0;
@@ -86,35 +123,33 @@ static void USB_Init_Device(void)
 							   	   ENDPOINT_DIR_OUT, USB_Device_ControlEndpointSize,
 							   	   ENDPOINT_BANK_SINGLE);
 	#endif
-	HAL_EnableUSBInterrupt();
-	HAL_USBConnect(1);
+	HAL_EnableUSBInterrupt(USBPortNum);
+	HAL_USBConnect(USBPortNum, 1);
 }
 #endif
 
 #if defined(USB_CAN_BE_HOST)
-static void USB_Init_Host(void)
+static void USB_Init_Host(uint8_t corenum)
 {
 	//uint8_t i;
 
 	//for(i=0;i<PIPE_TOTAL_PIPES;i++) PipeInfo[i].PipeHandle=0;
 
-	pipeselected = PIPE_CONTROLPIPE;
+	pipeselected[corenum] = PIPE_CONTROLPIPE;
 
-	USB_Memory_Init(USBRAM_BUFFER_SIZE); /* TODO currently Memory Management for Host only */
-
-	if(HcdInitDriver(USBPortNum)==HCD_STATUS_OK)
+	if(HcdInitDriver(corenum)==HCD_STATUS_OK)
 	{
 		USB_IsInitialized = true;
-		HAL_EnableUSBInterrupt();
+		HAL_EnableUSBInterrupt(corenum);
 	}
 	else
 	{
 		USB_IsInitialized = false;
-		HcdDeInitDriver(USBPortNum);
+		HcdDeInitDriver(corenum);
 	}
 
-	USB_HostState       = HOST_STATE_Unattached;
-	USB_Host_ControlPipeSize = PIPE_CONTROLPIPE_DEFAULT_SIZE;
+	USB_HostState[corenum]   = HOST_STATE_Unattached;
+	USB_Host_ControlPipeSize[corenum] = PIPE_CONTROLPIPE_DEFAULT_SIZE;
 }
 #endif
 
