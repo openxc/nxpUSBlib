@@ -148,17 +148,10 @@ PRAGMA_ALWAYS_INLINE
 static inline uint8_t Endpoint_Read_8(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint8_t Endpoint_Read_8(void)
 {
-	uint8_t tem;
-	if (endpointselected==ENDPOINT_CONTROLEP)
-		{
-		tem = usb_data_buffer[usb_data_buffer_index];
-		usb_data_buffer_index++;
-		usb_data_buffer_size--;
-		}else{
-		tem = usb_data_OUT_buffers[endpointselected][usb_data_buffer_OUT_indexes[endpointselected]];
-		usb_data_buffer_OUT_indexes[endpointselected]++;
-		usb_data_buffer_OUT_sizes[endpointselected]--;
-		}
+    uint8_t PhyEP = PHYSICAL_ENDPOINT(endpointselected, ENDPOINT_DIR_OUT);
+	uint8_t tem = usb_data_buffers[PhyEP][usb_data_buffer_indexes[PhyEP]];
+    usb_data_buffer_indexes[PhyEP]++;
+    usb_data_buffer_sizes[PhyEP]--;
 	return tem;
 }
 
@@ -200,15 +193,9 @@ PRAGMA_ALWAYS_INLINE
 static inline void Endpoint_Write_8(const uint8_t Data) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Write_8(const uint8_t Data)
 {
-	if (endpointselected==ENDPOINT_CONTROLEP)
-	{
-		usb_data_buffer[usb_data_buffer_index] = Data;
-		usb_data_buffer_index++;
-	}else
-	{
-	usb_data_IN_buffers[endpointselected][usb_data_buffer_IN_indexes[endpointselected]] = Data;
-	usb_data_buffer_IN_indexes[endpointselected]++;
-	}
+    uint8_t PhyEP = PHYSICAL_ENDPOINT(endpointselected, ENDPOINT_DIR_IN);
+	usb_data_buffers[PhyEP][usb_data_buffer_indexes[PhyEP]] = Data;
+	usb_data_buffer_indexes[PhyEP]++;
 }
 
 /** Discards one byte from the currently selected endpoint's bank, for OUT direction endpoints.

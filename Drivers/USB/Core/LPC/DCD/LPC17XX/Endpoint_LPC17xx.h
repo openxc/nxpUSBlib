@@ -273,7 +273,7 @@
 			static inline uint16_t Endpoint_BytesInEndpoint(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 			static inline uint16_t Endpoint_BytesInEndpoint(void)
 			{
-                return usb_data_buffer_sizes[PHYSICAL_ENDPOINT(endpointselected, ENDPOINT_DIRECTION_OUT)];
+                return usb_data_buffer_sizes[PHYSICAL_ENDPOINT(endpointselected, ENDPOINT_DIR_OUT)];
 			}
 
 			/** Determines if the selected IN endpoint is ready for a new packet to be sent to the host.
@@ -421,7 +421,9 @@
 			{
 
 				HAL_DisableUSBInterrupt(USBPortNum);
-				SIE_WriteCommandData(CMD_SET_EP_STAT(PHYSICAL_ENDPOINT(endpointselected)), DAT_WR_BYTE(0));
+                // TODO clearing both directions for now
+				SIE_WriteCommandData(CMD_SET_EP_STAT(PHYSICAL_ENDPOINT(endpointselected, ENDPOINT_DIR_OUT)), DAT_WR_BYTE(0));
+				SIE_WriteCommandData(CMD_SET_EP_STAT(PHYSICAL_ENDPOINT(endpointselected, ENDPOINT_DIR_OUT)), DAT_WR_BYTE(0));
 				HAL_EnableUSBInterrupt(USBPortNum);
 			}
 
