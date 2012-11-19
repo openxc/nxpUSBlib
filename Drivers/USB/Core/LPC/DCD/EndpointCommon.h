@@ -5,22 +5,22 @@
 * Software that is described herein is for illustrative purposes only
 * which provides customers with programming information regarding the
 * LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
+* any kind, and NXP Semiconductors and its licensor disclaim any and
+* all warranties, express or implied, including all implied warranties of
+* merchantability, fitness for a particular purpose and non-infringement of
 * intellectual property rights.  NXP Semiconductors assumes no responsibility
 * or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
+* patent, copyright, mask work right, or any other intellectual property rights in
 * or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
+* in the software without notification. NXP Semiconductors also makes no
 * representation or warranty that such application will be suitable for the
 * specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' and its 
-* licensor's relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
+*
+* Permission to use, copy, modify, and distribute this software and its
+* documentation is hereby granted, under NXP Semiconductors' and its
+* licensor's relevant copyrights in the software, without fee, provided that it
+* is used in conjunction with NXP Semiconductors microcontrollers.  This
+* copyright, permission, and disclaimer notice must appear in all copies of
 * this code.
 */
 
@@ -40,28 +40,21 @@
 /** Size of share memory buffer that a device uses to communicate with host. */
 #define USB_DATA_BUFFER_TEM_LENGTH		512
 
-#define PHYSICAL_ENDPOINT(endpoint) ((endpoint == ENDPOINT_CONTROLEP ? 1: endpointhandle[endpointselected]))
+#define PHYSICAL_ENDPOINT(logical, direction) (2 * logical + (direction == ENDPOINT_DIR_OUT ? 0 : 1))
 #define LOGICAL_ENDPOINT(physical) ((physical - (physical % 2)) / 2)
 
 /* Global Variables: */
 /** Share memory buffer. */
-/* Control EP buffer */
-extern uint8_t usb_data_buffer[];
-/* Control EP buffer size */
-extern volatile int32_t usb_data_buffer_size;
-/* Non-Control EP IN buffer */
-extern uint8_t usb_data_buffers_IN[][USB_DATA_BUFFER_TEM_LENGTH];
-extern uint32_t usb_data_buffer_IN_sizes[];
-/* Non-Control EP OUT buffer */
-extern uint8_t usb_data_buffers_OUT[][USB_DATA_BUFFER_TEM_LENGTH];
-extern uint32_t usb_data_buffer_OUT_sizes[];
+/* EP buffers, indexed by physical endpoint (so IN and OUT use different
+ * buffers.
+ */
+extern uint8_t usb_data_buffers[][USB_DATA_BUFFER_TEM_LENGTH];
+extern uint32_t usb_data_buffer_sizes[];
 /** Indexer rolling along the share memory buffer. Used to determine the offset
  *  of next read/write activities on share memory buffer or the total amount of data
  *  ready to be sent.
  */
-extern volatile uint32_t usb_data_buffer_index;
-extern uint32_t usb_data_buffer_IN_indexes[];
-extern uint32_t usb_data_buffer_OUT_indexes[];
+extern uint32_t usb_data_buffer_indexes[];
 /** Store the current selected endpoint number, always the logical endpint number.
  *  Usually used as index of endpointhandle array.
  */

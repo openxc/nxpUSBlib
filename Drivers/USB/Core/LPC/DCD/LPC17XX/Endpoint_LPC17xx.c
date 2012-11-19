@@ -129,13 +129,10 @@ void HAL_Reset (void)
 	IsConfigured = false;
 	isOutReceived = false;
 	isInReady = true;
-	usb_data_buffer_size = 0;
- 	usb_data_buffer_index = 0;
-
- 	usb_data_buffer_OUT_size = 0;
- 	usb_data_buffer_OUT_index = 0;
-	//uint32_t usb_data_buffer_IN_size = 0;
- 	usb_data_buffer_IN_index = 0;
+    for(n = 0; n < sizeof(usb_data_buffer_sizes); n++) {
+        usb_data_buffer_sizes[n] = 0;
+        usb_data_buffer_indexs[n] = 0;
+    } 
 	//SIE_WriteCommandData(CMD_SET_MODE, DAT_WR_BYTE(0) );
 //	SIE_WriteCommandData(CMD_SET_MODE, DAT_WR_BYTE(INAK_IO | INAK_BO) ); /* Disable INAK_IO, INAK_BO */
 }
@@ -224,7 +221,7 @@ void ReadControlEndpoint( uint8_t *pData )
 	{
 		isOutReceived = true;
 	}
-	usb_data_buffer_size = cnt;
+	usb_data_buffer_sizes[ENDPOINT_CONTROLEP] = cnt;
 
 //	SIE_WriteCommamd(CMD_SEL_EP(ENDPOINT_CONTROLEP));
 //	SIE_WriteCommamd(CMD_CLR_BUF);

@@ -5,22 +5,22 @@
 * Software that is described herein is for illustrative purposes only
 * which provides customers with programming information regarding the
 * LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
+* any kind, and NXP Semiconductors and its licensor disclaim any and
+* all warranties, express or implied, including all implied warranties of
+* merchantability, fitness for a particular purpose and non-infringement of
 * intellectual property rights.  NXP Semiconductors assumes no responsibility
 * or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
+* patent, copyright, mask work right, or any other intellectual property rights in
 * or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
+* in the software without notification. NXP Semiconductors also makes no
 * representation or warranty that such application will be suitable for the
 * specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors� and its 
-* licensor�s relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
+*
+* Permission to use, copy, modify, and distribute this software and its
+* documentation is hereby granted, under NXP Semiconductors� and its
+* licensor�s relevant copyrights in the software, without fee, provided that it
+* is used in conjunction with NXP Semiconductors microcontrollers.  This
+* copyright, permission, and disclaimer notice must appear in all copies of
 * this code.
 */
 
@@ -35,27 +35,12 @@
 uint8_t USB_Device_ControlEndpointSize = ENDPOINT_CONTROLEP_DEFAULT_SIZE;
 #endif
 
-PRAGMA_ALIGN_64
-uint8_t usb_data_buffer[USB_DATA_BUFFER_TEM_LENGTH] ATTR_ALIGNED(64) __DATA(USBRAM_SECTION); /* TODO 11uxx require buffer is 64 byte aligned */
-
-volatile int32_t usb_data_buffer_size = 0;
-volatile uint32_t usb_data_buffer_index = 0;
-
-uint8_t usb_data_OUT_buffers[ENDPOINT_TOTAL_ENDPOINTS][USB_DATA_BUFFER_TEM_LENGTH]
+uint8_t usb_data_buffers[ENDPOINT_TOTAL_ENDPOINTS][USB_DATA_BUFFER_TEM_LENGTH]
         ATTR_ALIGNED(64) __DATA(USBRAM_SECTION);
         /* TODO 11uxx require buffer is 64 byte aligned */
 
-uint32_t usb_data_buffer_OUT_sizes[ENDPOINT_TOTAL_ENDPOINTS];
-uint32_t usb_data_buffer_OUT_indexes[ENDPOINT_TOTAL_ENDPOINTS];
-
-uint8_t usb_data_IN_buffers[ENDPOINT_TOTAL_ENDPOINTS][USB_DATA_BUFFER_TEM_LENGTH]
-        ATTR_ALIGNED(64) __DATA(USBRAM_SECTION);
-        /* TODO 11uxx require buffer is 64 byte aligned */
-
-uint32_t usb_data_buffer_IN_sizes[ENDPOINT_TOTAL_ENDPOINTS];
-uint32_t usb_data_buffer_IN_indexes[ENDPOINT_TOTAL_ENDPOINTS];
-uint8_t usb_data_buffer_IN[USB_DATA_BUFFER_TEM_LENGTH] ATTR_ALIGNED(64) __DATA(USBRAM_SECTION); /* TODO 11uxx require buffer is 64 byte aligned */
-
+uint32_t usb_data_buffer_sizes[ENDPOINT_TOTAL_ENDPOINTS];
+uint32_t usb_data_buffer_indexes[ENDPOINT_TOTAL_ENDPOINTS];
 
 uint8_t endpointselected;
 uint8_t endpointhandle[ENDPOINT_TOTAL_ENDPOINTS];
@@ -73,7 +58,7 @@ bool Endpoint_ConfigureEndpoint_Prv(const uint8_t Number,
 //	UECFG1X = UECFG1XData;
 
 	return Endpoint_IsConfigured();
-#else	
+#else
 	for (uint8_t EPNum = Number; EPNum < ENDPOINT_TOTAL_ENDPOINTS; EPNum++)
 	{
 //		uint8_t UECFG0XTemp;
@@ -81,7 +66,7 @@ bool Endpoint_ConfigureEndpoint_Prv(const uint8_t Number,
 //		uint8_t UEIENXTemp;
 
 		Endpoint_SelectEndpoint(EPNum);
-		
+
 		if (EPNum == Number)
 		{
 //			UECFG0XTemp = UECFG0XData;
@@ -105,11 +90,11 @@ bool Endpoint_ConfigureEndpoint_Prv(const uint8_t Number,
 //		UECFG0X = UECFG0XTemp;
 //		UECFG1X = UECFG1XTemp;
 //		UEIENX  = UEIENXTemp;
-			
+
 		if (!(Endpoint_IsConfigured()))
-		  return false;			
+		  return false;
 	}
-	
+
 	Endpoint_SelectEndpoint(Number);
 	return true;
 #endif
