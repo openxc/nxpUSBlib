@@ -476,7 +476,7 @@ void DcdIrqHandler (uint8_t HostID)
 										usb_data_buffer_OUT_sizes[LOGICAL_ENDPOINT(PhyEP)] = 0;
 										/* Clear NAK */
 										USB_REG(USBPortNum)->ENDPTNAKEN &= ~(1<<LogicalEP);
-										DcdDataTransfer(PhyEP, usb_data_buffers_OUT[LOGICAL_ENDPOINT(PhyEP)], 512/*512*/);
+										DcdDataTransfer(PhyEP, usb_data_OUT_buffers[LOGICAL_ENDPOINT(PhyEP)], 512/*512*/);
 								}
 							}
 						}

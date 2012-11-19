@@ -504,7 +504,7 @@ PRAGMA_ALWAYS_INLINE
 				}
 				else
 				{
-					DcdDataTransfer(PhyEP, usb_data_buffers_IN[PhyEP], usb_data_buffer_IN_indexes[PhyEp]);
+					DcdDataTransfer(PhyEP, usb_data_IN_buffers[PhyEP], usb_data_buffer_IN_indexes[PhyEp]);
 					usb_data_buffer_IN_indexes[PhyEp] = 0;
 				}
 			}
@@ -528,7 +528,7 @@ PRAGMA_ALWAYS_INLINE
 				{
                     usb_data_buffer_OUT_indexes[endpointselected] = 0;
                     usb_data_buffer_OUT_sizes[endpointselected] = 0;
-					DcdDataTransfer(endpointselected << 1, usb_data_buffers_OUT[endpointselected], USB_DATA_BUFFER_TEM_LENGTH);
+					DcdDataTransfer(endpointselected << 1, usb_data_OUT_buffers[endpointselected], USB_DATA_BUFFER_TEM_LENGTH);
 				}
 			}
 
