@@ -5,22 +5,22 @@
 * Software that is described herein is for illustrative purposes only
 * which provides customers with programming information regarding the
 * LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
+* any kind, and NXP Semiconductors and its licensor disclaim any and
+* all warranties, express or implied, including all implied warranties of
+* merchantability, fitness for a particular purpose and non-infringement of
 * intellectual property rights.  NXP Semiconductors assumes no responsibility
 * or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
+* patent, copyright, mask work right, or any other intellectual property rights in
 * or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
+* in the software without notification. NXP Semiconductors also makes no
 * representation or warranty that such application will be suitable for the
 * specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' and its 
-* licensor's relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
+*
+* Permission to use, copy, modify, and distribute this software and its
+* documentation is hereby granted, under NXP Semiconductors' and its
+* licensor's relevant copyrights in the software, without fee, provided that it
+* is used in conjunction with NXP Semiconductors microcontrollers.  This
+* copyright, permission, and disclaimer notice must appear in all copies of
 * this code.
 */
 
@@ -71,7 +71,7 @@
 #define __ENDPOINT_LPC18XX_H__
 
 	#include "../EndpointCommon.h"
-	
+
 	/* Enable C linkage for C++ Compilers: */
 		#if defined(__cplusplus)
 			extern "C" {
@@ -224,7 +224,7 @@
 				#define LINK_TERMINATE		1
 
 				/*---------- Device TD ----------*/
-				typedef struct  
+				typedef struct
 				{
 					/*---------- Word 1 ----------*/
 					uint32_t NextTD;
@@ -250,7 +250,7 @@
 				} DeviceTransferDescriptor, *PDeviceTransferDescriptor;
 
 				/*---------- Device Qhd ----------*/
-				typedef struct  
+				typedef struct
 				{
 					/*---------- Word 1: Capability/Characteristics ----------*/
 					uint32_t : 15;
@@ -274,7 +274,7 @@
 					__IO uint16_t IsOutReceived; // === TODO: IsOutReceived should be refractor to QueueHead Status ===
 					uint16_t reserved[6];
 				} DeviceQueueHead, *PDeviceQueueHead;
-				
+
 				extern volatile DeviceQueueHead dQueueHead[USED_PHYSICAL_ENDPOINTS];
 				extern DeviceTransferDescriptor dTransferDescriptor[USED_PHYSICAL_ENDPOINTS];
 				void DcdDataTransfer(uint8_t EPNum, uint8_t *pData, uint32_t cnt);
@@ -479,7 +479,7 @@
 			static inline bool Endpoint_IsINReady(void)
 			{
 				uint8_t PhyEP = (endpointselected==ENDPOINT_CONTROLEP ? 1: endpointhandle[endpointselected]);
-				return (dQueueHead[PhyEP].overlay.NextTD & LINK_TERMINATE) && 
+				return (dQueueHead[PhyEP].overlay.NextTD & LINK_TERMINATE) &&
 						(dQueueHead[PhyEP].overlay.Active == 0);
 			}
 
@@ -491,7 +491,7 @@
 			 */
 			static inline bool Endpoint_IsOUTReceived(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 			static inline bool Endpoint_IsOUTReceived(void)
-			{				
+			{
 // 				return	(dQueueHead[ endpointhandle[endpointselected] ].overlay.NextTD == LINK_TERMINATE &&
 // 						dQueueHead[ endpointhandle[endpointselected] ].overlay.Active == 0 );
 				return dQueueHead[ endpointhandle[endpointselected] ].IsOutReceived ? true : false; // TODO refractor IsOutReceived
@@ -520,7 +520,7 @@
 			static inline void Endpoint_ClearSETUP(void)
 			{
 				USB_REG(USBPortNum)->ENDPTSETUPSTAT = USB_REG(USBPortNum)->ENDPTSETUPSTAT;
-				usb_data_buffer_indexes[endpointselected] = 0;
+				usb_data_buffer_IN_indexes[endpointselected] = 0;
 			}
 
 			/** Sends an IN packet to the host on the currently selected endpoint, freeing up the endpoint for the
@@ -559,7 +559,7 @@
 					dQueueHead[endpointhandle[endpointselected]].IsOutReceived = 0;
 					USB_REG(USBPortNum)->ENDPTNAKEN |= (1<<endpointselected);
 				}
-				
+
 			}
 
 			/** Stalls the current endpoint, indicating to the host that a logical problem occurred with the

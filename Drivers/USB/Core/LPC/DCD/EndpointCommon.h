@@ -50,10 +50,10 @@ extern uint8_t usb_data_buffer[];
 /* Control EP buffer size */
 extern volatile int32_t usb_data_buffer_size;
 /* Non-Control EP IN buffer */
-extern uint8_t usb_data_buffers_IN[][USB_DATA_BUFFER_TEM_LENGTH];
+extern uint8_t usb_data_IN_buffers[][USB_DATA_BUFFER_TEM_LENGTH];
 extern uint32_t usb_data_buffer_IN_sizes[];
 /* Non-Control EP OUT buffer */
-extern uint8_t usb_data_buffers_OUT[][USB_DATA_BUFFER_TEM_LENGTH];
+extern uint8_t usb_data_OUT_buffers[][USB_DATA_BUFFER_TEM_LENGTH];
 extern uint32_t usb_data_buffer_OUT_sizes[];
 /** Indexer rolling along the share memory buffer. Used to determine the offset
  *  of next read/write activities on share memory buffer or the total amount of data

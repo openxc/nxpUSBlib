@@ -132,10 +132,12 @@ void HAL_Reset (void)
 	usb_data_buffer_size = 0;
  	usb_data_buffer_index = 0;
 
- 	usb_data_buffer_OUT_size = 0;
- 	usb_data_buffer_OUT_index = 0;
+    for(n = 0; n < ENDPOINT_TOTAL_ENDPOINTS; n++) {
+        usb_data_buffer_OUT_sizes[n] = 0;
+        usb_data_buffer_OUT_indexes[n] = 0;
+        usb_data_buffer_IN_indexes[n] = 0;
+    }
 	//uint32_t usb_data_buffer_IN_size = 0;
- 	usb_data_buffer_IN_index = 0;
 	//SIE_WriteCommandData(CMD_SET_MODE, DAT_WR_BYTE(0) );
 //	SIE_WriteCommandData(CMD_SET_MODE, DAT_WR_BYTE(INAK_IO | INAK_BO) ); /* Disable INAK_IO, INAK_BO */
 }
@@ -318,7 +320,7 @@ void SlaveEndpointISR()
 					ReadControlEndpoint(SetupPackage);
 				}else
 				{
-					ReadControlEndpoint(usb_data_buffers[LOGICAL_ENDPOINT(PhyEP)]);
+					ReadControlEndpoint(usb_data_buffer);
 				}
 			}
 			else                              /* IN Endpoint */
@@ -326,14 +328,14 @@ void SlaveEndpointISR()
 				isInReady = true;
 				if(DataInRemainCount)
 				{
-					WriteControlEndpoint((uint8_t*)(usb_data_buffers[LOGICAL_ENDPOINT(PhyEP)]+DataInRemainOffset),DataInRemainCount);
+					WriteControlEndpoint((uint8_t*)(usb_data_buffer+DataInRemainOffset),DataInRemainCount);
 				}
 				else
 				{
 					if(shortpacket)
 					{
 						shortpacket = false;
-						WriteControlEndpoint((uint8_t*)(usb_data_buffers[LOGICAL_ENDPOINT(PhyEP)]+DataInRemainOffset),DataInRemainCount);
+						WriteControlEndpoint((uint8_t*)(usb_data_buffer+DataInRemainOffset),DataInRemainCount);
 						DataInRemainOffset = 0;
 					}
 				}
@@ -360,7 +362,7 @@ void Endpoint_Streaming(uint8_t * buffer,uint16_t packetsize,
 	else
 	{
 		for(i=0;i<totalpackets;i++){
-			DcdDataTransfer(PhyEP, usb_data_buffer_OUT, packetsize);
+			DcdDataTransfer(PhyEP, usb_data_OUT_buffers[endpointselected], packetsize);
 			Endpoint_ClearOUT();
 			while(!Endpoint_IsReadWriteAllowed());
 			Endpoint_Read_Stream_LE((void*)(buffer + i*packetsize),packetsize,NULL);
@@ -462,11 +464,11 @@ void DMANewTransferRequestISR()
 					uint16_t MaxPS = dmaDescriptor[PhyEP].MaxPacketSize;
 					if(usb_data_buffer_OUT_sizes[LOGICAL_ENDPOINT(PhyEP)]==0){
 						usb_data_buffer_OUT_indexes[LOGICAL_ENDPOINT(PhyEP)] = 0;
-						DcdDataTransfer(PhyEP, usb_data_buffers_OUT[LOGICAL_ENDPOINT(PhyEP)], MaxPS);
+						DcdDataTransfer(PhyEP, usb_data_OUT_buffers[LOGICAL_ENDPOINT(PhyEP)], MaxPS);
 						
 					}else{
 						DcdDataTransfer(PhyEP, 
-                            &usb_data_buffers_OUT[LOGICAL_ENDPOINT(PhyEP)][
+                            &usb_data_OUT_buffers[LOGICAL_ENDPOINT(PhyEP)][
                                 usb_data_buffer_OUT_sizes[LOGICAL_ENDPOINT(PhyEP)]
                                 + usb_data_buffer_OUT_indexes[LOGICAL_ENDPOINT(PhyEP)]], 
                             MaxPS);

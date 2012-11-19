@@ -301,9 +301,9 @@ static inline void USB_ProcessInterrupt (uint32_t IntStat)
 						{
 							for (i = 0; i < Remain_length[PhyEP/2]; i++)
 							{
-								usb_data_buffers_IN[LOGICAL_ENDPOINT(PhyEP)][i] = usb_data_buffer_IN[LOGICAL_ENDPOINT(PhyEP)][i + EndpointMaxPacketSize[PhyEP]];
+								usb_data_IN_buffers[LOGICAL_ENDPOINT(PhyEP)][i] = usb_data_buffer_IN[LOGICAL_ENDPOINT(PhyEP)][i + EndpointMaxPacketSize[PhyEP]];
 							}
-							DcdDataTransfer(PhyEP,usb_data_buffers_IN[LOGICAL_ENDPOINT(PhyEP)], Remain_length[PhyEP/2]);
+							DcdDataTransfer(PhyEP,usb_data_IN_buffers[LOGICAL_ENDPOINT(PhyEP)], Remain_length[PhyEP/2]);
 						}
 					}
 					else
