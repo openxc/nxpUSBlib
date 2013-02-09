@@ -21,3 +21,5 @@ license, but are not contributed by anyone officially with NXP.
 * Fixed USB enumeration when using compiler optimization (added volatile
   keywords to some global variables)
     * Fixed in nxpUSBlib v0.98
+* Add missing macro definition required to compile with GNU GCC for ARM Embedded
+  (__DATA__(x))
