@@ -1,53 +1,43 @@
 /*
-* Copyright(C) NXP Semiconductors, 2011
-* All rights reserved.
-*
-* Copyright (C) Dean Camera, 2011.
-*
-* LUFA Library is licensed from Dean Camera by NXP for NXP customers 
-* for use with NXP's LPC microcontrollers.
-*
-* Software that is described herein is for illustrative purposes only
-* which provides customers with programming information regarding the
-* LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
-* intellectual property rights.  NXP Semiconductors assumes no responsibility
-* or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
-* or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
-* representation or warranty that such application will be suitable for the
-* specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' and its 
-* licensor's relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
-* this code.
-*/
-
-
-
-/** \file
- *  \brief Host mode driver for the library USB Mass Storage Class driver.
+ * @brief Host mode driver for the library USB Mass Storage Class driver
  *
- *  Host mode driver for the library USB Mass Storage Class driver.
+ * @note
+ * Copyright(C) NXP Semiconductors, 2012
+ * Copyright(C) Dean Camera, 2011, 2012
+ * All rights reserved.
  *
- *  \note This file should not be included directly. It is automatically included as needed by the USB module driver
- *        dispatch header located in LPCUSBlib/Drivers/USB.h.
+ * @par
+ * Software that is described herein is for illustrative purposes only
+ * which provides customers with programming information regarding the
+ * LPC products.  This software is supplied "AS IS" without any warranties of
+ * any kind, and NXP Semiconductors and its licensor disclaim any and
+ * all warranties, express or implied, including all implied warranties of
+ * merchantability, fitness for a particular purpose and non-infringement of
+ * intellectual property rights.  NXP Semiconductors assumes no responsibility
+ * or liability for the use of the software, conveys no license or rights under any
+ * patent, copyright, mask work right, or any other intellectual property rights in
+ * or to any products. NXP Semiconductors reserves the right to make changes
+ * in the software without notification. NXP Semiconductors also makes no
+ * representation or warranty that such application will be suitable for the
+ * specified use without further testing or modification.
+ *
+ * @par
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation is hereby granted, under NXP Semiconductors' and its
+ * licensor's relevant copyrights in the software, without fee, provided that it
+ * is used in conjunction with NXP Semiconductors microcontrollers.  This
+ * copyright, permission, and disclaimer notice must appear in all copies of
+ * this code.
  */
 
-/** \ingroup Group_USBClassMS
- *  \defgroup Group_USBClassMassStorageHost Mass Storage Class Host Mode Driver
+/** @ingroup Group_USBClassMS
+ *  @defgroup Group_USBClassMassStorageHost Mass Storage Class Host Mode Driver
  *
- *  \section Sec_Dependencies Module Source Dependencies
+ *  @section Sec_Dependencies Module Source Dependencies
  *  The following files must be built with any user project that uses this module:
  *    - LPCUSBlib/Drivers/USB/Class/Host/MassStorage.c <i>(Makefile source module name: LPCUSBlib_SRC_USBCLASS)</i>
  *
- *  \section Sec_ModDescription Module Description
+ *  @section Sec_ModDescription Module Description
  *  Host Mode USB Class driver framework interface, for the Mass Storage USB Class driver.
  *
  *  @{
@@ -76,7 +66,7 @@
 			#define MS_ERROR_LOGICAL_CMD_FAILED              0x80
 
 		/* Type Defines: */
-			/** \brief Mass Storage Class Host Mode Configuration and State Structure.
+			/** @brief Mass Storage Class Host Mode Configuration and State Structure.
 			 *
 			 *  Class state structure. An instance of this structure should be made within the user application,
 			 *  and passed to each of the Mass Storage class driver functions as the \c MSInterfaceInfo parameter. This
@@ -99,7 +89,7 @@
 				struct
 				{
 					bool     IsActive; /**< Indicates if the current interface instance is connected to an attached device, valid
-					                    *   after \ref MS_Host_ConfigurePipes() is called and the Host state machine is in the
+					                    *   after @ref MS_Host_ConfigurePipes() is called and the Host state machine is in the
 					                    *   Configured state.
 					                    */
 					uint8_t  InterfaceNumber; /**< Interface index of the Mass Storage interface within the attached device. */
@@ -114,11 +104,11 @@
 						  */
 			} USB_ClassInfo_MS_Host_t;
 
-			/** \brief SCSI Device LUN Capacity Structure.
+			/** @brief SCSI Device LUN Capacity Structure.
 			 *
 			 *  SCSI capacity structure, to hold the total capacity of the device in both the number
 			 *  of blocks in the current LUN, and the size of each block. This structure is filled by
-			 *  the device when the \ref MS_Host_ReadDeviceCapacity() function is called.
+			 *  the device when the @ref MS_Host_ReadDeviceCapacity() function is called.
 			 */
 			typedef struct
 			{
@@ -136,137 +126,137 @@
 			};
 
 		/* Function Prototypes: */
-			/** Host interface configuration routine, to configure a given Mass Storage host interface instance using the
+			/** @brief Host interface configuration routine, to configure a given Mass Storage host interface instance using the
 			 *  Configuration Descriptor read from an attached USB device. This function automatically updates the given Mass
 			 *  Storage Host instance's state values and configures the pipes required to communicate with the interface if it
 			 *  is found within the device. This should be called once after the stack has enumerated the attached device, while
 			 *  the host state machine is in the Addressed state.
 			 *
-			 *  \param[in,out] MSInterfaceInfo       Pointer to a structure containing an MS Class host configuration and state.
-			 *  \param[in]     ConfigDescriptorSize  Length of the attached device's Configuration Descriptor.
-			 *  \param[in]     ConfigDescriptorData  Pointer to a buffer containing the attached device's Configuration Descriptor.
+			 *  @param MSInterfaceInfo      : Pointer to a structure containing an MS Class host configuration and state.
+			 *  @param ConfigDescriptorSize : Length of the attached device's Configuration Descriptor.
+			 *  @param ConfigDescriptorData : Pointer to a buffer containing the attached device's Configuration Descriptor.
 			 *
-			 *  \return A value from the \ref MS_Host_EnumerationFailure_ErrorCodes_t enum.
+			 *  @return A value from the @ref MS_Host_EnumerationFailure_ErrorCodes_t enum.
 			 */
 			uint8_t MS_Host_ConfigurePipes(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo,
 			                               uint16_t ConfigDescriptorSize,
 			                               void* ConfigDescriptorData) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
 
-			/** Sends a MASS STORAGE RESET control request to the attached device, resetting the Mass Storage Interface
+			/** @brief Sends a MASS STORAGE RESET control request to the attached device, resetting the Mass Storage Interface
 			 *  and readying it for the next Mass Storage command. This should be called after a failed SCSI request to 
 			 *  ensure the attached Mass Storage device is ready to receive the next command.
 			 *
-			 *  \param[in,out] MSInterfaceInfo  Pointer to a structure containing a MS Class host configuration and state.
+			 *  @param MSInterfaceInfo : Pointer to a structure containing a MS Class host configuration and state.
 			 *
-			 *  \return A value from the \ref USB_Host_SendControlErrorCodes_t enum.
+			 *  @return A value from the @ref USB_Host_SendControlErrorCodes_t enum.
 			 */
 			uint8_t MS_Host_ResetMSInterface(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
 
-			/** Sends a GET MAX LUN control request to the attached device, retrieving the index of the highest LUN (Logical
+			/** @brief Sends a GET MAX LUN control request to the attached device, retrieving the index of the highest LUN (Logical
 			 *  UNit, a logical drive) in the device. This value can then be used in the other functions of the Mass Storage
 			 *  Host mode Class driver to address a specific LUN within the device.
 			 *
-			 *  \note Some devices do not support this request, and will STALL it when issued. To get around this,
+			 *  @note Some devices do not support this request, and will STALL it when issued. To get around this,
 			 *        on unsupported devices the max LUN index will be reported as zero and no error will be returned
 			 *        if the device STALLs the request.
 			 *
-			 *  \param[in,out] MSInterfaceInfo  Pointer to a structure containing a MS Class host configuration and state.
-			 *  \param[out]    MaxLUNIndex      Pointer to a location where the highest LUN index value should be stored.
+			 *  @param MSInterfaceInfo : Pointer to a structure containing a MS Class host configuration and state.
+			 *  @param MaxLUNIndex     : Pointer to a location where the highest LUN index value should be stored.
 			 *
-			 *  \return A value from the \ref USB_Host_SendControlErrorCodes_t enum.
+			 *  @return A value from the @ref USB_Host_SendControlErrorCodes_t enum.
 			 */
 			uint8_t MS_Host_GetMaxLUN(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo,
 			                          uint8_t* const MaxLUNIndex) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 
-			/** Retrieves the Mass Storage device's inquiry data for the specified LUN, indicating the device characteristics and
+			/** @brief Retrieves the Mass Storage device's inquiry data for the specified LUN, indicating the device characteristics and
 			 *  properties.
 			 *
-			 *  \pre This function must only be called when the Host state machine is in the \ref HOST_STATE_Configured state or the
+			 *  @pre This function must only be called when the Host state machine is in the @ref HOST_STATE_Configured state or the
 			 *       call will fail.
 			 *
-			 *  \param[in,out] MSInterfaceInfo  Pointer to a structure containing a MS Class host configuration and state.
-			 *  \param[in]     LUNIndex         LUN index within the device the command is being issued to.
-			 *  \param[out]    InquiryData      Location where the read inquiry data should be stored.
+			 *  @param MSInterfaceInfo : Pointer to a structure containing a MS Class host configuration and state.
+			 *  @param LUNIndex        : LUN index within the device the command is being issued to.
+			 *  @param InquiryData     : Location where the read inquiry data should be stored.
 			 *
-			 *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum or \ref MS_ERROR_LOGICAL_CMD_FAILED.
+			 *  @return A value from the @ref Pipe_Stream_RW_ErrorCodes_t enum or @ref MS_ERROR_LOGICAL_CMD_FAILED.
 			 */
 			uint8_t MS_Host_GetInquiryData(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo,
 			                               const uint8_t LUNIndex,
 			                               SCSI_Inquiry_Response_t* const InquiryData) ATTR_NON_NULL_PTR_ARG(1)
 			                               ATTR_NON_NULL_PTR_ARG(3);
 
-			/** Sends a TEST UNIT READY command to the device, to determine if it is ready to accept other SCSI commands.
+			/** @brief Sends a TEST UNIT READY command to the device, to determine if it is ready to accept other SCSI commands.
 			 *
-			 *  \param[in,out] MSInterfaceInfo  Pointer to a structure containing a MS Class host configuration and state.
-			 *  \param[in]     LUNIndex         LUN index within the device the command is being issued to.
+			 *  @param MSInterfaceInfo : Pointer to a structure containing a MS Class host configuration and state.
+			 *  @param LUNIndex        : LUN index within the device the command is being issued to.
 			 *
-			 *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum or \ref MS_ERROR_LOGICAL_CMD_FAILED if not ready.
+			 *  @return A value from the @ref Pipe_Stream_RW_ErrorCodes_t enum or @ref MS_ERROR_LOGICAL_CMD_FAILED if not ready.
 			 */
 			uint8_t MS_Host_TestUnitReady(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo,
 			                              const uint8_t LUNIndex) ATTR_NON_NULL_PTR_ARG(1);
 
-			/** Retrieves the total capacity of the attached USB Mass Storage device, in blocks, and block size.
+			/** @brief Retrieves the total capacity of the attached USB Mass Storage device, in blocks, and block size.
 			 *
-			 *  \pre This function must only be called when the Host state machine is in the \ref HOST_STATE_Configured state or the
+			 *  @pre This function must only be called when the Host state machine is in the @ref HOST_STATE_Configured state or the
 			 *       call will fail.
 			 *
-			 *  \param[in,out] MSInterfaceInfo  Pointer to a structure containing a MS Class host configuration and state.
-			 *  \param[in]     LUNIndex         LUN index within the device the command is being issued to.
-			 *  \param[out]    DeviceCapacity   Pointer to the location where the capacity information should be stored.
+			 *  @param MSInterfaceInfo : Pointer to a structure containing a MS Class host configuration and state.
+			 *  @param LUNIndex        : LUN index within the device the command is being issued to.
+			 *  @param DeviceCapacity  : Pointer to the location where the capacity information should be stored.
 			 *
-			 *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum or \ref MS_ERROR_LOGICAL_CMD_FAILED if not ready.
+			 *  @return A value from the @ref Pipe_Stream_RW_ErrorCodes_t enum or @ref MS_ERROR_LOGICAL_CMD_FAILED if not ready.
 			 */
 			uint8_t MS_Host_ReadDeviceCapacity(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo,
 			                                   const uint8_t LUNIndex,
 			                                   SCSI_Capacity_t* const DeviceCapacity) ATTR_NON_NULL_PTR_ARG(1)
 			                                   ATTR_NON_NULL_PTR_ARG(3);
 
-			/** Retrieves the device sense data, indicating the current device state and error codes for the previously
+			/** @brief Retrieves the device sense data, indicating the current device state and error codes for the previously
 			 *  issued command.
 			 *
-			 *  \pre This function must only be called when the Host state machine is in the \ref HOST_STATE_Configured state or the
+			 *  @pre This function must only be called when the Host state machine is in the @ref HOST_STATE_Configured state or the
 			 *       call will fail.
 			 *
-			 *  \param[in,out] MSInterfaceInfo  Pointer to a structure containing a MS Class host configuration and state.
-			 *  \param[in]     LUNIndex         LUN index within the device the command is being issued to.
-			 *  \param[out]    SenseData        Pointer to the location where the sense information should be stored.
+			 *  @param MSInterfaceInfo : Pointer to a structure containing a MS Class host configuration and state.
+			 *  @param LUNIndex        : LUN index within the device the command is being issued to.
+			 *  @param SenseData       : Pointer to the location where the sense information should be stored.
 			 *
-			 *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum or \ref MS_ERROR_LOGICAL_CMD_FAILED if not ready.
+			 *  @return A value from the @ref Pipe_Stream_RW_ErrorCodes_t enum or @ref MS_ERROR_LOGICAL_CMD_FAILED if not ready.
 			 */
 			uint8_t MS_Host_RequestSense(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo,
 			                             const uint8_t LUNIndex,
 			                             SCSI_Request_Sense_Response_t* const SenseData) ATTR_NON_NULL_PTR_ARG(1)
 			                             ATTR_NON_NULL_PTR_ARG(3);
 
-			/** Issues a PREVENT MEDIUM REMOVAL command, to logically (or, depending on the type of device, physically) lock
+			/** @brief Issues a PREVENT MEDIUM REMOVAL command, to logically (or, depending on the type of device, physically) lock
 			 *  the device from removal so that blocks of data on the medium can be read or altered.
 			 *
-			 *  \pre This function must only be called when the Host state machine is in the \ref HOST_STATE_Configured state or the
+			 *  @pre This function must only be called when the Host state machine is in the @ref HOST_STATE_Configured state or the
 			 *       call will fail.
 			 *
-			 *  \param[in,out] MSInterfaceInfo  Pointer to a structure containing a MS Class host configuration and state.
-			 *  \param[in]     LUNIndex         LUN index within the device the command is being issued to.
-			 *  \param[in]     PreventRemoval   Boolean \c true if the device should be locked from removal, \c false otherwise.
+			 *  @param MSInterfaceInfo : Pointer to a structure containing a MS Class host configuration and state.
+			 *  @param LUNIndex        : LUN index within the device the command is being issued to.
+			 *  @param PreventRemoval  : Boolean \c true if the device should be locked from removal, \c false otherwise.
 			 *
-			 *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum or \ref MS_ERROR_LOGICAL_CMD_FAILED if not ready.
+			 *  @return A value from the @ref Pipe_Stream_RW_ErrorCodes_t enum or @ref MS_ERROR_LOGICAL_CMD_FAILED if not ready.
 			 */
 			uint8_t MS_Host_PreventAllowMediumRemoval(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo,
 			                                          const uint8_t LUNIndex,
 			                                          const bool PreventRemoval) ATTR_NON_NULL_PTR_ARG(1);
 
-			/** Reads blocks of data from the attached Mass Storage device's medium.
+			/** @brief Reads blocks of data from the attached Mass Storage device's medium.
 			 *
-			 *  \pre This function must only be called when the Host state machine is in the \ref HOST_STATE_Configured state or the
+			 *  @pre This function must only be called when the Host state machine is in the @ref HOST_STATE_Configured state or the
 			 *       call will fail.
 			 *
-			 *  \param[in,out] MSInterfaceInfo  Pointer to a structure containing a MS Class host configuration and state.
-			 *  \param[in]     LUNIndex         LUN index within the device the command is being issued to.
-			 *  \param[in]     BlockAddress     Starting block address within the device to read from.
-			 *  \param[in]     Blocks           Total number of blocks to read.
-			 *  \param[in]     BlockSize        Size in bytes of each block within the device.
-			 *  \param[out]    BlockBuffer      Pointer to where the read data from the device should be stored.
+			 *  @param MSInterfaceInfo : Pointer to a structure containing a MS Class host configuration and state.
+			 *  @param LUNIndex        : LUN index within the device the command is being issued to.
+			 *  @param BlockAddress    : Starting block address within the device to read from.
+			 *  @param Blocks          : Total number of blocks to read.
+			 *  @param BlockSize       : Size in bytes of each block within the device.
+			 *  @param BlockBuffer     : Pointer to where the read data from the device should be stored.
 			 *
-			 *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum or \ref MS_ERROR_LOGICAL_CMD_FAILED if not ready.
+			 *  @return A value from the @ref Pipe_Stream_RW_ErrorCodes_t enum or @ref MS_ERROR_LOGICAL_CMD_FAILED if not ready.
 			 */
 			uint8_t MS_Host_ReadDeviceBlocks(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo,
 			                                 const uint8_t LUNIndex,
@@ -275,19 +265,19 @@
 			                                 const uint16_t BlockSize,
 			                                 void* BlockBuffer) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(6);
 
-			/** Writes blocks of data to the attached Mass Storage device's medium.
+			/** @brief Writes blocks of data to the attached Mass Storage device's medium.
 			 *
-			 *  \pre This function must only be called when the Host state machine is in the \ref HOST_STATE_Configured state or the
+			 *  @pre This function must only be called when the Host state machine is in the @ref HOST_STATE_Configured state or the
 			 *       call will fail.
 			 *
-			 *  \param[in,out] MSInterfaceInfo  Pointer to a structure containing a MS Class host configuration and state.
-			 *  \param[in]     LUNIndex         LUN index within the device the command is being issued to.
-			 *  \param[in]     BlockAddress     Starting block address within the device to write to.
-			 *  \param[in]     Blocks           Total number of blocks to read.
-			 *  \param[in]     BlockSize        Size in bytes of each block within the device.
-			 *  \param[in]     BlockBuffer      Pointer to where the data to write should be sourced from.
+			 *  @param MSInterfaceInfo : Pointer to a structure containing a MS Class host configuration and state.
+			 *  @param LUNIndex        : LUN index within the device the command is being issued to.
+			 *  @param BlockAddress    : Starting block address within the device to write to.
+			 *  @param Blocks          : Total number of blocks to read.
+			 *  @param BlockSize       : Size in bytes of each block within the device.
+			 *  @param BlockBuffer     : Pointer to where the data to write should be sourced from.
 			 *
-			 *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum or \ref MS_ERROR_LOGICAL_CMD_FAILED if not ready.
+			 *  @return A value from the @ref Pipe_Stream_RW_ErrorCodes_t enum or @ref MS_ERROR_LOGICAL_CMD_FAILED if not ready.
 			 */
 			uint8_t MS_Host_WriteDeviceBlocks(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo,
 			                                  const uint8_t LUNIndex,
@@ -297,11 +287,12 @@
 			                                  const void* BlockBuffer) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(6);
 
 		/* Inline Functions: */
-			/** General management task for a given Mass Storage host class interface, required for the correct operation of
+			/** @brief General management task for a given Mass Storage host class interface, required for the correct operation of
 			 *  the interface. This should be called frequently in the main program loop, before the master USB management task
-			 *  \ref USB_USBTask().
+			 *  @ref USB_USBTask().
 			 *
-			 *  \param[in,out] MSInterfaceInfo  Pointer to a structure containing an Mass Storage Class host configuration and state.
+			 *  @param MSInterfaceInfo : Pointer to a structure containing an Mass Storage Class host configuration and state.
+			 *	@return	Nothing
 			 */
 			static inline void MS_Host_USBTask(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 			static inline void MS_Host_USBTask(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo)

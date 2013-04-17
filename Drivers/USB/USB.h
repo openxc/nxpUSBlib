@@ -1,65 +1,55 @@
 /*
-* Copyright(C) NXP Semiconductors, 2011
-* All rights reserved.
-*
-* Copyright (C) Dean Camera, 2011.
-*
-* LUFA Library is licensed from Dean Camera by NXP for NXP customers 
-* for use with NXP's LPC microcontrollers.
-*
-* Software that is described herein is for illustrative purposes only
-* which provides customers with programming information regarding the
-* LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
-* intellectual property rights.  NXP Semiconductors assumes no responsibility
-* or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
-* or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
-* representation or warranty that such application will be suitable for the
-* specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' and its 
-* licensor's relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
-* this code.
-*/
-
-
-
-/** \file
- *  \brief Master include file for the library USB functionality.
+ * @brief Master include file for the library USB functionality
  *
- *  Master include file for the library USB functionality.
+ * @note
+ * Copyright(C) NXP Semiconductors, 2012
+ * Copyright(C) Dean Camera, 2011, 2012
+ * All rights reserved.
  *
- *  This file should be included in all user projects making use of the USB portions of the library, instead of
- *  the individual USB driver submodule headers.
+ * @par
+ * Software that is described herein is for illustrative purposes only
+ * which provides customers with programming information regarding the
+ * LPC products.  This software is supplied "AS IS" without any warranties of
+ * any kind, and NXP Semiconductors and its licensor disclaim any and
+ * all warranties, express or implied, including all implied warranties of
+ * merchantability, fitness for a particular purpose and non-infringement of
+ * intellectual property rights.  NXP Semiconductors assumes no responsibility
+ * or liability for the use of the software, conveys no license or rights under any
+ * patent, copyright, mask work right, or any other intellectual property rights in
+ * or to any products. NXP Semiconductors reserves the right to make changes
+ * in the software without notification. NXP Semiconductors also makes no
+ * representation or warranty that such application will be suitable for the
+ * specified use without further testing or modification.
+ *
+ * @par
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation is hereby granted, under NXP Semiconductors' and its
+ * licensor's relevant copyrights in the software, without fee, provided that it
+ * is used in conjunction with NXP Semiconductors microcontrollers.  This
+ * copyright, permission, and disclaimer notice must appear in all copies of
+ * this code.
  */
 
-/** \defgroup Group_USB USB Core - lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h
+/** @defgroup Group_USB USB Core - software/LPCUSBLib/Drivers/USB/USB.h
+ * @ingroup LPCUSBlib
  *
- *  \section Sec_Dependencies Module Source Dependencies
+ *  @section Sec_Dependencies Module Source Dependencies
  *  The following files must be built with any user project that uses this module:
- *    - LPCUSBlib/Drivers/USB/Core/ConfigDescriptor.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
- *    - LPCUSBlib/Drivers/USB/Core/DeviceStandardReq.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
- *    - LPCUSBlib/Drivers/USB/Core/Events.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
- *    - LPCUSBlib/Drivers/USB/Core/HostStandardReq.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
- *    - LPCUSBlib/Drivers/USB/Core/USBTask.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
- *    - LPCUSBlib/Drivers/USB/Core/<i>ARCH</i>/Device_<i>ARCH</i>.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
- *    - LPCUSBlib/Drivers/USB/Core/<i>ARCH</i>/Endpoint_<i>ARCH</i>.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
- *    - LPCUSBlib/Drivers/USB/Core/<i>ARCH</i>/EndpointStream_<i>ARCH</i>.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
- *    - LPCUSBlib/Drivers/USB/Core/<i>ARCH</i>/Host_<i>ARCH</i>.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
- *    - LPCUSBlib/Drivers/USB/Core/<i>ARCH</i>/Pipe_<i>ARCH</i>.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
- *    - LPCUSBlib/Drivers/USB/Core/<i>ARCH</i>/PipeStream_<i>ARCH</i>.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
- *    - LPCUSBlib/Drivers/USB/Core/<i>ARCH</i>/USBController_<i>ARCH</i>.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
- *    - LPCUSBlib/Drivers/USB/Core/<i>ARCH</i>/USBInterrupt_<i>ARCH</i>.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
- *    - LPCUSBlib/Drivers/USB/Class/Common/HIDParser.c <i>(Makefile source module name: LPCUSBlib_SRC_USB)</i>
+ *    - LPCUSBlib/Drivers/USB/Core/ConfigDescriptor.c
+ *    - LPCUSBlib/Drivers/USB/Core/DeviceStandardReq.c
+ *    - LPCUSBlib/Drivers/USB/Core/Events.c
+ *    - LPCUSBlib/Drivers/USB/Core/HostStandardReq.c
+ *    - LPCUSBlib/Drivers/USB/Core/USBTask.c
+ *    - LPCUSBlib/Drivers/USB/Core/Device.c
+ *    - LPCUSBlib/Drivers/USB/Core/Endpoint.c
+ *    - LPCUSBlib/Drivers/USB/Core/EndpointStream.c
+ *    - LPCUSBlib/Drivers/USB/Core/Host.c
+ *    - LPCUSBlib/Drivers/USB/Core/Pipe.c
+ *    - LPCUSBlib/Drivers/USB/Core/PipeStream.c
+ *    - LPCUSBlib/Drivers/USB/Core/USBController.c
+ *    - LPCUSBlib/Drivers/USB/Class/Common/HIDParser.c
  *
- *  \section Sec_ModDescription Module Description
+ *  @section Sec_ModDescription Module Description
  *  Driver and framework for the USB controller of the selected architecture and microcontroller model. This module
  *  consists of many submodules, and is designed to provide an easy way to configure and control USB host, device
  *  or OTG mode USB applications.
@@ -68,13 +58,14 @@
  *  require any additional timers or other peripherals to operate. This ensures that the USB stack requires as few
  *  resources as possible.
  *
- *  The USB stack can be used in Device Mode for connections to USB Hosts (see \ref Group_Device), in Host mode for
- *  hosting of other USB devices (see \ref Group_Host), or as a dual role device which can either act as a USB host
- *  or device depending on what peripheral is connected (see \ref Group_OTG). Both modes also require a common set
- *  of USB management functions found \ref Group_USBManagement.
+ *  The USB stack can be used in Device Mode for connections to USB Hosts (see @ref Group_Device), in Host mode for
+ *  hosting of other USB devices (see @ref Group_Host), or as a dual role device which can either act as a USB host
+ *  or device depending on what peripheral is connected (see @ref Group_OTG). Both modes also require a common set
+ *  of USB management functions found @ref Group_USBManagement.
  */
 
-/** \defgroup Group_USBClassDrivers USB Class Drivers
+/** @defgroup Group_USBClassDrivers USB Class Drivers
+ * @ingroup LPCUSBlib
  *
  *  Drivers for both host and device mode of the standard USB classes, for rapid application development.
  *  Class drivers give a framework which sits on top of the low level library API, allowing for standard
@@ -137,13 +128,13 @@
  *  </table>
  *
  *
- *  \section Sec_UsingClassDrivers Using the Class Drivers
+ *  @section Sec_UsingClassDrivers Using the Class Drivers
  *  To make the Class drivers easy to integrate into a user application, they all implement a standardized
  *  design with similarly named/used function, enums, defines and types. The two different modes are implemented
  *  slightly differently, and thus will be explained separately. For information on a specific class driver, read
  *  the class driver's module documentation.
  *
- *  \subsection Sec_ClassDriverDevice Device Mode Class Drivers
+ *  @subsection Sec_ClassDriverDevice Device Mode Class Drivers
  *  Implementing a Device Mode Class Driver in a user application requires a number of steps to be followed. Firstly,
  *  the module configuration and state structure must be added to the project source. These structures are named in a
  *  similar manner between classes, that of <tt>USB_ClassInfo_<i>{Class Name}</i>_Device_t</tt>, and are used to hold the
@@ -174,11 +165,11 @@
  *  };
  *  \endcode
  *
- *  \note The class driver's configuration parameters should match those used in the device's descriptors that are
+ *  @note The class driver's configuration parameters should match those used in the device's descriptors that are
  *  sent to the host.
  *
  *  To initialize the Class driver instance, the driver's <tt><i>{Class Name}</i>_Device_ConfigureEndpoints()</tt> function
- *  should be called in response to the \ref EVENT_USB_Device_ConfigurationChanged() event. This function will return a
+ *  should be called in response to the @ref EVENT_USB_Device_ConfigurationChanged() event. This function will return a
  *  boolean true value if the driver successfully initialized the instance. Like all the class driver functions, this function
  *  takes in the address of the specific instance you wish to initialize - in this manner, multiple separate instances of
  *  the same class type can be initialized like this:
@@ -197,7 +188,7 @@
  *  <tt><i>{Class Name}</i>_Device_USBTask()</tt> function in the main program loop. The exact implementation of this
  *  function varies between class drivers, and can be used for any internal class driver purpose to maintain each
  *  instance. Again, this function uses the address of the instance to operate on, and thus needs to be called for each
- *  separate instance, just like the main USB maintenance routine \ref USB_USBTask():
+ *  separate instance, just like the main USB maintenance routine @ref USB_USBTask():
  *
  *  \code
  *  int main(void)
@@ -218,7 +209,7 @@
  *
  *  The final standardized Device Class Driver function is the Control Request handler function
  *  <tt><i>{Class Name}</i>_Device_ProcessControlRequest()</tt>, which should be called when the
- *  \ref EVENT_USB_Device_ControlRequest() event fires. This function should also be called for
+ *  @ref EVENT_USB_Device_ControlRequest() event fires. This function should also be called for
  *  each class driver instance, using the address of the instance to operate on as the function's
  *  parameter. The request handler will abort if it is determined that the current request is not
  *  targeted at the given class driver instance, thus these methods can safely be called
@@ -242,7 +233,7 @@
  *  read and write routines. See each driver's individual documentation for more information on the
  *  class-specific functions.
  *
- *  \subsection Sec_ClassDriverHost Host Mode Class Drivers
+ *  @subsection Sec_ClassDriverHost Host Mode Class Drivers
  *  Implementing a Host Mode Class Driver in a user application requires a number of steps to be followed. Firstly,
  *  the module configuration and state structure must be added to the project source. These structures are named in a
  *  similar manner between classes, that of <tt>USB_ClassInfo_<b>{Class Name}</b>_Host_t</tt>, and are used to hold the
@@ -275,7 +266,7 @@
  *  \endcode
  *
  *  To initialize the Class driver instance, the driver's <tt><b>{Class Name}</b>_Host_ConfigurePipes()</tt> function
- *  should be called in response to the host state machine entering the \ref HOST_STATE_Addressed state. This function
+ *  should be called in response to the host state machine entering the @ref HOST_STATE_Addressed state. This function
  *  will return an error code from the class driver's <tt><b>{Class Name}</b>_EnumerationFailure_ErrorCodes_t</tt> enum
  *  to indicate if the driver successfully initialized the instance and bound it to an interface in the attached device.
  *  Like all the class driver functions, this function takes in the address of the specific instance you wish to initialize -
@@ -312,7 +303,7 @@
  *
  *  Note that the function also required the device's configuration descriptor so that it can determine which interface
  *  in the device to bind to - this can be retrieved as shown in the above fragment using the
- *  \ref USB_Host_GetDeviceConfigDescriptor() function. If the device does not implement the interface the class driver
+ *  @ref USB_Host_GetDeviceConfigDescriptor() function. If the device does not implement the interface the class driver
  *  is looking for, if all the matching interfaces are already bound to class driver instances or if an error occurs while
  *  binding to a device interface (for example, a device endpoint bank larger that the maximum supported bank size is used)
  *  the configuration will fail.
@@ -321,7 +312,7 @@
  *  <tt><b>{Class Name}</b>_Host_USBTask()</tt> function in the main program loop. The exact implementation of this
  *  function varies between class drivers, and can be used for any internal class driver purpose to maintain each
  *  instance. Again, this function uses the address of the instance to operate on, and thus needs to be called for each
- *  separate instance, just like the main USB maintenance routine \ref USB_USBTask():
+ *  separate instance, just like the main USB maintenance routine @ref USB_USBTask():
  *
  *  \code
  *  int main(void)

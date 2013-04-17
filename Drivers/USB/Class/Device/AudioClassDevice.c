@@ -1,33 +1,34 @@
 /*
-* Copyright(C) NXP Semiconductors, 2011
-* All rights reserved.
-*
-* Copyright (C) Dean Camera, 2011.
-*
-* LUFA Library is licensed from Dean Camera by NXP for NXP customers 
-* for use with NXP's LPC microcontrollers.
-*
-* Software that is described herein is for illustrative purposes only
-* which provides customers with programming information regarding the
-* LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
-* intellectual property rights.  NXP Semiconductors assumes no responsibility
-* or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
-* or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
-* representation or warranty that such application will be suitable for the
-* specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' and its 
-* licensor's relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
-* this code.
-*/
+ * @brief Device mode driver for the library USB Audio 1.0 Class driver
+ *
+ * @note
+ * Copyright(C) NXP Semiconductors, 2012
+ * Copyright(C) Dean Camera, 2011, 2012
+ * All rights reserved.
+ *
+ * @par
+ * Software that is described herein is for illustrative purposes only
+ * which provides customers with programming information regarding the
+ * LPC products.  This software is supplied "AS IS" without any warranties of
+ * any kind, and NXP Semiconductors and its licensor disclaim any and
+ * all warranties, express or implied, including all implied warranties of
+ * merchantability, fitness for a particular purpose and non-infringement of
+ * intellectual property rights.  NXP Semiconductors assumes no responsibility
+ * or liability for the use of the software, conveys no license or rights under any
+ * patent, copyright, mask work right, or any other intellectual property rights in
+ * or to any products. NXP Semiconductors reserves the right to make changes
+ * in the software without notification. NXP Semiconductors also makes no
+ * representation or warranty that such application will be suitable for the
+ * specified use without further testing or modification.
+ *
+ * @par
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation is hereby granted, under NXP Semiconductors' and its
+ * licensor's relevant copyrights in the software, without fee, provided that it
+ * is used in conjunction with NXP Semiconductors microcontrollers.  This
+ * copyright, permission, and disclaimer notice must appear in all copies of
+ * this code.
+ */
 
 
 #define  __INCLUDE_FROM_USB_DRIVER
@@ -41,7 +42,7 @@
 
 void Audio_Device_ProcessControlRequest(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo)
 {
-	if (!(Endpoint_IsSETUPReceived()))
+	if (!(Endpoint_IsSETUPReceived(AudioInterfaceInfo->Config.PortNumber)))
 	  return;
 
 	if ((USB_ControlRequest.bmRequestType & CONTROL_REQTYPE_RECIPIENT) == REQREC_INTERFACE)
@@ -68,8 +69,8 @@ void Audio_Device_ProcessControlRequest(USB_ClassInfo_Audio_Device_t* const Audi
 		case REQ_SetInterface:
 			if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_STANDARD | REQREC_INTERFACE))
 			{
-				Endpoint_ClearSETUP();
-				Endpoint_ClearStatusStage();
+				Endpoint_ClearSETUP(AudioInterfaceInfo->Config.PortNumber);
+				Endpoint_ClearStatusStage(AudioInterfaceInfo->Config.PortNumber);
 
 				AudioInterfaceInfo->State.InterfaceEnabled = ((USB_ControlRequest.wValue & 0xFF) != 0);
 				EVENT_Audio_Device_StreamStartStop(AudioInterfaceInfo);
@@ -80,8 +81,8 @@ void Audio_Device_ProcessControlRequest(USB_ClassInfo_Audio_Device_t* const Audi
 			if ((USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE)) ||
 			    (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_ENDPOINT)))
 			{
-				Endpoint_ClearSETUP();
-				Endpoint_ClearStatusStage();
+				Endpoint_ClearSETUP(AudioInterfaceInfo->Config.PortNumber);
+				Endpoint_ClearStatusStage(AudioInterfaceInfo->Config.PortNumber);
 			}
 
 			break;
@@ -101,9 +102,9 @@ void Audio_Device_ProcessControlRequest(USB_ClassInfo_Audio_Device_t* const Audi
 					uint16_t ValueLength = USB_ControlRequest.wLength;
 					uint8_t  Value[ValueLength];
 					
-					Endpoint_ClearSETUP();
-					Endpoint_Read_Control_Stream_LE(Value, ValueLength);
-					Endpoint_ClearIN();					
+					Endpoint_ClearSETUP(AudioInterfaceInfo->Config.PortNumber);
+					Endpoint_Read_Control_Stream_LE(AudioInterfaceInfo->Config.PortNumber, Value, ValueLength);
+					Endpoint_ClearIN(AudioInterfaceInfo->Config.PortNumber);					
 
 					CALLBACK_Audio_Device_GetSetEndpointProperty(AudioInterfaceInfo, EndpointProperty, EndpointAddress,
 					                                             EndpointControl, &ValueLength, Value);
@@ -126,9 +127,9 @@ void Audio_Device_ProcessControlRequest(USB_ClassInfo_Audio_Device_t* const Audi
 				if (CALLBACK_Audio_Device_GetSetEndpointProperty(AudioInterfaceInfo, EndpointProperty, EndpointAddress,
 				                                                 EndpointControl, &ValueLength, Value))
 				{
-					Endpoint_ClearSETUP();
-					Endpoint_Write_Control_Stream_LE(Value, ValueLength);
-					Endpoint_ClearOUT();					
+					Endpoint_ClearSETUP(AudioInterfaceInfo->Config.PortNumber);
+					Endpoint_Write_Control_Stream_LE(AudioInterfaceInfo->Config.PortNumber, Value, ValueLength);
+					Endpoint_ClearOUT(AudioInterfaceInfo->Config.PortNumber);					
 				}
 			}
 
@@ -140,7 +141,7 @@ bool Audio_Device_ConfigureEndpoints(USB_ClassInfo_Audio_Device_t* const AudioIn
 {
 	memset(&AudioInterfaceInfo->State, 0x00, sizeof(AudioInterfaceInfo->State));
 
-	for (uint8_t EndpointNum = 1; EndpointNum < ENDPOINT_TOTAL_ENDPOINTS; EndpointNum++)
+	for (uint8_t EndpointNum = 1; EndpointNum < ENDPOINT_TOTAL_ENDPOINTS(AudioInterfaceInfo->Config.PortNumber); EndpointNum++)
 	{
 		uint16_t Size;
 		uint8_t  Type;
@@ -166,7 +167,7 @@ bool Audio_Device_ConfigureEndpoints(USB_ClassInfo_Audio_Device_t* const AudioIn
 			continue;
 		}
 
-		if (!(Endpoint_ConfigureEndpoint(EndpointNum, Type, Direction, Size,
+		if (!(Endpoint_ConfigureEndpoint(AudioInterfaceInfo->Config.PortNumber, EndpointNum, Type, Direction, Size,
 		                                 DoubleBanked ? ENDPOINT_BANK_DOUBLE : ENDPOINT_BANK_SINGLE)))
 		{
 			return false;

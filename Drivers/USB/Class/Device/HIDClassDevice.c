@@ -1,33 +1,34 @@
 /*
-* Copyright(C) NXP Semiconductors, 2011
-* All rights reserved.
-*
-* Copyright (C) Dean Camera, 2011.
-*
-* LUFA Library is licensed from Dean Camera by NXP for NXP customers 
-* for use with NXP's LPC microcontrollers.
-*
-* Software that is described herein is for illustrative purposes only
-* which provides customers with programming information regarding the
-* LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
-* intellectual property rights.  NXP Semiconductors assumes no responsibility
-* or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
-* or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
-* representation or warranty that such application will be suitable for the
-* specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' and its 
-* licensor's relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
-* this code.
-*/
+ * @brief Device mode driver for the library USB HID Class driver
+ *
+ * @note
+ * Copyright(C) NXP Semiconductors, 2012
+ * Copyright(C) Dean Camera, 2011, 2012
+ * All rights reserved.
+ *
+ * @par
+ * Software that is described herein is for illustrative purposes only
+ * which provides customers with programming information regarding the
+ * LPC products.  This software is supplied "AS IS" without any warranties of
+ * any kind, and NXP Semiconductors and its licensor disclaim any and
+ * all warranties, express or implied, including all implied warranties of
+ * merchantability, fitness for a particular purpose and non-infringement of
+ * intellectual property rights.  NXP Semiconductors assumes no responsibility
+ * or liability for the use of the software, conveys no license or rights under any
+ * patent, copyright, mask work right, or any other intellectual property rights in
+ * or to any products. NXP Semiconductors reserves the right to make changes
+ * in the software without notification. NXP Semiconductors also makes no
+ * representation or warranty that such application will be suitable for the
+ * specified use without further testing or modification.
+ *
+ * @par
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation is hereby granted, under NXP Semiconductors' and its
+ * licensor's relevant copyrights in the software, without fee, provided that it
+ * is used in conjunction with NXP Semiconductors microcontrollers.  This
+ * copyright, permission, and disclaimer notice must appear in all copies of
+ * this code.
+ */
 
 
 #define  __INCLUDE_FROM_USB_DRIVER
@@ -41,7 +42,7 @@
 
 void HID_Device_ProcessControlRequest(USB_ClassInfo_HID_Device_t* const HIDInterfaceInfo)
 {
-	if (!(Endpoint_IsSETUPReceived()))
+	if (!(Endpoint_IsSETUPReceived(HIDInterfaceInfo->Config.PortNumber)))
 	  return;
 
 	if (USB_ControlRequest.wIndex != HIDInterfaceInfo->Config.InterfaceNumber)
@@ -67,11 +68,11 @@ void HID_Device_ProcessControlRequest(USB_ClassInfo_HID_Device_t* const HIDInter
 					       HIDInterfaceInfo->Config.PrevReportINBufferSize);
 				}
 
-				Endpoint_SelectEndpoint(ENDPOINT_CONTROLEP);
+				Endpoint_SelectEndpoint(HIDInterfaceInfo->Config.PortNumber, ENDPOINT_CONTROLEP);
 
-				Endpoint_ClearSETUP();
-				Endpoint_Write_Control_Stream_LE(ReportData, ReportSize);
-				Endpoint_ClearOUT();
+				Endpoint_ClearSETUP(HIDInterfaceInfo->Config.PortNumber);
+				Endpoint_Write_Control_Stream_LE(HIDInterfaceInfo->Config.PortNumber, ReportData, ReportSize);
+				Endpoint_ClearOUT(HIDInterfaceInfo->Config.PortNumber);
 			}
 
 			break;
@@ -83,9 +84,9 @@ void HID_Device_ProcessControlRequest(USB_ClassInfo_HID_Device_t* const HIDInter
 				uint8_t  ReportType = (USB_ControlRequest.wValue >> 8) - 1;
 				uint8_t  ReportData[ReportSize];
 
-				Endpoint_ClearSETUP();
-				Endpoint_Read_Control_Stream_LE(ReportData, ReportSize);
-				Endpoint_ClearIN();
+				Endpoint_ClearSETUP(HIDInterfaceInfo->Config.PortNumber);
+				Endpoint_Read_Control_Stream_LE(HIDInterfaceInfo->Config.PortNumber, ReportData, ReportSize);
+				Endpoint_ClearIN(HIDInterfaceInfo->Config.PortNumber);
 
 				CALLBACK_HID_Device_ProcessHIDReport(HIDInterfaceInfo, ReportID, ReportType,
 				                                     &ReportData[ReportID ? 1 : 0], ReportSize - (ReportID ? 1 : 0));
@@ -95,18 +96,18 @@ void HID_Device_ProcessControlRequest(USB_ClassInfo_HID_Device_t* const HIDInter
 		case HID_REQ_GetProtocol:
 			if (USB_ControlRequest.bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_CLASS | REQREC_INTERFACE))
 			{
-				Endpoint_ClearSETUP();
-				Endpoint_Write_8(HIDInterfaceInfo->State.UsingReportProtocol);
-				Endpoint_ClearIN();
-				Endpoint_ClearStatusStage();
+				Endpoint_ClearSETUP(HIDInterfaceInfo->Config.PortNumber);
+				Endpoint_Write_8(HIDInterfaceInfo->Config.PortNumber, HIDInterfaceInfo->State.UsingReportProtocol);
+				Endpoint_ClearIN(HIDInterfaceInfo->Config.PortNumber);
+				Endpoint_ClearStatusStage(HIDInterfaceInfo->Config.PortNumber);
 			}
 
 			break;
 		case HID_REQ_SetProtocol:
 			if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE))
 			{
-				Endpoint_ClearSETUP();
-				Endpoint_ClearStatusStage();
+				Endpoint_ClearSETUP(HIDInterfaceInfo->Config.PortNumber);
+				Endpoint_ClearStatusStage(HIDInterfaceInfo->Config.PortNumber);
 
 				HIDInterfaceInfo->State.UsingReportProtocol = ((USB_ControlRequest.wValue & 0xFF) != 0x00);
 			}
@@ -115,8 +116,8 @@ void HID_Device_ProcessControlRequest(USB_ClassInfo_HID_Device_t* const HIDInter
 		case HID_REQ_SetIdle:
 			if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE))
 			{
-				Endpoint_ClearSETUP();
-				Endpoint_ClearStatusStage();
+				Endpoint_ClearSETUP(HIDInterfaceInfo->Config.PortNumber);
+				Endpoint_ClearStatusStage(HIDInterfaceInfo->Config.PortNumber);
 
 				HIDInterfaceInfo->State.IdleCount = ((USB_ControlRequest.wValue & 0xFF00) >> 6);
 			}
@@ -125,10 +126,10 @@ void HID_Device_ProcessControlRequest(USB_ClassInfo_HID_Device_t* const HIDInter
 		case HID_REQ_GetIdle:
 			if (USB_ControlRequest.bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_CLASS | REQREC_INTERFACE))
 			{
-				Endpoint_ClearSETUP();
-				Endpoint_Write_8(HIDInterfaceInfo->State.IdleCount >> 2);
-				Endpoint_ClearIN();
-				Endpoint_ClearStatusStage();
+				Endpoint_ClearSETUP(HIDInterfaceInfo->Config.PortNumber);
+				Endpoint_Write_8(HIDInterfaceInfo->Config.PortNumber, HIDInterfaceInfo->State.IdleCount >> 2);
+				Endpoint_ClearIN(HIDInterfaceInfo->Config.PortNumber);
+				Endpoint_ClearStatusStage(HIDInterfaceInfo->Config.PortNumber);
 			}
 
 			break;
@@ -141,7 +142,7 @@ bool HID_Device_ConfigureEndpoints(USB_ClassInfo_HID_Device_t* const HIDInterfac
 	HIDInterfaceInfo->State.UsingReportProtocol = true;
 	HIDInterfaceInfo->State.IdleCount           = 500;
 
-	if (!(Endpoint_ConfigureEndpoint(HIDInterfaceInfo->Config.ReportINEndpointNumber, EP_TYPE_INTERRUPT,
+	if (!(Endpoint_ConfigureEndpoint(HIDInterfaceInfo->Config.PortNumber, HIDInterfaceInfo->Config.ReportINEndpointNumber, EP_TYPE_INTERRUPT,
 									 ENDPOINT_DIR_IN, HIDInterfaceInfo->Config.ReportINEndpointSize,
 									 HIDInterfaceInfo->Config.ReportINEndpointDoubleBank ? ENDPOINT_BANK_DOUBLE : ENDPOINT_BANK_SINGLE)))
 	{
@@ -153,12 +154,12 @@ bool HID_Device_ConfigureEndpoints(USB_ClassInfo_HID_Device_t* const HIDInterfac
 
 void HID_Device_USBTask(USB_ClassInfo_HID_Device_t* const HIDInterfaceInfo)
 {
-	if (USB_DeviceState != DEVICE_STATE_Configured)
+	if (USB_DeviceState[HIDInterfaceInfo->Config.PortNumber] != DEVICE_STATE_Configured)
 	  return;
 
-	Endpoint_SelectEndpoint(HIDInterfaceInfo->Config.ReportINEndpointNumber);
+	Endpoint_SelectEndpoint(HIDInterfaceInfo->Config.PortNumber, HIDInterfaceInfo->Config.ReportINEndpointNumber);
 
-	if (Endpoint_IsReadWriteAllowed())
+	if (Endpoint_IsReadWriteAllowed(HIDInterfaceInfo->Config.PortNumber))
 	{
 		uint8_t  ReportINData[HIDInterfaceInfo->Config.PrevReportINBufferSize];
 		uint8_t  ReportID     = 0;
@@ -181,14 +182,14 @@ void HID_Device_USBTask(USB_ClassInfo_HID_Device_t* const HIDInterfaceInfo)
 		{
 			HIDInterfaceInfo->State.IdleMSRemaining = HIDInterfaceInfo->State.IdleCount;
 
-			Endpoint_SelectEndpoint(HIDInterfaceInfo->Config.ReportINEndpointNumber);
+			Endpoint_SelectEndpoint(HIDInterfaceInfo->Config.PortNumber, HIDInterfaceInfo->Config.ReportINEndpointNumber);
 
 			if (ReportID)
-			  Endpoint_Write_8(ReportID);
+			  Endpoint_Write_8(HIDInterfaceInfo->Config.PortNumber, ReportID);
 
-			Endpoint_Write_Stream_LE(ReportINData, ReportINSize, NULL);
+			Endpoint_Write_Stream_LE(HIDInterfaceInfo->Config.PortNumber, ReportINData, ReportINSize, NULL);
 
-			Endpoint_ClearIN();
+			Endpoint_ClearIN(HIDInterfaceInfo->Config.PortNumber);
 		}
 	}
 }

@@ -1,53 +1,43 @@
 /*
-* Copyright(C) NXP Semiconductors, 2011
-* All rights reserved.
-*
-* Copyright (C) Dean Camera, 2011.
-*
-* LUFA Library is licensed from Dean Camera by NXP for NXP customers 
-* for use with NXP's LPC microcontrollers.
-*
-* Software that is described herein is for illustrative purposes only
-* which provides customers with programming information regarding the
-* LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
-* intellectual property rights.  NXP Semiconductors assumes no responsibility
-* or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
-* or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
-* representation or warranty that such application will be suitable for the
-* specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' and its 
-* licensor's relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
-* this code.
-*/
-
-
-
-/** \file
- *  \brief Host mode driver for the library USB CDC Class driver.
+ * @brief Host mode driver for the library USB CDC Class driver
  *
- *  Host mode driver for the library USB CDC Class driver.
+ * @note
+ * Copyright(C) NXP Semiconductors, 2012
+ * Copyright(C) Dean Camera, 2011, 2012
+ * All rights reserved.
  *
- *  \note This file should not be included directly. It is automatically included as needed by the USB module driver
- *        dispatch header located in LPCUSBlib/Drivers/USB.h.
+ * @par
+ * Software that is described herein is for illustrative purposes only
+ * which provides customers with programming information regarding the
+ * LPC products.  This software is supplied "AS IS" without any warranties of
+ * any kind, and NXP Semiconductors and its licensor disclaim any and
+ * all warranties, express or implied, including all implied warranties of
+ * merchantability, fitness for a particular purpose and non-infringement of
+ * intellectual property rights.  NXP Semiconductors assumes no responsibility
+ * or liability for the use of the software, conveys no license or rights under any
+ * patent, copyright, mask work right, or any other intellectual property rights in
+ * or to any products. NXP Semiconductors reserves the right to make changes
+ * in the software without notification. NXP Semiconductors also makes no
+ * representation or warranty that such application will be suitable for the
+ * specified use without further testing or modification.
+ *
+ * @par
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation is hereby granted, under NXP Semiconductors' and its
+ * licensor's relevant copyrights in the software, without fee, provided that it
+ * is used in conjunction with NXP Semiconductors microcontrollers.  This
+ * copyright, permission, and disclaimer notice must appear in all copies of
+ * this code.
  */
 
-/** \ingroup Group_USBClassCDC
- *  \defgroup Group_USBClassCDCHost CDC Class Host Mode Driver
+/** @ingroup Group_USBClassCDC
+ *  @defgroup Group_USBClassCDCHost CDC Class Host Mode Driver
  *
- *  \section Sec_Dependencies Module Source Dependencies
+ *  @section Sec_Dependencies Module Source Dependencies
  *  The following files must be built with any user project that uses this module:
  *    - LPCUSBlib/Drivers/USB/Class/Host/CDC.c <i>(Makefile source module name: LPCUSBlib_SRC_USBCLASS)</i>
  *
- *  \section Sec_ModDescription Module Description
+ *  @section Sec_ModDescription Module Description
  *  Host Mode USB Class driver framework interface, for the CDC USB Class driver.
  *
  *  @{
@@ -74,7 +64,7 @@
 
 	/* Public Interface - May be used in end-application: */
 		/* Type Defines: */
-			/** \brief CDC Class Host Mode Configuration and State Structure.
+			/** @brief CDC Class Host Mode Configuration and State Structure.
 			 *
 			 *  Class state structure. An instance of this structure should be made within the user application,
 			 *  and passed to each of the CDC class driver functions as the \c CDCInterfaceInfo parameter. This
@@ -101,7 +91,7 @@
 				struct
 				{
 					bool IsActive; /**< Indicates if the current interface instance is connected to an attached device, valid
-					                *   after \ref CDC_Host_ConfigurePipes() is called and the Host state machine is in the
+					                *   after @ref CDC_Host_ConfigurePipes() is called and the Host state machine is in the
 					                *   Configured state.
 					                */
 					uint8_t  ControlInterfaceNumber; /**< Interface index of the CDC-ACM control interface within the attached device. */
@@ -114,17 +104,17 @@
 					{
 						uint8_t HostToDevice; /**< Control line states from the host to device, as a set of \c CDC_CONTROL_LINE_OUT_*
 											   *   masks - to notify the device of changes to these values, call the
-											   *   \ref CDC_Host_SendControlLineStateChange() function.
+											   *   @ref CDC_Host_SendControlLineStateChange() function.
 											   */
 						uint8_t DeviceToHost; /**< Control line states from the device to host, as a set of \c CDC_CONTROL_LINE_IN_*
-											   *   masks. This value is updated each time \ref CDC_Host_USBTask() is called.
+											   *   masks. This value is updated each time @ref CDC_Host_USBTask() is called.
 											   */
 					} ControlLineStates; /**< Current states of the virtual serial port's control lines between the device and host. */
 
 					CDC_LineEncoding_t LineEncoding; /**< Line encoding used in the virtual serial port, for the device's information.
 					                                  *   This is generally only used if the virtual serial port data is to be
 					                                  *   reconstructed on a physical UART. When set by the host application, the
-					                                  *   \ref CDC_Host_SetLineEncoding() function must be called to push the changes
+					                                  *   @ref CDC_Host_SetLineEncoding() function must be called to push the changes
 					                                  *   to the device.
 					                                  */
 				} State; /**< State data for the USB class interface within the device. All elements in this section
@@ -134,7 +124,7 @@
 			} USB_ClassInfo_CDC_Host_t;
 
 		/* Enums: */
-			/** Enum for the possible error codes returned by the \ref CDC_Host_ConfigurePipes() function. */
+			/** Enum for the possible error codes returned by the @ref CDC_Host_ConfigurePipes() function. */
 			enum CDC_Host_EnumerationFailure_ErrorCodes_t
 			{
 				CDC_ENUMERROR_NoError                    = 0, /**< Configuration Descriptor was processed successfully. */
@@ -144,149 +134,151 @@
 			};
 
 		/* Function Prototypes: */
-			/** General management task for a given CDC host class interface, required for the correct operation of the interface. This should
-			 *  be called frequently in the main program loop, before the master USB management task \ref USB_USBTask().
+			/** @brief General management task for a given CDC host class interface, required for the correct operation of the interface. This should
+			 *  be called frequently in the main program loop, before the master USB management task @ref USB_USBTask().
 			 *
-			 *  \param[in,out] CDCInterfaceInfo  Pointer to a structure containing an CDC Class host configuration and state.
+			 *  @param CDCInterfaceInfo : Pointer to a structure containing an CDC Class host configuration and state.
+			 *	@return	Nothing
 			 */
 			void CDC_Host_USBTask(USB_ClassInfo_CDC_Host_t* const CDCInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
 
-			/** Host interface configuration routine, to configure a given CDC host interface instance using the Configuration
+			/** @brief Host interface configuration routine, to configure a given CDC host interface instance using the Configuration
 			 *  Descriptor read from an attached USB device. This function automatically updates the given CDC Host instance's
 			 *  state values and configures the pipes required to communicate with the interface if it is found within the device.
 			 *  This should be called once after the stack has enumerated the attached device, while the host state machine is in
 			 *  the Addressed state.
 			 *
-			 *  \param[in,out] CDCInterfaceInfo        Pointer to a structure containing an CDC Class host configuration and state.
-			 *  \param[in]     ConfigDescriptorSize    Length of the attached device's Configuration Descriptor.
-			 *  \param[in]     DeviceConfigDescriptor  Pointer to a buffer containing the attached device's Configuration Descriptor.
+			 *  @param CDCInterfaceInfo       : Pointer to a structure containing an CDC Class host configuration and state.
+			 *  @param ConfigDescriptorSize   : Length of the attached device's Configuration Descriptor.
+			 *  @param DeviceConfigDescriptor : Pointer to a buffer containing the attached device's Configuration Descriptor.
 			 *
-			 *  \return A value from the \ref CDC_Host_EnumerationFailure_ErrorCodes_t enum.
+			 *  @return A value from the @ref CDC_Host_EnumerationFailure_ErrorCodes_t enum.
 			 */
 			uint8_t CDC_Host_ConfigurePipes(USB_ClassInfo_CDC_Host_t* const CDCInterfaceInfo,
 			                                uint16_t ConfigDescriptorSize,
 			                                void* DeviceConfigDescriptor) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
 
-			/** Sets the line encoding for the attached device's virtual serial port. This should be called when the \c LineEncoding
+			/** @brief Sets the line encoding for the attached device's virtual serial port. This should be called when the \c LineEncoding
 			 *  values of the interface have been changed to push the new settings to the USB device.
 			 *
-			 *  \param[in,out] CDCInterfaceInfo  Pointer to a structure containing a CDC Class host configuration and state.
+			 *  @param CDCInterfaceInfo : Pointer to a structure containing a CDC Class host configuration and state.
 			 *
-			 *  \return A value from the \ref USB_Host_SendControlErrorCodes_t enum.
+			 *  @return A value from the @ref USB_Host_SendControlErrorCodes_t enum.
 			 */
 			uint8_t CDC_Host_SetLineEncoding(USB_ClassInfo_CDC_Host_t* const CDCInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
 
-			/** Sends a Serial Control Line State Change notification to the device. This should be called when the virtual serial
+			/** @brief Sends a Serial Control Line State Change notification to the device. This should be called when the virtual serial
 			 *  control lines (DTR, RTS, etc.) have changed states. Line states persist until they are cleared via a second
 			 *  notification. This should be called each time the CDC class driver's \c ControlLineStates.HostToDevice value is updated
 			 *  to push the new states to the USB device.
 			 *
-			 *  \param[in,out] CDCInterfaceInfo  Pointer to a structure containing a CDC Class host configuration and state.
+			 *  @param CDCInterfaceInfo : Pointer to a structure containing a CDC Class host configuration and state.
 			 *
-			 *  \return A value from the \ref USB_Host_SendControlErrorCodes_t enum.
+			 *  @return A value from the @ref USB_Host_SendControlErrorCodes_t enum.
 			 */
 			uint8_t CDC_Host_SendControlLineStateChange(USB_ClassInfo_CDC_Host_t* const CDCInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
 
-			/** Sends a Send Break request to the device. This is generally used to separate data or to indicate a special condition
+			/** @brief Sends a Send Break request to the device. This is generally used to separate data or to indicate a special condition
 			 *  to the receiving device.
 			 *
-			 *  \param[in,out] CDCInterfaceInfo  Pointer to a structure containing a CDC Class host configuration and state.
-			 *  \param[in]     Duration          Duration of the break, in milliseconds.
+			 *  @param CDCInterfaceInfo : Pointer to a structure containing a CDC Class host configuration and state.
+			 *  @param Duration         : Duration of the break, in milliseconds.
 			 *
-			 *  \return A value from the \ref USB_Host_SendControlErrorCodes_t enum.
+			 *  @return A value from the @ref USB_Host_SendControlErrorCodes_t enum.
 			 */
 			uint8_t CDC_Host_SendBreak(USB_ClassInfo_CDC_Host_t* const CDCInterfaceInfo,
 			                           const uint8_t Duration) ATTR_NON_NULL_PTR_ARG(1);
 
-			/** Sends a given data buffer to the attached USB device, if connected. If a device is not connected when the function is
+			/** @brief Sends a given data buffer to the attached USB device, if connected. If a device is not connected when the function is
 			 *  called, the data will be discarded. Bytes will be queued for transmission to the device until either the pipe bank
-			 *  becomes full, or the \ref CDC_Host_Flush() function is called to flush the pending data to the device. This allows for
+			 *  becomes full, or the @ref CDC_Host_Flush() function is called to flush the pending data to the device. This allows for
 			 *  multiple bytes to be packed into a single pipe packet, increasing data throughput.
 			 *
-			 *  \pre This function must only be called when the Host state machine is in the \ref HOST_STATE_Configured state or the
+			 *  @pre This function must only be called when the Host state machine is in the @ref HOST_STATE_Configured state or the
 			 *       call will fail.
 			 *
-			 *  \param[in,out] CDCInterfaceInfo  Pointer to a structure containing a CDC Class host configuration and state.
-			 *  \param[in]     Buffer            Pointer to a buffer containing the data to send to the device.
-			 *  \param[in]     Length            Length of the data to send to the device.
+			 *  @param CDCInterfaceInfo : Pointer to a structure containing a CDC Class host configuration and state.
+			 *  @param Buffer           : Pointer to a buffer containing the data to send to the device.
+			 *  @param Length           : Length of the data to send to the device.
 			 *
-			 *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum.
+			 *  @return A value from the @ref Pipe_Stream_RW_ErrorCodes_t enum.
 			 */
 			uint8_t CDC_Host_SendData(USB_ClassInfo_CDC_Host_t* const CDCInterfaceInfo,
 			                          const uint8_t* const Buffer,
 			                          const uint16_t Length);
 
-			/** Sends a given null-terminated string to the attached USB device, if connected. If a device is not connected when the
+			/** @brief Sends a given null-terminated string to the attached USB device, if connected. If a device is not connected when the
 			 *  function is called, the string is discarded. Bytes will be queued for transmission to the device until either the pipe
-			 *  bank becomes full, or the \ref CDC_Host_Flush() function is called to flush the pending data to the device. This allows
+			 *  bank becomes full, or the @ref CDC_Host_Flush() function is called to flush the pending data to the device. This allows
 			 *  for multiple bytes to be packed into a single pipe packet, increasing data throughput.
 			 *
-			 *  \pre This function must only be called when the Host state machine is in the \ref HOST_STATE_Configured state or the
+			 *  @pre This function must only be called when the Host state machine is in the @ref HOST_STATE_Configured state or the
 			 *       call will fail.
 			 *
-			 *  \param[in,out] CDCInterfaceInfo  Pointer to a structure containing a CDC Class host configuration and state.
-			 *  \param[in]     String            Pointer to the null terminated string to send to the device.
+			 *  @param CDCInterfaceInfo : Pointer to a structure containing a CDC Class host configuration and state.
+			 *  @param String           : Pointer to the null terminated string to send to the device.
 			 *
-			 *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum.
+			 *  @return A value from the @ref Pipe_Stream_RW_ErrorCodes_t enum.
 			 */
 			uint8_t CDC_Host_SendString(USB_ClassInfo_CDC_Host_t* const CDCInterfaceInfo,
 			                            const char* const String) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 
-			/** Sends a given byte to the attached USB device, if connected. If a device is not connected when the function is called, the
+			/** @brief Sends a given byte to the attached USB device, if connected. If a device is not connected when the function is called, the
 			 *  byte is discarded. Bytes will be queued for transmission to the device until either the pipe bank becomes full, or the
-			 *  \ref CDC_Host_Flush() function is called to flush the pending data to the host. This allows for multiple bytes to be
+			 *  @ref CDC_Host_Flush() function is called to flush the pending data to the host. This allows for multiple bytes to be
 			 *  packed into a single pipe packet, increasing data throughput.
 			 *
-			 *  \pre This function must only be called when the Host state machine is in the \ref HOST_STATE_Configured state or the
+			 *  @pre This function must only be called when the Host state machine is in the @ref HOST_STATE_Configured state or the
 			 *       call will fail.
 			 *
-			 *  \param[in,out] CDCInterfaceInfo  Pointer to a structure containing a CDC Class host configuration and state.
-			 *  \param[in]     Data              Byte of data to send to the device.
+			 *  @param CDCInterfaceInfo : Pointer to a structure containing a CDC Class host configuration and state.
+			 *  @param Data             : Byte of data to send to the device.
 			 *
-			 *  \return A value from the \ref Pipe_WaitUntilReady_ErrorCodes_t enum.
+			 *  @return A value from the @ref Pipe_WaitUntilReady_ErrorCodes_t enum.
 			 */
 			uint8_t CDC_Host_SendByte(USB_ClassInfo_CDC_Host_t* const CDCInterfaceInfo,
 			                          const uint8_t Data) ATTR_NON_NULL_PTR_ARG(1);
 
-			/** Determines the number of bytes received by the CDC interface from the device, waiting to be read. This indicates the number
-			 *  of bytes in the IN pipe bank only, and thus the number of calls to \ref CDC_Host_ReceiveByte() which are guaranteed to succeed
+			/** @brief Determines the number of bytes received by the CDC interface from the device, waiting to be read. This indicates the number
+			 *  of bytes in the IN pipe bank only, and thus the number of calls to @ref CDC_Host_ReceiveByte() which are guaranteed to succeed
 			 *  immediately. If multiple bytes are to be received, they should be buffered by the user application, as the pipe bank will not be
 			 *  released back to the USB controller until all bytes are read.
 			 *
-			 *  \pre This function must only be called when the Host state machine is in the \ref HOST_STATE_Configured state or the
+			 *  @pre This function must only be called when the Host state machine is in the @ref HOST_STATE_Configured state or the
 			 *       call will fail.
 			 *
-			 *  \param[in,out] CDCInterfaceInfo  Pointer to a structure containing a CDC Class host configuration and state.
+			 *  @param CDCInterfaceInfo : Pointer to a structure containing a CDC Class host configuration and state.
 			 *
-			 *  \return Total number of buffered bytes received from the device.
+			 *  @return Total number of buffered bytes received from the device.
 			 */
 			uint16_t CDC_Host_BytesReceived(USB_ClassInfo_CDC_Host_t* const CDCInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
 
-			/** Reads a byte of data from the device. If no data is waiting to be read of if a USB device is not connected, the function
-			 *  returns a negative value. The \ref CDC_Host_BytesReceived() function may be queried in advance to determine how many bytes
+			/** @brief Reads a byte of data from the device. If no data is waiting to be read of if a USB device is not connected, the function
+			 *  returns a negative value. The @ref CDC_Host_BytesReceived() function may be queried in advance to determine how many bytes
 			 *  are currently buffered in the CDC interface's data receive pipe.
 			 *
-			 *  \pre This function must only be called when the Host state machine is in the \ref HOST_STATE_Configured state or the
+			 *  @pre This function must only be called when the Host state machine is in the @ref HOST_STATE_Configured state or the
 			 *       call will fail.
 			 *
-			 *  \param[in,out] CDCInterfaceInfo  Pointer to a structure containing a CDC Class host configuration and state.
+			 *  @param CDCInterfaceInfo : Pointer to a structure containing a CDC Class host configuration and state.
 			 *
-			 *  \return Next received byte from the device, or a negative value if no data received.
+			 *  @return Next received byte from the device, or a negative value if no data received.
 			 */
 			int16_t CDC_Host_ReceiveByte(USB_ClassInfo_CDC_Host_t* const CDCInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
 
-			/** Flushes any data waiting to be sent, ensuring that the send buffer is cleared.
+			/** @brief Flushes any data waiting to be sent, ensuring that the send buffer is cleared.
 			 *
-			 *  \pre This function must only be called when the Host state machine is in the \ref HOST_STATE_Configured state or the
+			 *  @pre This function must only be called when the Host state machine is in the @ref HOST_STATE_Configured state or the
 			 *       call will fail.
 			 *
-			 *  \param[in,out] CDCInterfaceInfo  Pointer to a structure containing a CDC Class host configuration and state.
+			 *  @param CDCInterfaceInfo : Pointer to a structure containing a CDC Class host configuration and state.
 			 *
-			 *  \return A value from the \ref Pipe_WaitUntilReady_ErrorCodes_t enum.
+			 *  @return A value from the @ref Pipe_WaitUntilReady_ErrorCodes_t enum.
 			 */
 			uint8_t CDC_Host_Flush(USB_ClassInfo_CDC_Host_t* const CDCInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
 
-			/** Creates a standard character stream for the given CDC Device instance so that it can be used with all the regular
+	#if (!defined(__IAR_SYSTEMS_ICC__) || (_DLIB_FILE_DESCRIPTOR == 1))
+			/** @brief Creates a standard character stream for the given CDC Device instance so that it can be used with all the regular
 			 *  functions in the standard \c <stdio.h> library that accept a \c FILE stream as a destination (e.g. \c fprintf). The created
 			 *  stream is bidirectional and can be used for both input and output functions.
 			 *
@@ -295,36 +287,40 @@
 			 *  be used when the read data is processed byte-per-bye (via \c getc()) or when the user application will implement its own
 			 *  line buffering.
 			 *
-			 *  \note The created stream can be given as stdout if desired to direct the standard output from all \c <stdio.h> functions
+			 *  @note The created stream can be given as stdout if desired to direct the standard output from all \c <stdio.h> functions
 			 *        to the given CDC interface.
 			 *        \n\n
 			 *
-			 *  \note This function is not available on all microcontroller architectures.
+			 *  @note This function is not available on all microcontroller architectures.
 			 *
-			 *  \param[in,out] CDCInterfaceInfo  Pointer to a structure containing a CDC Class configuration and state.
-			 *  \param[in,out] Stream            Pointer to a FILE structure where the created stream should be placed.
+			 *  @param CDCInterfaceInfo : Pointer to a structure containing a CDC Class configuration and state.
+			 *  @param Stream           : Pointer to a FILE structure where the created stream should be placed.
+			 *	@return	Nothing
 			 */
 			void CDC_Host_CreateStream(USB_ClassInfo_CDC_Host_t* const CDCInterfaceInfo,
 			                           FILE* const Stream);
 
-			/** Identical to \ref CDC_Host_CreateStream(), except that reads are blocking until the calling stream function terminates
+			/** @brief Identical to @ref CDC_Host_CreateStream(), except that reads are blocking until the calling stream function terminates
 			 *  the transfer. While blocking, the USB and CDC service tasks are called repeatedly to maintain USB communications.
 			 *
-			 *  \note This function is not available on all microcontroller architectures.
+			 *  @note This function is not available on all microcontroller architectures.
 			 *
-			 *  \param[in,out] CDCInterfaceInfo  Pointer to a structure containing a CDC Class configuration and state.
-			 *  \param[in,out] Stream            Pointer to a FILE structure where the created stream should be placed.
+			 *  @param CDCInterfaceInfo : Pointer to a structure containing a CDC Class configuration and state.
+			 *  @param Stream           : Pointer to a FILE structure where the created stream should be placed.
+			 *	@return	Nothing
 			 */
 			void CDC_Host_CreateBlockingStream(USB_ClassInfo_CDC_Host_t* const CDCInterfaceInfo,
 			                                   FILE* const Stream);
+	#endif  /* IAR DLAB checking */
 
-			/** CDC class driver event for a control line state change on a CDC host interface. This event fires each time the device notifies
+			/** @brief CDC class driver event for a control line state change on a CDC host interface. This event fires each time the device notifies
 			 *  the host of a control line state change (containing the virtual serial control line states, such as DCD) and may be hooked in the
 			 *  user program by declaring a handler function with the same name and parameters listed here. The new control line states
 			 *  are available in the ControlLineStates.DeviceToHost value inside the CDC host interface structure passed as a parameter, set as
 			 *  a mask of \c CDC_CONTROL_LINE_IN_* masks.
 			 *
-			 *  \param[in,out] CDCInterfaceInfo  Pointer to a structure containing a CDC Class host configuration and state.
+			 *  @param CDCInterfaceInfo : Pointer to a structure containing a CDC Class host configuration and state.
+			 *	@return	Nothing
 			 */
 			void EVENT_CDC_Host_ControLineStateChanged(USB_ClassInfo_CDC_Host_t* const CDCInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
 

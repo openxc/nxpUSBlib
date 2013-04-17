@@ -1,34 +1,34 @@
 /*
-* Copyright(C) NXP Semiconductors, 2011
-* All rights reserved.
-*
-* Copyright (C) Dean Camera, 2011.
-*
-* LUFA Library is licensed from Dean Camera by NXP for NXP customers 
-* for use with NXP's LPC microcontrollers.
-*
-* Software that is described herein is for illustrative purposes only
-* which provides customers with programming information regarding the
-* LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
-* intellectual property rights.  NXP Semiconductors assumes no responsibility
-* or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
-* or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
-* representation or warranty that such application will be suitable for the
-* specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' and its 
-* licensor's relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
-* this code.
-*/
-
+ * @brief Device mode driver for the library USB RNDIS Class driver
+ *
+ * @note
+ * Copyright(C) NXP Semiconductors, 2012
+ * Copyright(C) Dean Camera, 2011, 2012
+ * All rights reserved.
+ *
+ * @par
+ * Software that is described herein is for illustrative purposes only
+ * which provides customers with programming information regarding the
+ * LPC products.  This software is supplied "AS IS" without any warranties of
+ * any kind, and NXP Semiconductors and its licensor disclaim any and
+ * all warranties, express or implied, including all implied warranties of
+ * merchantability, fitness for a particular purpose and non-infringement of
+ * intellectual property rights.  NXP Semiconductors assumes no responsibility
+ * or liability for the use of the software, conveys no license or rights under any
+ * patent, copyright, mask work right, or any other intellectual property rights in
+ * or to any products. NXP Semiconductors reserves the right to make changes
+ * in the software without notification. NXP Semiconductors also makes no
+ * representation or warranty that such application will be suitable for the
+ * specified use without further testing or modification.
+ *
+ * @par
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation is hereby granted, under NXP Semiconductors' and its
+ * licensor's relevant copyrights in the software, without fee, provided that it
+ * is used in conjunction with NXP Semiconductors microcontrollers.  This
+ * copyright, permission, and disclaimer notice must appear in all copies of
+ * this code.
+ */
 
 #define  __INCLUDE_FROM_USB_DRIVER
 #include "../../Core/USBMode.h"
@@ -39,7 +39,7 @@
 #define  __INCLUDE_FROM_RNDIS_DEVICE_C
 #include "RNDISClassDevice.h"
 
-static const uint32_t PROGMEM AdapterSupportedOIDList[]  =
+static uint32_t PROGMEM AdapterSupportedOIDList[]  =
 	{
 		CPU_TO_LE32(OID_GEN_SUPPORTED_LIST),
 		CPU_TO_LE32(OID_GEN_PHYSICAL_MEDIUM),
@@ -72,7 +72,7 @@ static const uint32_t PROGMEM AdapterSupportedOIDList[]  =
 
 void RNDIS_Device_ProcessControlRequest(USB_ClassInfo_RNDIS_Device_t* const RNDISInterfaceInfo)
 {
-	if (!(Endpoint_IsSETUPReceived()))
+	if (!(Endpoint_IsSETUPReceived(RNDISInterfaceInfo->Config.PortNumber)))
 	  return;
 
 	if (USB_ControlRequest.wIndex != RNDISInterfaceInfo->Config.ControlInterfaceNumber)
@@ -83,9 +83,9 @@ void RNDIS_Device_ProcessControlRequest(USB_ClassInfo_RNDIS_Device_t* const RNDI
 		case RNDIS_REQ_SendEncapsulatedCommand:
 			if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE))
 			{
-				Endpoint_ClearSETUP();
-				Endpoint_Read_Control_Stream_LE(RNDISInterfaceInfo->State.RNDISMessageBuffer, USB_ControlRequest.wLength);
-				Endpoint_ClearIN();
+				Endpoint_ClearSETUP(RNDISInterfaceInfo->Config.PortNumber);
+				Endpoint_Read_Control_Stream_LE(RNDISInterfaceInfo->Config.PortNumber, RNDISInterfaceInfo->State.RNDISMessageBuffer, USB_ControlRequest.wLength);
+				Endpoint_ClearIN(RNDISInterfaceInfo->Config.PortNumber);
 
 				RNDIS_Device_ProcessRNDISControlMessage(RNDISInterfaceInfo);
 			}
@@ -102,9 +102,9 @@ void RNDIS_Device_ProcessControlRequest(USB_ClassInfo_RNDIS_Device_t* const RNDI
 					MessageHeader->MessageLength                    = CPU_TO_LE32(1);
 				}
 
-				Endpoint_ClearSETUP();
-				Endpoint_Write_Control_Stream_LE(RNDISInterfaceInfo->State.RNDISMessageBuffer, le32_to_cpu(MessageHeader->MessageLength));
-				Endpoint_ClearOUT();
+				Endpoint_ClearSETUP(RNDISInterfaceInfo->Config.PortNumber);
+				Endpoint_Write_Control_Stream_LE(RNDISInterfaceInfo->Config.PortNumber, RNDISInterfaceInfo->State.RNDISMessageBuffer, le32_to_cpu(MessageHeader->MessageLength));
+				Endpoint_ClearOUT(RNDISInterfaceInfo->Config.PortNumber);
 
 				MessageHeader->MessageLength = CPU_TO_LE32(0);
 			}
@@ -117,7 +117,7 @@ bool RNDIS_Device_ConfigureEndpoints(USB_ClassInfo_RNDIS_Device_t* const RNDISIn
 {
 	memset(&RNDISInterfaceInfo->State, 0x00, sizeof(RNDISInterfaceInfo->State));
 
-	for (uint8_t EndpointNum = 1; EndpointNum < ENDPOINT_TOTAL_ENDPOINTS; EndpointNum++)
+	for (uint8_t EndpointNum = 1; EndpointNum < ENDPOINT_TOTAL_ENDPOINTS(RNDISInterfaceInfo->Config.PortNumber); EndpointNum++)
 	{
 		uint16_t Size;
 		uint8_t  Type;
@@ -150,7 +150,7 @@ bool RNDIS_Device_ConfigureEndpoints(USB_ClassInfo_RNDIS_Device_t* const RNDISIn
 			continue;
 		}
 
-		if (!(Endpoint_ConfigureEndpoint(EndpointNum, Type, Direction, Size,
+		if (!(Endpoint_ConfigureEndpoint(RNDISInterfaceInfo->Config.PortNumber, EndpointNum, Type, Direction, Size,
 		                                 DoubleBanked ? ENDPOINT_BANK_DOUBLE : ENDPOINT_BANK_SINGLE)))
 		{
 			return false;
@@ -162,12 +162,12 @@ bool RNDIS_Device_ConfigureEndpoints(USB_ClassInfo_RNDIS_Device_t* const RNDISIn
 
 void RNDIS_Device_USBTask(USB_ClassInfo_RNDIS_Device_t* const RNDISInterfaceInfo)
 {
-	if (USB_DeviceState != DEVICE_STATE_Configured)
+	if (USB_DeviceState[RNDISInterfaceInfo->Config.PortNumber] != DEVICE_STATE_Configured)
 	  return;
 
-	Endpoint_SelectEndpoint(RNDISInterfaceInfo->Config.NotificationEndpointNumber);
+	Endpoint_SelectEndpoint(RNDISInterfaceInfo->Config.PortNumber, RNDISInterfaceInfo->Config.NotificationEndpointNumber);
 
-	if (Endpoint_IsINReady() && RNDISInterfaceInfo->State.ResponseReady)
+	if (Endpoint_IsINReady(RNDISInterfaceInfo->Config.PortNumber) && RNDISInterfaceInfo->State.ResponseReady)
 	{
 		USB_Request_Header_t Notification = (USB_Request_Header_t)
 			{
@@ -178,9 +178,9 @@ void RNDIS_Device_USBTask(USB_ClassInfo_RNDIS_Device_t* const RNDISInterfaceInfo
 				.wLength       = CPU_TO_LE16(0),
 			};
 
-		Endpoint_Write_Stream_LE(&Notification, sizeof(USB_Request_Header_t), NULL);
+		Endpoint_Write_Stream_LE(RNDISInterfaceInfo->Config.PortNumber, &Notification, sizeof(USB_Request_Header_t), NULL);
 
-		Endpoint_ClearIN();
+		Endpoint_ClearIN(RNDISInterfaceInfo->Config.PortNumber);
 
 		RNDISInterfaceInfo->State.ResponseReady = false;
 	}
@@ -192,10 +192,11 @@ void RNDIS_Device_ProcessRNDISControlMessage(USB_ClassInfo_RNDIS_Device_t* const
 	         this, response bytes should be filled in order so that they do not clobber unread data in the buffer. */
 
 	RNDIS_Message_Header_t* MessageHeader = (RNDIS_Message_Header_t*)&RNDISInterfaceInfo->State.RNDISMessageBuffer;
-
+	
 	switch (le32_to_cpu(MessageHeader->MessageType))
 	{
 		case REMOTE_NDIS_INITIALIZE_MSG:
+		{
 			RNDISInterfaceInfo->State.ResponseReady     = true;
 
 			RNDIS_Initialize_Message_t*  INITIALIZE_Message  =
@@ -220,14 +221,18 @@ void RNDIS_Device_ProcessRNDISControlMessage(USB_ClassInfo_RNDIS_Device_t* const
 
 			RNDISInterfaceInfo->State.CurrRNDISState    = RNDIS_Initialized;
 			break;
+		}
 		case REMOTE_NDIS_HALT_MSG:
+		{
 			RNDISInterfaceInfo->State.ResponseReady     = false;
 
 			MessageHeader->MessageLength                = CPU_TO_LE32(0);
 
 			RNDISInterfaceInfo->State.CurrRNDISState    = RNDIS_Uninitialized;
 			break;
+		}
 		case REMOTE_NDIS_QUERY_MSG:
+		{
 			RNDISInterfaceInfo->State.ResponseReady     = true;
 
 			RNDIS_Query_Message_t*  QUERY_Message       = (RNDIS_Query_Message_t*)&RNDISInterfaceInfo->State.RNDISMessageBuffer;
@@ -260,7 +265,9 @@ void RNDIS_Device_ProcessRNDISControlMessage(USB_ClassInfo_RNDIS_Device_t* const
 			}
 
 			break;
+		}
 		case REMOTE_NDIS_SET_MSG:
+		{
 			RNDISInterfaceInfo->State.ResponseReady     = true;
 
 			RNDIS_Set_Message_t*  SET_Message           = (RNDIS_Set_Message_t*)&RNDISInterfaceInfo->State.RNDISMessageBuffer;
@@ -278,7 +285,9 @@ void RNDIS_Device_ProcessRNDISControlMessage(USB_ClassInfo_RNDIS_Device_t* const
 			                                                   le32_to_cpu(SET_Message->InformationBufferLength)) ?
 			                                                   REMOTE_NDIS_STATUS_SUCCESS : REMOTE_NDIS_STATUS_NOT_SUPPORTED;
 			break;
+		}
 		case REMOTE_NDIS_RESET_MSG:
+		{
 			RNDISInterfaceInfo->State.ResponseReady     = true;
 
 			RNDIS_Reset_Complete_t* RESET_Response      = (RNDIS_Reset_Complete_t*)&RNDISInterfaceInfo->State.RNDISMessageBuffer;
@@ -289,7 +298,9 @@ void RNDIS_Device_ProcessRNDISControlMessage(USB_ClassInfo_RNDIS_Device_t* const
 			RESET_Response->AddressingReset             = CPU_TO_LE32(0);
 
 			break;
+		}
 		case REMOTE_NDIS_KEEPALIVE_MSG:
+		{
 			RNDISInterfaceInfo->State.ResponseReady     = true;
 
 			RNDIS_KeepAlive_Message_t*  KEEPALIVE_Message  =
@@ -303,6 +314,7 @@ void RNDIS_Device_ProcessRNDISControlMessage(USB_ClassInfo_RNDIS_Device_t* const
 			KEEPALIVE_Response->Status                  = CPU_TO_LE32(REMOTE_NDIS_STATUS_SUCCESS);
 
 			break;
+		}
 	}
 }
 
@@ -450,47 +462,47 @@ static bool RNDIS_Device_ProcessNDISSet(USB_ClassInfo_RNDIS_Device_t* const RNDI
 
 bool RNDIS_Device_IsPacketReceived(USB_ClassInfo_RNDIS_Device_t* const RNDISInterfaceInfo)
 {
-	if ((USB_DeviceState != DEVICE_STATE_Configured) ||
+	if ((USB_DeviceState[RNDISInterfaceInfo->Config.PortNumber] != DEVICE_STATE_Configured) ||
 	    (RNDISInterfaceInfo->State.CurrRNDISState != RNDIS_Data_Initialized))
 	{
 		return false;
 	}
 	
-	Endpoint_SelectEndpoint(RNDISInterfaceInfo->Config.DataOUTEndpointNumber);
-	return Endpoint_IsOUTReceived();
+	Endpoint_SelectEndpoint(RNDISInterfaceInfo->Config.PortNumber, RNDISInterfaceInfo->Config.DataOUTEndpointNumber);
+	return Endpoint_IsOUTReceived(RNDISInterfaceInfo->Config.PortNumber);
 }
 
 uint8_t RNDIS_Device_ReadPacket(USB_ClassInfo_RNDIS_Device_t* const RNDISInterfaceInfo,
                                 void* Buffer,
                                 uint16_t* const PacketLength)
 {
-	if ((USB_DeviceState != DEVICE_STATE_Configured) ||
+	if ((USB_DeviceState[RNDISInterfaceInfo->Config.PortNumber] != DEVICE_STATE_Configured) ||
 	    (RNDISInterfaceInfo->State.CurrRNDISState != RNDIS_Data_Initialized))
 	{
 		return ENDPOINT_RWSTREAM_DeviceDisconnected;
 	}
 	
-	Endpoint_SelectEndpoint(RNDISInterfaceInfo->Config.DataOUTEndpointNumber);
+	Endpoint_SelectEndpoint(RNDISInterfaceInfo->Config.PortNumber, RNDISInterfaceInfo->Config.DataOUTEndpointNumber);
 	
 	*PacketLength = 0;
 
-	if (!(Endpoint_IsOUTReceived()))
+	if (!(Endpoint_IsOUTReceived(RNDISInterfaceInfo->Config.PortNumber)))
 		return ENDPOINT_RWSTREAM_NoError;
 
 	RNDIS_Packet_Message_t RNDISPacketHeader;	
-	Endpoint_Read_Stream_LE(&RNDISPacketHeader, sizeof(RNDIS_Packet_Message_t), NULL);
+	Endpoint_Read_Stream_LE(RNDISInterfaceInfo->Config.PortNumber, &RNDISPacketHeader, sizeof(RNDIS_Packet_Message_t), NULL);
 
 	if (le32_to_cpu(RNDISPacketHeader.DataLength) > ETHERNET_FRAME_SIZE_MAX)
 	{
-		Endpoint_StallTransaction();
+		Endpoint_StallTransaction(RNDISInterfaceInfo->Config.PortNumber);
 
 		return RNDIS_ERROR_LOGICAL_CMD_FAILED;
 	}
 	
 	*PacketLength = (uint16_t)le32_to_cpu(RNDISPacketHeader.DataLength);
 
-	Endpoint_Read_Stream_LE(Buffer, *PacketLength, NULL);
-	Endpoint_ClearOUT();
+	Endpoint_Read_Stream_LE(RNDISInterfaceInfo->Config.PortNumber, Buffer, *PacketLength, NULL);
+	Endpoint_ClearOUT(RNDISInterfaceInfo->Config.PortNumber);
 	
 	return ENDPOINT_RWSTREAM_NoError;
 }
@@ -501,13 +513,13 @@ uint8_t RNDIS_Device_SendPacket(USB_ClassInfo_RNDIS_Device_t* const RNDISInterfa
 {
 	uint8_t ErrorCode;
 
-	if ((USB_DeviceState != DEVICE_STATE_Configured) ||
+	if ((USB_DeviceState[RNDISInterfaceInfo->Config.PortNumber] != DEVICE_STATE_Configured) ||
 	    (RNDISInterfaceInfo->State.CurrRNDISState != RNDIS_Data_Initialized))
 	{
 		return ENDPOINT_RWSTREAM_DeviceDisconnected;
 	}
 	
-	Endpoint_SelectEndpoint(RNDISInterfaceInfo->Config.DataINEndpointNumber);
+	Endpoint_SelectEndpoint(RNDISInterfaceInfo->Config.PortNumber, RNDISInterfaceInfo->Config.DataINEndpointNumber);
 
 	if ((ErrorCode = Endpoint_WaitUntilReady()) != ENDPOINT_READYWAIT_NoError)
 	  return ErrorCode;
@@ -521,9 +533,9 @@ uint8_t RNDIS_Device_SendPacket(USB_ClassInfo_RNDIS_Device_t* const RNDISInterfa
 	RNDISPacketHeader.DataOffset    = CPU_TO_LE32(sizeof(RNDIS_Packet_Message_t) - sizeof(RNDIS_Message_Header_t));
 	RNDISPacketHeader.DataLength    = cpu_to_le32(PacketLength);
 
-	Endpoint_Write_Stream_LE(&RNDISPacketHeader, sizeof(RNDIS_Packet_Message_t), NULL);
-	Endpoint_Write_Stream_LE(Buffer, PacketLength, NULL);
-	Endpoint_ClearIN();
+	Endpoint_Write_Stream_LE(RNDISInterfaceInfo->Config.PortNumber, &RNDISPacketHeader, sizeof(RNDIS_Packet_Message_t), NULL);
+	Endpoint_Write_Stream_LE(RNDISInterfaceInfo->Config.PortNumber, Buffer, PacketLength, NULL);
+	Endpoint_ClearIN(RNDISInterfaceInfo->Config.PortNumber);
 
 	return ENDPOINT_RWSTREAM_NoError;
 }

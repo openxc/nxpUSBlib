@@ -1,49 +1,39 @@
 /*
-* Copyright(C) NXP Semiconductors, 2011
-* All rights reserved.
-*
-* Copyright (C) Dean Camera, 2011.
-*
-* LUFA Library is licensed from Dean Camera by NXP for NXP customers 
-* for use with NXP's LPC microcontrollers.
-*
-* Software that is described herein is for illustrative purposes only
-* which provides customers with programming information regarding the
-* LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
-* intellectual property rights.  NXP Semiconductors assumes no responsibility
-* or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
-* or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
-* representation or warranty that such application will be suitable for the
-* specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' and its 
-* licensor's relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
-* this code.
-*/
-
-
-
-/** \file
- *  \brief Common definitions and declarations for the library USB MIDI Class driver.
+ * @brief Common definitions and declarations for the library USB MIDI Class driver
  *
- *  Common definitions and declarations for the library USB MIDI Class driver.
+ * @note
+ * Copyright(C) NXP Semiconductors, 2012
+ * Copyright(C) Dean Camera, 2011, 2012
+ * All rights reserved.
  *
- *  \note This file should not be included directly. It is automatically included as needed by the USB module driver
- *        dispatch header located in LPCUSBlib/Drivers/USB.h.
+ * @par
+ * Software that is described herein is for illustrative purposes only
+ * which provides customers with programming information regarding the
+ * LPC products.  This software is supplied "AS IS" without any warranties of
+ * any kind, and NXP Semiconductors and its licensor disclaim any and
+ * all warranties, express or implied, including all implied warranties of
+ * merchantability, fitness for a particular purpose and non-infringement of
+ * intellectual property rights.  NXP Semiconductors assumes no responsibility
+ * or liability for the use of the software, conveys no license or rights under any
+ * patent, copyright, mask work right, or any other intellectual property rights in
+ * or to any products. NXP Semiconductors reserves the right to make changes
+ * in the software without notification. NXP Semiconductors also makes no
+ * representation or warranty that such application will be suitable for the
+ * specified use without further testing or modification.
+ *
+ * @par
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation is hereby granted, under NXP Semiconductors' and its
+ * licensor's relevant copyrights in the software, without fee, provided that it
+ * is used in conjunction with NXP Semiconductors microcontrollers.  This
+ * copyright, permission, and disclaimer notice must appear in all copies of
+ * this code.
  */
 
-/** \ingroup Group_USBClassMIDI
- *  \defgroup Group_USBClassMIDICommon  Common Class Definitions
+/** @ingroup Group_USBClassMIDI
+ *  @defgroup Group_USBClassMIDICommon  Common Class Definitions
  *
- *  \section Sec_ModDescription Module Description
+ *  @section Sec_ModDescription Module Description
  *  Constants, Types and Enum definitions that are common to both Device and Host modes for the USB
  *  MIDI Class.
  *
@@ -71,7 +61,7 @@
 		#endif
 
 	/* Macros: */
-		/** \name MIDI Command Values */
+		/** @name MIDI Command Values */
 		//@{
 		/** MIDI command for a note on (activation) event. */
 		#define MIDI_COMMAND_NOTE_ON        0x90
@@ -86,7 +76,7 @@
 		/** Convenience macro. MIDI channels are numbered from 1-10 (natural numbers) however the logical channel
 		 *  addresses are zero-indexed. This converts a natural MIDI channel number into the logical channel address.
 		 *
-		 *  \param[in] channel  MIDI channel number to address.
+		 *  @param channel  MIDI channel number to address.
 		 */
 		#define MIDI_CHANNEL(channel)        ((channel) - 1)
 
@@ -99,15 +89,15 @@
 		};
 
 	/* Type Defines: */
-		/** \brief MIDI class-specific Streaming Interface Descriptor (LPCUSBlib naming conventions).
+		/** @brief MIDI class-specific Streaming Interface Descriptor (nxpUSBlib naming conventions).
 		 *
 		 *  Type define for an Audio class-specific MIDI streaming interface descriptor. This indicates to the host
 		 *  how MIDI the specification compliance of the device and the total length of the Audio class-specific descriptors.
 		 *  See the USB Audio specification for more details.
 		 *
-		 *  \see \ref USB_MIDI_StdDescriptor_AudioInterface_AS_t for the version of this type with standard element names.
+		 *  @see @ref USB_MIDI_StdDescriptor_AudioInterface_AS_t for the version of this type with standard element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
@@ -120,21 +110,21 @@
 			uint16_t                TotalLength; /**< Total length of the Audio class-specific descriptors, including this descriptor. */
 		} ATTR_PACKED USB_MIDI_Descriptor_AudioInterface_AS_t;
 
-		/** \brief MIDI class-specific Streaming Interface Descriptor (USB-IF naming conventions).
+		/** @brief MIDI class-specific Streaming Interface Descriptor (USB-IF naming conventions).
 		 *
 		 *  Type define for an Audio class-specific MIDI streaming interface descriptor. This indicates to the host
 		 *  how MIDI the specification compliance of the device and the total length of the Audio class-specific descriptors.
 		 *  See the USB Audio specification for more details.
 		 *
-		 *  \see \ref USB_MIDI_Descriptor_AudioInterface_AS_t for the version of this type with non-standard LPCUSBlib specific
+		 *  @see @ref USB_MIDI_Descriptor_AudioInterface_AS_t for the version of this type with non-standard nxpUSBlib specific
 		 *       element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t  bLength; /**< Size of the descriptor, in bytes. */
-			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
+			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in @ref USB_DescriptorTypes_t or a value
 			                           *   given by the specific class.
 			                           */
 
@@ -144,14 +134,14 @@
 			uint16_t wTotalLength; /**< Total length of the Audio class-specific descriptors, including this descriptor. */
 		} ATTR_PACKED USB_MIDI_StdDescriptor_AudioInterface_AS_t;
 
-		/** \brief MIDI class-specific Input Jack Descriptor (LPCUSBlib naming conventions).
+		/** @brief MIDI class-specific Input Jack Descriptor (nxpUSBlib naming conventions).
 		 *
 		 *  Type define for an Audio class-specific MIDI IN jack. This gives information to the host on a MIDI input, either
 		 *  a physical input jack, or a logical jack (receiving input data internally, or from the host via an endpoint).
 		 *
-		 *  \see \ref USB_MIDI_StdDescriptor_InputJack_t for the version of this type with standard element names.
+		 *  @see @ref USB_MIDI_StdDescriptor_InputJack_t for the version of this type with standard element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
@@ -164,20 +154,20 @@
 			uint8_t                 JackStrIndex; /**< Index of a string descriptor describing this descriptor within the device. */
 		} ATTR_PACKED USB_MIDI_Descriptor_InputJack_t;
 
-		/** \brief MIDI class-specific Input Jack Descriptor (USB-IF naming conventions).
+		/** @brief MIDI class-specific Input Jack Descriptor (USB-IF naming conventions).
 		 *
 		 *  Type define for an Audio class-specific MIDI IN jack. This gives information to the host on a MIDI input, either
 		 *  a physical input jack, or a logical jack (receiving input data internally, or from the host via an endpoint).
 		 *
-		 *  \see \ref USB_MIDI_Descriptor_InputJack_t for the version of this type with non-standard LPCUSBlib specific
+		 *  @see @ref USB_MIDI_Descriptor_InputJack_t for the version of this type with non-standard nxpUSBlib specific
 		 *       element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t  bLength; /**< Size of the descriptor, in bytes. */
-			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
+			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in @ref USB_DescriptorTypes_t or a value
 			                           *   given by the specific class.
 			                           */
 
@@ -189,14 +179,14 @@
 			uint8_t  iJack; /**< Index of a string descriptor describing this descriptor within the device. */
 		} ATTR_PACKED USB_MIDI_StdDescriptor_InputJack_t;
 
-		/** \brief MIDI class-specific Output Jack Descriptor (LPCUSBlib naming conventions).
+		/** @brief MIDI class-specific Output Jack Descriptor (nxpUSBlib naming conventions).
 		 *
 		 *  Type define for an Audio class-specific MIDI OUT jack. This gives information to the host on a MIDI output, either
 		 *  a physical output jack, or a logical jack (sending output data internally, or to the host via an endpoint).
 		 *
-		 *  \see \ref USB_MIDI_StdDescriptor_OutputJack_t for the version of this type with standard element names.
+		 *  @see @ref USB_MIDI_StdDescriptor_OutputJack_t for the version of this type with standard element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
@@ -213,20 +203,20 @@
 			uint8_t                   JackStrIndex; /**< Index of a string descriptor describing this descriptor within the device. */
 		} ATTR_PACKED USB_MIDI_Descriptor_OutputJack_t;
 
-		/** \brief MIDI class-specific Output Jack Descriptor (USB-IF naming conventions).
+		/** @brief MIDI class-specific Output Jack Descriptor (USB-IF naming conventions).
 		 *
 		 *  Type define for an Audio class-specific MIDI OUT jack. This gives information to the host on a MIDI output, either
 		 *  a physical output jack, or a logical jack (sending output data internally, or to the host via an endpoint).
 		 *
-		 *  \see \ref USB_MIDI_Descriptor_OutputJack_t for the version of this type with non-standard LPCUSBlib specific
+		 *  @see @ref USB_MIDI_Descriptor_OutputJack_t for the version of this type with non-standard nxpUSBlib specific
 		 *       element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t  bLength; /**< Size of the descriptor, in bytes. */
-			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
+			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in @ref USB_DescriptorTypes_t or a value
 			                           *   given by the specific class.
 			                           */
 
@@ -242,15 +232,15 @@
 			uint8_t  iJack; /**< Index of a string descriptor describing this descriptor within the device. */
 		} ATTR_PACKED USB_MIDI_StdDescriptor_OutputJack_t;
 
-		/** \brief Audio class-specific Jack Endpoint Descriptor (LPCUSBlib naming conventions).
+		/** @brief Audio class-specific Jack Endpoint Descriptor (nxpUSBlib naming conventions).
 		 *
 		 *  Type define for an Audio class-specific extended MIDI jack endpoint descriptor. This contains extra information
 		 *  on the usage of MIDI endpoints used to stream MIDI events in and out of the USB Audio device, and follows an Audio
 		 *  class-specific extended MIDI endpoint descriptor. See the USB Audio specification for more details.
 		 *
-		 *  \see \ref USB_MIDI_StdDescriptor_Jack_Endpoint_t for the version of this type with standard element names.
+		 *  @see @ref USB_MIDI_StdDescriptor_Jack_Endpoint_t for the version of this type with standard element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
@@ -261,21 +251,21 @@
 			uint8_t                   AssociatedJackID[1]; /**< IDs of each jack inside the endpoint. */
 		} ATTR_PACKED USB_MIDI_Descriptor_Jack_Endpoint_t;
 
-		/** \brief Audio class-specific Jack Endpoint Descriptor (USB-IF naming conventions).
+		/** @brief Audio class-specific Jack Endpoint Descriptor (USB-IF naming conventions).
 		 *
 		 *  Type define for an Audio class-specific extended MIDI jack endpoint descriptor. This contains extra information
 		 *  on the usage of MIDI endpoints used to stream MIDI events in and out of the USB Audio device, and follows an Audio
 		 *  class-specific extended MIDI endpoint descriptor. See the USB Audio specification for more details.
 		 *
-		 *  \see \ref USB_MIDI_Descriptor_Jack_Endpoint_t for the version of this type with non-standard LPCUSBlib specific
+		 *  @see @ref USB_MIDI_Descriptor_Jack_Endpoint_t for the version of this type with non-standard nxpUSBlib specific
 		 *       element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t  bLength; /**< Size of the descriptor, in bytes. */
-			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
+			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in @ref USB_DescriptorTypes_t or a value
 			                           *   given by the specific class.
 			                           */
 
@@ -285,11 +275,11 @@
 			uint8_t  bAssocJackID[1]; /**< IDs of each jack inside the endpoint. */
 		} ATTR_PACKED USB_MIDI_StdDescriptor_Jack_Endpoint_t;
 
-		/** \brief MIDI Class Driver Event Packet.
+		/** @brief MIDI Class Driver Event Packet.
 		 *
 		 *  Type define for a USB MIDI event packet, used to encapsulate sent and received MIDI messages from a USB MIDI interface.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{

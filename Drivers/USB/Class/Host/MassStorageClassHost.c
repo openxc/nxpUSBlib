@@ -1,33 +1,34 @@
 /*
-* Copyright(C) NXP Semiconductors, 2011
-* All rights reserved.
-*
-* Copyright (C) Dean Camera, 2011.
-*
-* LUFA Library is licensed from Dean Camera by NXP for NXP customers 
-* for use with NXP�s LPC microcontrollers.
-*
-* Software that is described herein is for illustrative purposes only
-* which provides customers with programming information regarding the
-* LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
-* intellectual property rights.  NXP Semiconductors assumes no responsibility
-* or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
-* or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
-* representation or warranty that such application will be suitable for the
-* specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors� and its 
-* licensor�s relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
-* this code.
-*/
+ * @brief Host mode driver for the library USB Mass Storage Class driver
+ *
+ * @note
+ * Copyright(C) NXP Semiconductors, 2012
+ * Copyright(C) Dean Camera, 2011, 2012
+ * All rights reserved.
+ *
+ * @par
+ * Software that is described herein is for illustrative purposes only
+ * which provides customers with programming information regarding the
+ * LPC products.  This software is supplied "AS IS" without any warranties of
+ * any kind, and NXP Semiconductors and its licensor disclaim any and
+ * all warranties, express or implied, including all implied warranties of
+ * merchantability, fitness for a particular purpose and non-infringement of
+ * intellectual property rights.  NXP Semiconductors assumes no responsibility
+ * or liability for the use of the software, conveys no license or rights under any
+ * patent, copyright, mask work right, or any other intellectual property rights in
+ * or to any products. NXP Semiconductors reserves the right to make changes
+ * in the software without notification. NXP Semiconductors also makes no
+ * representation or warranty that such application will be suitable for the
+ * specified use without further testing or modification.
+ *
+ * @par
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation is hereby granted, under NXP Semiconductors' and its
+ * licensor's relevant copyrights in the software, without fee, provided that it
+ * is used in conjunction with NXP Semiconductors microcontrollers.  This
+ * copyright, permission, and disclaimer notice must appear in all copies of
+ * this code.
+ */
 
 
 #define  __INCLUDE_FROM_USB_DRIVER
@@ -271,10 +272,11 @@ static uint8_t MS_Host_SendReceiveData(USB_ClassInfo_MS_Host_t* const MSInterfac
                                        MS_CommandBlockWrapper_t* const SCSICommandBlock,
                                        void* BufferPtr)
 {
-	uint8_t  ErrorCode = PIPE_RWSTREAM_NoError;
 	uint16_t BytesRem  = le32_to_cpu(SCSICommandBlock->DataTransferLength);
 	uint8_t portnum = MSInterfaceInfo->Config.PortNumber;
-
+#if defined(__LPC177X_8X__) || defined(__LPC407X_8X__)
+	uint8_t  ErrorCode = PIPE_RWSTREAM_NoError;
+	
 	if (SCSICommandBlock->Flags & MS_COMMAND_DIR_DATA_IN)
 	{
 		if ((ErrorCode = MS_Host_WaitForDataReceived(MSInterfaceInfo)) != PIPE_RWSTREAM_NoError)
@@ -311,6 +313,26 @@ static uint8_t MS_Host_SendReceiveData(USB_ClassInfo_MS_Host_t* const MSInterfac
 	Pipe_Freeze();
 
 	return ErrorCode;
+#else
+	uint16_t packsize;
+	if (SCSICommandBlock->Flags & MS_COMMAND_DIR_DATA_IN)
+	{
+		Pipe_SelectPipe(portnum,MSInterfaceInfo->Config.DataINPipeNumber);
+		packsize = MSInterfaceInfo->State.DataINPipeSize;
+	}
+	else
+	{
+		Pipe_SelectPipe(portnum,MSInterfaceInfo->Config.DataOUTPipeNumber);
+		packsize = MSInterfaceInfo->State.DataOUTPipeSize;
+	}
+
+	Pipe_Streaming(portnum,(uint8_t*)BufferPtr,BytesRem,packsize);
+
+	while(!Pipe_IsStatusOK(portnum));
+
+	Pipe_ClearIN(portnum);
+	return PIPE_RWSTREAM_NoError;
+#endif
 }
 
 static uint8_t MS_Host_GetReturnedStatus(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo,

@@ -1,48 +1,40 @@
 /*
-* Copyright(C) NXP Semiconductors, 2011
-* All rights reserved.
-*
-* Copyright (C) Dean Camera, 2011.
-*
-* LUFA Library is licensed from Dean Camera by NXP for NXP customers 
-* for use with NXP's LPC microcontrollers.
-*
-* Software that is described herein is for illustrative purposes only
-* which provides customers with programming information regarding the
-* LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
-* intellectual property rights.  NXP Semiconductors assumes no responsibility
-* or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
-* or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
-* representation or warranty that such application will be suitable for the
-* specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' and its 
-* licensor's relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
-* this code.
+ * @brief Compilers's specific attributes
+ *
+ * @note
+ * Copyright(C) NXP Semiconductors, 2012
+ * Copyright(C) Dean Camera, 2011, 2012
+ * All rights reserved.
+ *
+ * @par
+ * Software that is described herein is for illustrative purposes only
+ * which provides customers with programming information regarding the
+ * LPC products.  This software is supplied "AS IS" without any warranties of
+ * any kind, and NXP Semiconductors and its licensor disclaim any and
+ * all warranties, express or implied, including all implied warranties of
+ * merchantability, fitness for a particular purpose and non-infringement of
+ * intellectual property rights.  NXP Semiconductors assumes no responsibility
+ * or liability for the use of the software, conveys no license or rights under any
+ * patent, copyright, mask work right, or any other intellectual property rights in
+ * or to any products. NXP Semiconductors reserves the right to make changes
+ * in the software without notification. NXP Semiconductors also makes no
+ * representation or warranty that such application will be suitable for the
+ * specified use without further testing or modification.
+ *
+ * @par
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation is hereby granted, under NXP Semiconductors' and its
+ * licensor's relevant copyrights in the software, without fee, provided that it
+ * is used in conjunction with NXP Semiconductors microcontrollers.  This
+ * copyright, permission, and disclaimer notice must appear in all copies of
+ * this code.
 */
 
 
 
-/** \file
- *  \brief Special function/variable attribute macros.
- *
- *  \copydetails Group_FuncVarAttributes
- *
- *  \note Do not include this file directly, rather include the Common.h header file instead to gain this file's
- *        functionality.
- */
-
-/** \ingroup Group_Common
- *  \defgroup Group_FuncVarAttributes Function/Variable Attributes
- *  \brief Special function/variable attribute macros.
+/** @ingroup Group_Common
+ *  @defgroup Group_FuncVarAttributes Function/Variable Attributes
+ *  @brief Special function/variable attribute macros.
  *
  *  This module contains macros for applying specific attributes to functions and variables to control various
  *  optimizer and code generation features of the compiler. Attributes may be placed in the function prototype
@@ -120,7 +112,7 @@
 
 				/** Marks a function as an alias for another function.
 				 *
-				 *  \param[in] Func  Name of the function which the given function name should alias.
+				 *  @param     Func  Name of the function which the given function name should alias.
 				 */
 				#define ATTR_ALIAS(Func)               __attribute__ ((alias( #Func )))
 			
@@ -132,7 +124,7 @@
 				#define ATTR_NO_INIT                __attribute__ ((section (".noinit")))
 				/** Indicates the minimum alignment in bytes for a variable or struct element.
 				 *
-				 *  \param[in] Bytes  Minimum number of bytes the item should be aligned to.
+				 *  @param     Bytes  Minimum number of bytes the item should be aligned to.
 				 */
 				#define PRAGMA_ALIGN_4096
 				#define PRAGMA_ALIGN_2048
@@ -145,9 +137,11 @@
 				#define ATTR_ALIGNED(Bytes)			   __attribute__ ((aligned(Bytes)))
 
 				#define ATTR_DEPRECATED				   __attribute__ ((deprecated))
-
+#if defined (__CC_ARM)
+				#define ATTR_ERROR(Message)			   //__attribute__ (( error(Message) ))
+#else
 				#define ATTR_ERROR(Message)			   __attribute__ (( error(Message) ))
-
+#endif
 				#define ATTR_WARNING(Message)			   __attribute__ (( warning(Message) ))
 				#define ATTR_IAR_PACKED
 				#define ATTR_PACKED					   __attribute__ ((packed))
@@ -210,7 +204,7 @@
 
 				/** Marks a function as an alias for another function.
 				 *
-				 *  \param[in] Func  Name of the function which the given function name should alias.
+				 *  @param     Func  Name of the function which the given function name should alias.
 				 */
 				#define ATTR_ALIAS(Func)
 			
@@ -222,7 +216,7 @@
 				#define ATTR_NO_INIT                __attribute__ ((section (".noinit")))
 				/** Indicates the minimum alignment in bytes for a variable or struct element.
 				 *
-				 *  \param[in] Bytes  Minimum number of bytes the item should be aligned to.
+				 *  @param     Bytes  Minimum number of bytes the item should be aligned to.
 				 */
 				#define PRAGMA_ALIGN_4096          _Pragma("data_alignment=4096")
 				#define PRAGMA_ALIGN_2048          _Pragma("data_alignment=2048")
@@ -241,6 +235,7 @@
 				#define ATTR_WARNING(Message)	//		   __attribute__ (( warning(Message) ))
 
 				#define ATTR_IAR_PACKED				   __packed
+
 				#define ATTR_PACKED
 
 			#endif
@@ -248,7 +243,7 @@
 			/** Places the function in one of the initialization sections, which execute before the main function
 			 *  of the application. Refer to the avr-libc manual for more information on the initialization sections.
 			 *
-			 *  \param[in] SectionIndex  Initialization section number where the function should be placed.
+			 *  @param     SectionIndex  Initialization section number where the function should be placed.
 			 */
 			#define ATTR_INIT_SECTION(SectionIndex) __attribute__ ((naked, section (".init" #SectionIndex )))
 

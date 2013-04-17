@@ -1,48 +1,40 @@
 /*
-* Copyright(C) NXP Semiconductors, 2011
-* All rights reserved.
-*
-* Copyright (C) Dean Camera, 2011.
-*
-* LUFA Library is licensed from Dean Camera by NXP for NXP customers 
-* for use with NXP's LPC microcontrollers.
-*
-* Software that is described herein is for illustrative purposes only
-* which provides customers with programming information regarding the
-* LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
-* intellectual property rights.  NXP Semiconductors assumes no responsibility
-* or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
-* or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
-* representation or warranty that such application will be suitable for the
-* specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' and its 
-* licensor's relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
-* this code.
+ * @brief Special compiler's definitions
+ *
+ * @note
+ * Copyright(C) NXP Semiconductors, 2012
+ * Copyright(C) Dean Camera, 2011, 2012
+ * All rights reserved.
+ *
+ * @par
+ * Software that is described herein is for illustrative purposes only
+ * which provides customers with programming information regarding the
+ * LPC products.  This software is supplied "AS IS" without any warranties of
+ * any kind, and NXP Semiconductors and its licensor disclaim any and
+ * all warranties, express or implied, including all implied warranties of
+ * merchantability, fitness for a particular purpose and non-infringement of
+ * intellectual property rights.  NXP Semiconductors assumes no responsibility
+ * or liability for the use of the software, conveys no license or rights under any
+ * patent, copyright, mask work right, or any other intellectual property rights in
+ * or to any products. NXP Semiconductors reserves the right to make changes
+ * in the software without notification. NXP Semiconductors also makes no
+ * representation or warranty that such application will be suitable for the
+ * specified use without further testing or modification.
+ *
+ * @par
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation is hereby granted, under NXP Semiconductors' and its
+ * licensor's relevant copyrights in the software, without fee, provided that it
+ * is used in conjunction with NXP Semiconductors microcontrollers.  This
+ * copyright, permission, and disclaimer notice must appear in all copies of
+ * this code.
 */
 
 
 
-/** \file
- *  \brief Compiler specific definitions for code optimization and correctness.
- *
- *  \copydetails Group_CompilerSpecific
- *
- *  \note Do not include this file directly, rather include the Common.h header file instead to gain this file's
- *        functionality.
- */
-
-/** \ingroup Group_Common
- *  \defgroup Group_CompilerSpecific Compiler Specific Definitions
- *  \brief Compiler specific definitions for code optimization and correctness.
+/** @ingroup Group_Common
+ *  @defgroup Group_CompilerSpecific Compiler Specific Definitions
+ *  @brief Compiler specific definitions for code optimization and correctness.
  *
  *  Compiler specific definitions to expose certain compiler features which may increase the level of code optimization
  *  for a specific compiler, or correct certain issues that may be present such as memory barriers for use in conjunction
@@ -71,7 +63,7 @@
 				 *  use, it will force GCC to use pointer indirection on the elements rather than direct store and load
 				 *  instructions.
 				 *
-				 *  \param[in, out] StructPtr  Pointer to a structure which is to be forced into indirect access mode.
+				 *  @param StructPtr  Pointer to a structure which is to be forced into indirect access mode.
 				 */
 				#define GCC_FORCE_POINTER_ACCESS(StructPtr)   __asm__ __volatile__("" : "=b" (StructPtr) : "0" (StructPtr))
 
@@ -84,9 +76,9 @@
 				/** Evaluates to boolean true if the specified value can be determined at compile time to be a constant value
 				 *  when compiling under GCC.
 				 *
-				 *  \param[in] x  Value to check compile time constantness of.
+				 *  @param     x  Value to check compile time constantness of.
 				 *
-				 *  \return Boolean true if the given value is known to be a compile time constant, false otherwise.
+				 *  @return Boolean true if the given value is known to be a compile time constant, false otherwise.
 				 */
 				#define GCC_IS_COMPILE_CONST(x)               __builtin_constant_p(x)
 			#else

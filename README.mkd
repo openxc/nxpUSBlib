@@ -1,4 +1,4 @@
-nxpUSBlib Library for NXP LPC Microcontrollers with USB
+LPCUSBlib Library for NXP LPC Microcontrollers
 ==========================================================
 
 NXP has been kind enough to provide a pretty good USB library for use with their
@@ -6,7 +6,8 @@ microcontrollers. There are a few showstopper bugs in the current version that
 don't seem to be getting fixed, so I've forked the project here so we can
 maintain a community version that includes the fixes.
 
-The original library is from http://www.lpcware.com/content/project/nxpusblib.
+The original library is from the [LPCOpen
+Platform](http://www.lpcware.com/content/project/lpcopen-platform-nxp-lpc-microcontrollers).
 
 ## License
 

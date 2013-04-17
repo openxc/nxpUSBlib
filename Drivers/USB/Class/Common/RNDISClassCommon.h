@@ -1,49 +1,39 @@
 /*
-* Copyright(C) NXP Semiconductors, 2011
-* All rights reserved.
-*
-* Copyright (C) Dean Camera, 2011.
-*
-* LUFA Library is licensed from Dean Camera by NXP for NXP customers 
-* for use with NXP's LPC microcontrollers.
-*
-* Software that is described herein is for illustrative purposes only
-* which provides customers with programming information regarding the
-* LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
-* intellectual property rights.  NXP Semiconductors assumes no responsibility
-* or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
-* or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
-* representation or warranty that such application will be suitable for the
-* specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' and its 
-* licensor's relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
-* this code.
-*/
-
-
-
-/** \file
- *  \brief Common definitions and declarations for the library USB RNDIS Class driver.
+ * @brief Common definitions and declarations for the library USB RNDIS Class driver
  *
- *  Common definitions and declarations for the library USB RNDIS Class driver.
+ * @note
+ * Copyright(C) NXP Semiconductors, 2012
+ * Copyright(C) Dean Camera, 2011, 2012
+ * All rights reserved.
  *
- *  \note This file should not be included directly. It is automatically included as needed by the USB module driver
- *        dispatch header located in LPCUSBlib/Drivers/USB.h.
+ * @par
+ * Software that is described herein is for illustrative purposes only
+ * which provides customers with programming information regarding the
+ * LPC products.  This software is supplied "AS IS" without any warranties of
+ * any kind, and NXP Semiconductors and its licensor disclaim any and
+ * all warranties, express or implied, including all implied warranties of
+ * merchantability, fitness for a particular purpose and non-infringement of
+ * intellectual property rights.  NXP Semiconductors assumes no responsibility
+ * or liability for the use of the software, conveys no license or rights under any
+ * patent, copyright, mask work right, or any other intellectual property rights in
+ * or to any products. NXP Semiconductors reserves the right to make changes
+ * in the software without notification. NXP Semiconductors also makes no
+ * representation or warranty that such application will be suitable for the
+ * specified use without further testing or modification.
+ *
+ * @par
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation is hereby granted, under NXP Semiconductors' and its
+ * licensor's relevant copyrights in the software, without fee, provided that it
+ * is used in conjunction with NXP Semiconductors microcontrollers.  This
+ * copyright, permission, and disclaimer notice must appear in all copies of
+ * this code.
  */
 
-/** \ingroup Group_USBClassRNDIS
- *  \defgroup Group_USBClassRNDISCommon  Common Class Definitions
+/** @ingroup Group_USBClassRNDIS
+ *  @defgroup Group_USBClassRNDISCommon  Common Class Definitions
  *
- *  \section Sec_ModDescription Module Description
+ *  @section Sec_ModDescription Module Description
  *  Constants, Types and Enum definitions that are common to both Device and Host modes for the USB
  *  RNDIS Class.
  *
@@ -80,7 +70,7 @@
 		/** Implemented RNDIS Version Minor. */
 		#define REMOTE_NDIS_VERSION_MINOR             0x00
 
-		/** \name RNDIS Message Values */
+		/** @name RNDIS Message Values */
 		//@{
 		#define REMOTE_NDIS_PACKET_MSG                0x00000001UL
 		#define REMOTE_NDIS_INITIALIZE_MSG            0x00000002UL
@@ -92,7 +82,7 @@
 		#define REMOTE_NDIS_KEEPALIVE_MSG             0x00000008UL
 		//@}
 
-		/** \name RNDIS Response Values */
+		/** @name RNDIS Response Values */
 		//@{
 		#define REMOTE_NDIS_INITIALIZE_CMPLT          0x80000002UL
 		#define REMOTE_NDIS_QUERY_CMPLT               0x80000004UL
@@ -101,7 +91,7 @@
 		#define REMOTE_NDIS_KEEPALIVE_CMPLT           0x80000008UL
 		//@}
 
-		/** \name RNDIS Status Values */
+		/** @name RNDIS Status Values */
 		//@{
 		#define REMOTE_NDIS_STATUS_SUCCESS            0x00000000UL
 		#define REMOTE_NDIS_STATUS_FAILURE            0xC0000001UL
@@ -111,7 +101,7 @@
 		#define REMOTE_NDIS_STATUS_MEDIA_DISCONNECT   0x4001000CUL
 		//@}
 
-		/** \name RNDIS Media States */
+		/** @name RNDIS Media States */
 		//@{
 		#define REMOTE_NDIS_MEDIA_STATE_CONNECTED     0x00000000UL
 		#define REMOTE_NDIS_MEDIA_STATE_DISCONNECTED  0x00000001UL
@@ -119,13 +109,13 @@
 		
 		#define REMOTE_NDIS_MEDIUM_802_3              0x00000000UL
 
-		/** \name RNDIS Connection Types */
+		/** @name RNDIS Connection Types */
 		//@{
 		#define REMOTE_NDIS_DF_CONNECTIONLESS	      0x00000001UL
 		#define REMOTE_NDIS_DF_CONNECTION_ORIENTED    0x00000002UL
 		//@}
 		
-		/** \name RNDIS Packet Types */
+		/** @name RNDIS Packet Types */
 		//@{
 		#define REMOTE_NDIS_PACKET_DIRECTED           0x00000001UL
 		#define REMOTE_NDIS_PACKET_MULTICAST          0x00000002UL
@@ -141,7 +131,7 @@
 		#define REMOTE_NDIS_PACKET_MAC_FRAME          0x00008000UL
 		//@}
 		
-		/** \name RNDIS OID Values */
+		/** @name RNDIS OID Values */
 		//@{
 		#define OID_GEN_SUPPORTED_LIST                0x00010101UL
 		#define OID_GEN_HARDWARE_STATUS               0x00010102UL
@@ -211,7 +201,7 @@
 		};
 
 	/* Type Defines: */
-		/** \brief MAC Address Structure.
+		/** @brief MAC Address Structure.
 		 *
 		 *  Type define for a physical MAC address of a device on a network.
 		 */
@@ -220,11 +210,11 @@
 			uint8_t Octets[6]; /**< Individual bytes of a MAC address */
 		} ATTR_PACKED MAC_Address_t;
 
-		/** \brief RNDIS Common Message Header Structure.
+		/** @brief RNDIS Common Message Header Structure.
 		 *
 		 *  Type define for a RNDIS message header, sent before RNDIS messages.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
@@ -232,11 +222,11 @@
 			uint32_t MessageLength; /**< Total length of the RNDIS message, in bytes */
 		} ATTR_PACKED RNDIS_Message_Header_t;
 
-		/** \brief RNDIS Message Structure.
+		/** @brief RNDIS Message Structure.
 		 *
 		 *  Type define for a RNDIS packet message, used to encapsulate Ethernet packets sent to and from the adapter.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
@@ -253,11 +243,11 @@
 			uint32_t Reserved;
 		} ATTR_PACKED RNDIS_Packet_Message_t;
 
-		/** \brief RNDIS Initialization Message Structure.
+		/** @brief RNDIS Initialization Message Structure.
 		 *
 		 *  Type define for a RNDIS Initialize command message.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
@@ -270,11 +260,11 @@
 			uint32_t MaxTransferSize;
 		} ATTR_PACKED RNDIS_Initialize_Message_t;
 
-		/** \brief RNDIS Initialize Complete Message Structure.
+		/** @brief RNDIS Initialize Complete Message Structure.
 		 *
 		 *  Type define for a RNDIS Initialize Complete response message.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
@@ -294,11 +284,11 @@
 			uint32_t AFListSize;
 		} ATTR_PACKED RNDIS_Initialize_Complete_t;
 
-		/** \brief RNDIS Keep Alive Message Structure.
+		/** @brief RNDIS Keep Alive Message Structure.
 		 *
 		 *  Type define for a RNDIS Keep Alive command message.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
@@ -307,11 +297,11 @@
 			uint32_t RequestId;
 		} ATTR_PACKED RNDIS_KeepAlive_Message_t;
 
-		/** \brief RNDIS Keep Alive Complete Message Structure.
+		/** @brief RNDIS Keep Alive Complete Message Structure.
 		 *
 		 *  Type define for a RNDIS Keep Alive Complete response message.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
@@ -321,11 +311,11 @@
 			uint32_t Status;
 		} ATTR_PACKED RNDIS_KeepAlive_Complete_t;
 
-		/** \brief RNDIS Reset Complete Message Structure.
+		/** @brief RNDIS Reset Complete Message Structure.
 		 *
 		 *  Type define for a RNDIS Reset Complete response message.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
@@ -336,11 +326,11 @@
 			uint32_t AddressingReset;
 		} ATTR_PACKED RNDIS_Reset_Complete_t;
 
-		/** \brief RNDIS OID Property Set Message Structure.
+		/** @brief RNDIS OID Property Set Message Structure.
 		 *
 		 *  Type define for a RNDIS OID Property Set command message.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
@@ -354,11 +344,11 @@
 			uint32_t DeviceVcHandle;
 		} ATTR_PACKED RNDIS_Set_Message_t;
 
-		/** \brief RNDIS OID Property Set Complete Message Structure.
+		/** @brief RNDIS OID Property Set Complete Message Structure.
 		 *
 		 *  Type define for a RNDIS OID Property Set Complete response message.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
@@ -368,11 +358,11 @@
 			uint32_t Status;
 		} ATTR_PACKED RNDIS_Set_Complete_t;
 
-		/** \brief RNDIS OID Property Query Message Structure.
+		/** @brief RNDIS OID Property Query Message Structure.
 		 *
 		 *  Type define for a RNDIS OID Property Query command message.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
@@ -386,11 +376,11 @@
 			uint32_t DeviceVcHandle;
 		} ATTR_PACKED RNDIS_Query_Message_t;
 
-		/** \brief RNDIS OID Property Query Complete Message Structure.
+		/** @brief RNDIS OID Property Query Complete Message Structure.
 		 *
 		 *  Type define for a RNDIS OID Property Query Complete response message.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{

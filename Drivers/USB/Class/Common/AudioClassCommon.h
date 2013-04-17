@@ -1,49 +1,39 @@
 /*
-* Copyright(C) NXP Semiconductors, 2011
-* All rights reserved.
-*
-* Copyright (C) Dean Camera, 2011.
-*
-* LUFA Library is licensed from Dean Camera by NXP for NXP customers 
-* for use with NXP's LPC microcontrollers.
-*
-* Software that is described herein is for illustrative purposes only
-* which provides customers with programming information regarding the
-* LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
-* intellectual property rights.  NXP Semiconductors assumes no responsibility
-* or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
-* or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
-* representation or warranty that such application will be suitable for the
-* specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' and its 
-* licensor's relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
-* this code.
-*/
-
-
-
-/** \file
- *  \brief Common definitions and declarations for the library USB Audio 1.0 Class driver.
+ * @brief Common definitions and declarations for the library USB Audio 1.0 Class driver
  *
- *  Common definitions and declarations for the library USB Audio 1.0 Class driver.
+ * @note
+ * Copyright(C) NXP Semiconductors, 2012
+ * Copyright(C) Dean Camera, 2011, 2012
+ * All rights reserved.
  *
- *  \note This file should not be included directly. It is automatically included as needed by the USB module driver
- *        dispatch header located in LPCUSBlib/Drivers/USB.h.
+ * @par
+ * Software that is described herein is for illustrative purposes only
+ * which provides customers with programming information regarding the
+ * LPC products.  This software is supplied "AS IS" without any warranties of
+ * any kind, and NXP Semiconductors and its licensor disclaim any and
+ * all warranties, express or implied, including all implied warranties of
+ * merchantability, fitness for a particular purpose and non-infringement of
+ * intellectual property rights.  NXP Semiconductors assumes no responsibility
+ * or liability for the use of the software, conveys no license or rights under any
+ * patent, copyright, mask work right, or any other intellectual property rights in
+ * or to any products. NXP Semiconductors reserves the right to make changes
+ * in the software without notification. NXP Semiconductors also makes no
+ * representation or warranty that such application will be suitable for the
+ * specified use without further testing or modification.
+ *
+ * @par
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation is hereby granted, under NXP Semiconductors' and its
+ * licensor's relevant copyrights in the software, without fee, provided that it
+ * is used in conjunction with NXP Semiconductors microcontrollers.  This
+ * copyright, permission, and disclaimer notice must appear in all copies of
+ * this code.
  */
 
-/** \ingroup Group_USBClassAudio
- *  \defgroup Group_USBClassAudioCommon  Common Class Definitions
+/** @ingroup Group_USBClassAudio
+ *  @defgroup Group_USBClassAudioCommon  Common Class Definitions
  *
- *  \section Sec_ModDescription Module Description
+ *  @section Sec_ModDescription Module Description
  *  Constants, Types and Enum definitions that are common to both Device and Host modes for the USB
  *  Audio 1.0 Class.
  *
@@ -67,7 +57,7 @@
 		#endif
 
 	/* Macros: */
-		/** \name Audio Channel Masks */
+		/** @name Audio Channel Masks */
 		//@{
 		/** Supported channel mask for an Audio class terminal descriptor. See the Audio class specification for more details. */
 		#define AUDIO_CHANNEL_LEFT_FRONT           (1 << 0)
@@ -106,7 +96,7 @@
 		#define AUDIO_CHANNEL_TOP                  (1 << 11)
 		//@}
 
-		/** \name Audio Feature Masks */
+		/** @name Audio Feature Masks */
 		//@{
 		/** Supported feature mask for an Audio class feature unit descriptor. See the Audio class specification for more details. */
 		#define AUDIO_FEATURE_MUTE                 (1 << 0)
@@ -139,7 +129,7 @@
 		#define AUDIO_FEATURE_BASS_LOUDNESS        (1 << 9)
 		//@}
 
-		/** \name Audio Terminal Types */
+		/** @name Audio Terminal Types */
 		//@{
 		/** Terminal type constant for an Audio class terminal descriptor. See the Audio class specification for more details. */
 		#define AUDIO_TERMINAL_UNDEFINED           0x0100
@@ -196,9 +186,9 @@
 		#define AUDIO_TERMINAL_OUT_LOWFREQ         0x0307
 		//@}
 
-		/** Convenience macro to fill a 24-bit \ref USB_Audio_SampleFreq_t structure with the given sample rate as a 24-bit number.
+		/** Convenience macro to fill a 24-bit @ref USB_Audio_SampleFreq_t structure with the given sample rate as a 24-bit number.
 		 *
-		 *  \param[in] freq  Required audio sampling frequency in HZ
+		 *  @param freq  Required audio sampling frequency in HZ
 		 */
 		#define AUDIO_SAMPLE_FREQ(freq)           {.Byte1 = ((uint32_t)freq & 0xFF), .Byte2 = (((uint32_t)freq >> 8) & 0xFF), .Byte3 = (((uint32_t)freq >> 16) & 0xFF)}
 
@@ -301,21 +291,21 @@
 		};
 
 	/* Type Defines: */
-		/** \brief Audio class-specific Input Terminal Descriptor (LPCUSBlib naming conventions).
+		/** @brief Audio class-specific Input Terminal Descriptor (nxpUSBlib naming conventions).
 		 *
 		 *  Type define for an Audio class-specific input terminal descriptor. This indicates to the host that the device
 		 *  contains an input audio source, either from a physical terminal on the device, or a logical terminal (for example,
 		 *  a USB endpoint). See the USB Audio specification for more details.
 		 *
-		 *  \see \ref USB_Audio_StdDescriptor_InputTerminal_t for the version of this type with standard element names.
+		 *  @see @ref USB_Audio_StdDescriptor_InputTerminal_t for the version of this type with standard element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			USB_Descriptor_Header_t Header; /**< Regular descriptor header containing the descriptor's type and length. */
 			uint8_t                 Subtype; /**< Sub type value used to distinguish between audio class-specific descriptors,
-			                                  *   must be \ref AUDIO_DSUBTYPE_CSInterface_InputTerminal.
+			                                  *   must be @ref AUDIO_DSUBTYPE_CSInterface_InputTerminal.
 			                                  */
 
 			uint8_t                 TerminalID; /**< ID value of this terminal unit - must be a unique value within the device. */
@@ -330,26 +320,26 @@
 			uint8_t                 TerminalStrIndex; /**< Index of a string descriptor describing this descriptor within the device. */
 		} ATTR_PACKED USB_Audio_Descriptor_InputTerminal_t;
 
-		/** \brief Audio class-specific Input Terminal Descriptor (USB-IF naming conventions).
+		/** @brief Audio class-specific Input Terminal Descriptor (USB-IF naming conventions).
 		 *
 		 *  Type define for an Audio class-specific input terminal descriptor. This indicates to the host that the device
 		 *  contains an input audio source, either from a physical terminal on the device, or a logical terminal (for example,
 		 *  a USB endpoint). See the USB Audio specification for more details.
 		 *
-		 *  \see \ref USB_Audio_Descriptor_InputTerminal_t for the version of this type with non-standard LPCUSBlib specific
+		 *  @see @ref USB_Audio_Descriptor_InputTerminal_t for the version of this type with non-standard nxpUSBlib specific
 		 *       element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t  bLength; /**< Size of the descriptor, in bytes. */
-			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
+			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in @ref USB_DescriptorTypes_t or a value
 			                           *   given by the specific class.
 			                           */
 
 			uint8_t  bDescriptorSubtype; /**< Sub type value used to distinguish between audio class-specific descriptors,
-			                              *   must be \ref AUDIO_DSUBTYPE_CSInterface_InputTerminal.
+			                              *   must be @ref AUDIO_DSUBTYPE_CSInterface_InputTerminal.
 			                              */
 			uint8_t  bTerminalID; /**< ID value of this terminal unit - must be a unique value within the device. */
 			uint16_t wTerminalType; /**< Type of terminal, a \c TERMINAL_* mask. */
@@ -363,21 +353,21 @@
 			uint8_t  iTerminal; /**< Index of a string descriptor describing this descriptor within the device. */
 		} ATTR_PACKED USB_Audio_StdDescriptor_InputTerminal_t;
 
-		/** \brief Audio class-specific Output Terminal Descriptor (LPCUSBlib naming conventions).
+		/** @brief Audio class-specific Output Terminal Descriptor (nxpUSBlib naming conventions).
 		 *
 		 *  Type define for an Audio class-specific output terminal descriptor. This indicates to the host that the device
 		 *  contains an output audio sink, either to a physical terminal on the device, or a logical terminal (for example,
 		 *  a USB endpoint). See the USB Audio specification for more details.
 		 *
-		 *  \see \ref USB_Audio_StdDescriptor_OutputTerminal_t for the version of this type with standard element names.
+		 *  @see @ref USB_Audio_StdDescriptor_OutputTerminal_t for the version of this type with standard element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			USB_Descriptor_Header_t Header; /**< Regular descriptor header containing the descriptor's type and length. */
 			uint8_t                 Subtype; /**< Sub type value used to distinguish between audio class-specific descriptors,
-			                                  *   must be \ref AUDIO_DSUBTYPE_CSInterface_OutputTerminal.
+			                                  *   must be @ref AUDIO_DSUBTYPE_CSInterface_OutputTerminal.
 			                                  */
 
 			uint8_t                 TerminalID; /**< ID value of this terminal unit - must be a unique value within the device. */
@@ -390,26 +380,26 @@
 			uint8_t                 TerminalStrIndex; /**< Index of a string descriptor describing this descriptor within the device. */
 		} ATTR_PACKED USB_Audio_Descriptor_OutputTerminal_t;
 
-		/** \brief Audio class-specific Output Terminal Descriptor (USB-IF naming conventions).
+		/** @brief Audio class-specific Output Terminal Descriptor (USB-IF naming conventions).
 		 *
 		 *  Type define for an Audio class-specific output terminal descriptor. This indicates to the host that the device
 		 *  contains an output audio sink, either to a physical terminal on the device, or a logical terminal (for example,
 		 *  a USB endpoint). See the USB Audio specification for more details.
 		 *
-		 *  \see \ref USB_Audio_Descriptor_OutputTerminal_t for the version of this type with non-standard LPCUSBlib specific
+		 *  @see @ref USB_Audio_Descriptor_OutputTerminal_t for the version of this type with non-standard nxpUSBlib specific
 		 *       element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t  bLength; /**< Size of the descriptor, in bytes. */
 			uint8_t  bDescriptorType; /**< Sub type value used to distinguish between audio class-specific descriptors,
-			                           *   must be \ref AUDIO_DSUBTYPE_CSInterface_OutputTerminal.
+			                           *   must be @ref AUDIO_DSUBTYPE_CSInterface_OutputTerminal.
 			                           */
 
 			uint8_t  bDescriptorSubtype; /**< Sub type value used to distinguish between audio class-specific descriptors,
-			                              *   a value from the \ref Audio_CSInterface_AC_SubTypes_t enum.
+			                              *   a value from the @ref Audio_CSInterface_AC_SubTypes_t enum.
 			                              */
 			uint8_t  bTerminalID; /**< ID value of this terminal unit - must be a unique value within the device. */
 			uint16_t wTerminalType; /**< Type of terminal, a \c TERMINAL_* mask. */
@@ -421,21 +411,21 @@
 			uint8_t  iTerminal; /**< Index of a string descriptor describing this descriptor within the device. */
 		} ATTR_PACKED USB_Audio_StdDescriptor_OutputTerminal_t;
 
-		/** \brief Audio class-specific Interface Descriptor (LPCUSBlib naming conventions).
+		/** @brief Audio class-specific Interface Descriptor (nxpUSBlib naming conventions).
 		 *
 		 *  Type define for an Audio class-specific interface descriptor. This follows a regular interface descriptor to
 		 *  supply extra information about the audio device's layout to the host. See the USB Audio specification for more
 		 *  details.
 		 *
-		 *  \see \ref USB_Audio_StdDescriptor_Interface_AC_t for the version of this type with standard element names.
+		 *  @see @ref USB_Audio_StdDescriptor_Interface_AC_t for the version of this type with standard element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			USB_Descriptor_Header_t Header; /**< Regular descriptor header containing the descriptor's type and length. */
 			uint8_t                 Subtype; /**< Sub type value used to distinguish between audio class-specific descriptors,
-			                                  *   a value from the \ref Audio_CSInterface_AS_SubTypes_t enum.
+			                                  *   a value from the @ref Audio_CSInterface_AS_SubTypes_t enum.
 			                                  */
 
 			uint16_t                ACSpecification; /**< Binary coded decimal value, indicating the supported Audio Class specification version. */
@@ -445,26 +435,26 @@
 			uint8_t                 InterfaceNumber; /**< Interface number of the associated Audio Streaming interface. */
 		} ATTR_PACKED USB_Audio_Descriptor_Interface_AC_t;
 
-		/** \brief Audio class-specific Interface Descriptor (USB-IF naming conventions).
+		/** @brief Audio class-specific Interface Descriptor (USB-IF naming conventions).
 		 *
 		 *  Type define for an Audio class-specific interface descriptor. This follows a regular interface descriptor to
 		 *  supply extra information about the audio device's layout to the host. See the USB Audio specification for more
 		 *  details.
 		 *
-		 *  \see \ref USB_Audio_Descriptor_Interface_AC_t for the version of this type with non-standard LPCUSBlib specific
+		 *  @see @ref USB_Audio_Descriptor_Interface_AC_t for the version of this type with non-standard nxpUSBlib specific
 		 *       element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t  bLength; /**< Size of the descriptor, in bytes. */
-			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
+			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in @ref USB_DescriptorTypes_t or a value
 			                           *   given by the specific class.
 			                           */
 
 			uint8_t  bDescriptorSubtype;/**< Sub type value used to distinguish between audio class-specific descriptors,
-			                             *   a value from the \ref Audio_CSInterface_AS_SubTypes_t enum.
+			                             *   a value from the @ref Audio_CSInterface_AS_SubTypes_t enum.
 			                             */
 
 			uint16_t bcdADC; /**< Binary coded decimal value, indicating the supported Audio Class specification version. */
@@ -474,21 +464,21 @@
 			uint8_t  bInterfaceNumbers; /**< Interface number of the associated Audio Streaming interface. */
 		} ATTR_PACKED USB_Audio_StdDescriptor_Interface_AC_t;
 
-		/** \brief Audio class-specific Feature Unit Descriptor (LPCUSBlib naming conventions).
+		/** @brief Audio class-specific Feature Unit Descriptor (nxpUSBlib naming conventions).
 		 *
 		 *  Type define for an Audio class-specific Feature Unit descriptor. This indicates to the host what features
 		 *  are present in the device's audio stream for basic control, such as per-channel volume. See the USB Audio
 		 *  specification for more details.
 		 *
-		 *  \see \ref USB_Audio_StdDescriptor_FeatureUnit_t for the version of this type with standard element names.
+		 *  @see @ref USB_Audio_StdDescriptor_FeatureUnit_t for the version of this type with standard element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			USB_Descriptor_Header_t Header; /**< Regular descriptor header containing the descriptor's type and length. */
 			uint8_t                 Subtype; /**< Sub type value used to distinguish between audio class-specific descriptors,
-			                                  *   must be \ref AUDIO_DSUBTYPE_CSInterface_Feature.
+			                                  *   must be @ref AUDIO_DSUBTYPE_CSInterface_Feature.
 			                                  */
 
 			uint8_t                 UnitID; /**< ID value of this feature unit - must be a unique value within the device. */
@@ -500,26 +490,26 @@
 			uint8_t                 FeatureUnitStrIndex; /**< Index of a string descriptor describing this descriptor within the device. */
 		} ATTR_PACKED USB_Audio_Descriptor_FeatureUnit_t;
 
-		/** \brief Audio class-specific Feature Unit Descriptor (USB-IF naming conventions).
+		/** @brief Audio class-specific Feature Unit Descriptor (USB-IF naming conventions).
 		 *
 		 *  Type define for an Audio class-specific Feature Unit descriptor. This indicates to the host what features
 		 *  are present in the device's audio stream for basic control, such as per-channel volume. See the USB Audio
 		 *  specification for more details.
 		 *
-		 *  \see \ref USB_Audio_Descriptor_FeatureUnit_t for the version of this type with non-standard LPCUSBlib specific
+		 *  @see @ref USB_Audio_Descriptor_FeatureUnit_t for the version of this type with non-standard nxpUSBlib specific
 		 *       element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t bLength; /**< Size of the descriptor, in bytes. */
-			uint8_t bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
+			uint8_t bDescriptorType; /**< Type of the descriptor, either a value in @ref USB_DescriptorTypes_t or a value
 			                          *   given by the specific class.
 			                          */
 
 			uint8_t bDescriptorSubtype; /**< Sub type value used to distinguish between audio class-specific descriptors,
-			                             *   must be \ref AUDIO_DSUBTYPE_CSInterface_Feature.
+			                             *   must be @ref AUDIO_DSUBTYPE_CSInterface_Feature.
 			                             */
 
 			uint8_t bUnitID; /**< ID value of this feature unit - must be a unique value within the device. */
@@ -531,20 +521,20 @@
 			uint8_t iFeature; /**< Index of a string descriptor describing this descriptor within the device. */
 		} ATTR_PACKED USB_Audio_StdDescriptor_FeatureUnit_t;
 
-		/** \brief Audio class-specific Streaming Audio Interface Descriptor (LPCUSBlib naming conventions).
+		/** @brief Audio class-specific Streaming Audio Interface Descriptor (nxpUSBlib naming conventions).
 		 *
 		 *  Type define for an Audio class-specific streaming interface descriptor. This indicates to the host
 		 *  how audio streams within the device are formatted. See the USB Audio specification for more details.
 		 *
-		 *  \see \ref USB_Audio_StdDescriptor_Interface_AS_t for the version of this type with standard element names.
+		 *  @see @ref USB_Audio_StdDescriptor_Interface_AS_t for the version of this type with standard element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			USB_Descriptor_Header_t Header; /**< Regular descriptor header containing the descriptor's type and length. */
 			uint8_t                 Subtype; /**< Sub type value used to distinguish between audio class-specific descriptors,
-			                                  *   a value from the \ref Audio_CSInterface_AS_SubTypes_t enum.
+			                                  *   a value from the @ref Audio_CSInterface_AS_SubTypes_t enum.
 			                                  */
 
 			uint8_t                 TerminalLink; /**< ID value of the output terminal this descriptor is describing. */
@@ -553,25 +543,25 @@
 			uint16_t                AudioFormat; /**< Format of the audio stream, see Audio Device Formats specification. */
 		} ATTR_PACKED USB_Audio_Descriptor_Interface_AS_t;
 
-		/** \brief Audio class-specific Streaming Audio Interface Descriptor (USB-IF naming conventions).
+		/** @brief Audio class-specific Streaming Audio Interface Descriptor (USB-IF naming conventions).
 		 *
 		 *  Type define for an Audio class-specific streaming interface descriptor. This indicates to the host
 		 *  how audio streams within the device are formatted. See the USB Audio specification for more details.
 		 *
-		 *  \see \ref USB_Audio_Descriptor_Interface_AS_t for the version of this type with non-standard LPCUSBlib specific
+		 *  @see @ref USB_Audio_Descriptor_Interface_AS_t for the version of this type with non-standard nxpUSBlib specific
 		 *       element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t  bLength; /**< Size of the descriptor, in bytes. */
-			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
+			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in @ref USB_DescriptorTypes_t or a value
 			                           *   given by the specific class.
 			                           */
 
 			uint8_t  bDescriptorSubtype; /**< Sub type value used to distinguish between audio class-specific descriptors,
-			                              *   a value from the \ref Audio_CSInterface_AS_SubTypes_t enum.
+			                              *   a value from the @ref Audio_CSInterface_AS_SubTypes_t enum.
 			                              */
 
 			uint8_t  bTerminalLink; /**< ID value of the output terminal this descriptor is describing. */
@@ -580,24 +570,24 @@
 			uint16_t wFormatTag; /**< Format of the audio stream, see Audio Device Formats specification. */
 		} ATTR_PACKED USB_Audio_StdDescriptor_Interface_AS_t;
 
-		/** \brief Audio class-specific Format Descriptor (LPCUSBlib naming conventions).
+		/** @brief Audio class-specific Format Descriptor (nxpUSBlib naming conventions).
 		 *
 		 *  Type define for an Audio class-specific audio format descriptor. This is used to give the host full details
 		 *  about the number of channels, the sample resolution, acceptable sample frequencies and encoding method used
 		 *  in the device's audio streams. See the USB Audio specification for more details.
 		 *
-		 *  \note This descriptor <b>must</b> be followed by one or more \ref USB_Audio_SampleFreq_t elements containing
+		 *  @note This descriptor <b>must</b> be followed by one or more @ref USB_Audio_SampleFreq_t elements containing
 		 *        the continuous or discrete sample frequencies.
 		 *
-		 *  \see \ref USB_Audio_StdDescriptor_Format_t for the version of this type with standard element names.
+		 *  @see @ref USB_Audio_StdDescriptor_Format_t for the version of this type with standard element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			USB_Descriptor_Header_t Header; /**< Regular descriptor header containing the descriptor's type and length. */
 			uint8_t                 Subtype; /**< Sub type value used to distinguish between audio class-specific descriptors,
-			                                  *   must be \ref AUDIO_DSUBTYPE_CSInterface_FormatType.
+			                                  *   must be @ref AUDIO_DSUBTYPE_CSInterface_FormatType.
 			                                  */
 
 			uint8_t                 FormatType; /**< Format of the audio stream, see Audio Device Formats specification. */
@@ -613,12 +603,12 @@
 			                                                   */
 		} ATTR_PACKED USB_Audio_Descriptor_Format_t;
 
-		/** \brief 24-Bit Audio Frequency Structure.
+		/** @brief 24-Bit Audio Frequency Structure.
 		 *
 		 *  Type define for a 24bit audio sample frequency structure. As GCC does not contain a built in 24-bit datatype,
-		 *  this this structure is used to build up the value instead. Fill this structure with the \ref AUDIO_SAMPLE_FREQ() macro.
+		 *  this this structure is used to build up the value instead. Fill this structure with the @ref AUDIO_SAMPLE_FREQ() macro.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
@@ -627,29 +617,29 @@
 			uint8_t Byte3; /**< Upper 8 bits of the 24-bit value. */
 		} ATTR_PACKED USB_Audio_SampleFreq_t;
 
-		/** \brief Audio class-specific Format Descriptor (USB-IF naming conventions).
+		/** @brief Audio class-specific Format Descriptor (USB-IF naming conventions).
 		 *
 		 *  Type define for an Audio class-specific audio format descriptor. This is used to give the host full details
 		 *  about the number of channels, the sample resolution, acceptable sample frequencies and encoding method used
 		 *  in the device's audio streams. See the USB Audio specification for more details.
 		 *
-		 *  \note This descriptor <b>must</b> be followed by one or more 24-bit integer elements containing the continuous
+		 *  @note This descriptor <b>must</b> be followed by one or more 24-bit integer elements containing the continuous
 		 *        or discrete sample frequencies.
 		 *
-		 *  \see \ref USB_Audio_Descriptor_Format_t for the version of this type with non-standard LPCUSBlib specific
+		 *  @see @ref USB_Audio_Descriptor_Format_t for the version of this type with non-standard nxpUSBlib specific
 		 *       element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t bLength; /**< Size of the descriptor, in bytes. */
 			uint8_t bDescriptorType; /**< Sub type value used to distinguish between audio class-specific descriptors,
-			                          *   must be \ref AUDIO_DSUBTYPE_CSInterface_FormatType.
+			                          *   must be @ref AUDIO_DSUBTYPE_CSInterface_FormatType.
 			                          */
 
 			uint8_t bDescriptorSubtype;/**< Sub type value used to distinguish between audio class-specific descriptors,
-			                            *   a value from the \ref Audio_CSInterface_AS_SubTypes_t enum.
+			                            *   a value from the @ref Audio_CSInterface_AS_SubTypes_t enum.
 			                            */
 
 			uint8_t bFormatType; /**< Format of the audio stream, see Audio Device Formats specification. */
@@ -665,14 +655,14 @@
 			                               */
 		} ATTR_PACKED USB_Audio_StdDescriptor_Format_t;
 
-		/** \brief Audio class-specific Streaming Endpoint Descriptor (LPCUSBlib naming conventions).
+		/** @brief Audio class-specific Streaming Endpoint Descriptor (nxpUSBlib naming conventions).
 		 *
 		 *  Type define for an Audio class-specific endpoint descriptor. This contains a regular endpoint
 		 *  descriptor with a few Audio-class-specific extensions. See the USB Audio specification for more details.
 		 *
-		 *  \see \ref USB_Audio_StdDescriptor_StreamEndpoint_Std_t for the version of this type with standard element names.
+		 *  @see @ref USB_Audio_StdDescriptor_StreamEndpoint_Std_t for the version of this type with standard element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
@@ -682,20 +672,20 @@
 			uint8_t                   SyncEndpointNumber; /**< Endpoint address to send synchronization information to, if needed (zero otherwise). */
 		} ATTR_PACKED USB_Audio_Descriptor_StreamEndpoint_Std_t;
 
-		/** \brief Audio class-specific Streaming Endpoint Descriptor (USB-IF naming conventions).
+		/** @brief Audio class-specific Streaming Endpoint Descriptor (USB-IF naming conventions).
 		 *
 		 *  Type define for an Audio class-specific endpoint descriptor. This contains a regular endpoint
 		 *  descriptor with a few Audio-class-specific extensions. See the USB Audio specification for more details.
 		 *
-		 *  \see \ref USB_Audio_Descriptor_StreamEndpoint_Std_t for the version of this type with non-standard LPCUSBlib specific
+		 *  @see @ref USB_Audio_Descriptor_StreamEndpoint_Std_t for the version of this type with non-standard nxpUSBlib specific
 		 *       element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t  bLength; /**< Size of the descriptor, in bytes. */
-			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a
+			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in @ref USB_DescriptorTypes_t or a
 			                           *   value given by the specific class.
 			                           */
 			uint8_t  bEndpointAddress; /**< Logical address of the endpoint within the device for the current
@@ -715,52 +705,52 @@
 			uint8_t  bSynchAddress; /**< Endpoint address to send synchronization information to, if needed (zero otherwise). */
 		} ATTR_PACKED USB_Audio_StdDescriptor_StreamEndpoint_Std_t;
 
-		/** \brief Audio class-specific Extended Endpoint Descriptor (LPCUSBlib naming conventions).
+		/** @brief Audio class-specific Extended Endpoint Descriptor (nxpUSBlib naming conventions).
 		 *
 		 *  Type define for an Audio class-specific extended endpoint descriptor. This contains extra information
 		 *  on the usage of endpoints used to stream audio in and out of the USB Audio device, and follows an Audio
 		 *  class-specific extended endpoint descriptor. See the USB Audio specification for more details.
 		 *
-		 *  \see \ref USB_Audio_StdDescriptor_StreamEndpoint_Spc_t for the version of this type with standard element names.
+		 *  @see @ref USB_Audio_StdDescriptor_StreamEndpoint_Spc_t for the version of this type with standard element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			USB_Descriptor_Header_t Header; /**< Regular descriptor header containing the descriptor's type and length. */
 			uint8_t                 Subtype; /**< Sub type value used to distinguish between audio class-specific descriptors,
-			                                  *   a value from the \ref Audio_CSEndpoint_SubTypes_t enum.
+			                                  *   a value from the @ref Audio_CSEndpoint_SubTypes_t enum.
 			                                  */
 
-			uint8_t                 Attributes; /**< Audio class-specific endpoint attributes, such as \ref AUDIO_EP_FULL_PACKETS_ONLY. */
+			uint8_t                 Attributes; /**< Audio class-specific endpoint attributes, such as @ref AUDIO_EP_FULL_PACKETS_ONLY. */
 
 			uint8_t                 LockDelayUnits; /**< Units used for the LockDelay field, see Audio class specification. */
 			uint16_t                LockDelay; /**< Time required to internally lock endpoint's internal clock recovery circuitry. */
 		} ATTR_PACKED USB_Audio_Descriptor_StreamEndpoint_Spc_t;
 
-		/** \brief Audio class-specific Extended Endpoint Descriptor (USB-IF naming conventions).
+		/** @brief Audio class-specific Extended Endpoint Descriptor (USB-IF naming conventions).
 		 *
 		 *  Type define for an Audio class-specific extended endpoint descriptor. This contains extra information
 		 *  on the usage of endpoints used to stream audio in and out of the USB Audio device, and follows an Audio
 		 *  class-specific extended endpoint descriptor. See the USB Audio specification for more details.
 		 *
-		 *  \see \ref USB_Audio_Descriptor_StreamEndpoint_Spc_t for the version of this type with non-standard LPCUSBlib specific
+		 *  @see @ref USB_Audio_Descriptor_StreamEndpoint_Spc_t for the version of this type with non-standard nxpUSBlib specific
 		 *       element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t  bLength; /**< Size of the descriptor, in bytes. */
-			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
+			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in @ref USB_DescriptorTypes_t or a value
 			                           *   given by the specific class.
 			                           */
 
 			uint8_t  bDescriptorSubtype; /**< Sub type value used to distinguish between audio class-specific descriptors,
-			                              *   a value from the \ref Audio_CSEndpoint_SubTypes_t enum.
+			                              *   a value from the @ref Audio_CSEndpoint_SubTypes_t enum.
 			                              */
 
-			uint8_t  bmAttributes; /**< Audio class-specific endpoint attributes, such as \ref AUDIO_EP_FULL_PACKETS_ONLY. */
+			uint8_t  bmAttributes; /**< Audio class-specific endpoint attributes, such as @ref AUDIO_EP_FULL_PACKETS_ONLY. */
 
 			uint8_t  bLockDelayUnits; /**< Units used for the LockDelay field, see Audio class specification. */
 			uint16_t wLockDelay; /**< Time required to internally lock endpoint's internal clock recovery circuitry. */
@@ -770,7 +760,6 @@
 		#if defined(__cplusplus)
 			}
 		#endif
-
 #endif
 
 /** @} */

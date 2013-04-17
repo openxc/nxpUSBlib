@@ -1,46 +1,37 @@
 /*
-* Copyright(C) NXP Semiconductors, 2011
-* All rights reserved.
-*
-* Copyright (C) Dean Camera, 2011.
-*
-* LUFA Library is licensed from Dean Camera by NXP for NXP customers 
-* for use with NXP's LPC microcontrollers.
-*
-* Software that is described herein is for illustrative purposes only
-* which provides customers with programming information regarding the
-* LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
-* intellectual property rights.  NXP Semiconductors assumes no responsibility
-* or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
-* or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
-* representation or warranty that such application will be suitable for the
-* specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' and its 
-* licensor's relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
-* this code.
-*/
-
-
-
-/** \file
- *  \brief USB device standard request management.
+ * @brief USB device standard request management
  *
- *  This file contains the function prototypes necessary for the processing of incoming standard control requests
- *  when the library is in USB device mode.
+ * @note
+ * Copyright(C) NXP Semiconductors, 2012
+ * Copyright(C) Dean Camera, 2011, 2012
+ * All rights reserved.
  *
- *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h.
+ * @par
+ * Software that is described herein is for illustrative purposes only
+ * which provides customers with programming information regarding the
+ * LPC products.  This software is supplied "AS IS" without any warranties of
+ * any kind, and NXP Semiconductors and its licensor disclaim any and
+ * all warranties, express or implied, including all implied warranties of
+ * merchantability, fitness for a particular purpose and non-infringement of
+ * intellectual property rights.  NXP Semiconductors assumes no responsibility
+ * or liability for the use of the software, conveys no license or rights under any
+ * patent, copyright, mask work right, or any other intellectual property rights in
+ * or to any products. NXP Semiconductors reserves the right to make changes
+ * in the software without notification. NXP Semiconductors also makes no
+ * representation or warranty that such application will be suitable for the
+ * specified use without further testing or modification.
+ *
+ * @par
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation is hereby granted, under NXP Semiconductors' and its
+ * licensor's relevant copyrights in the software, without fee, provided that it
+ * is used in conjunction with NXP Semiconductors microcontrollers.  This
+ * copyright, permission, and disclaimer notice must appear in all copies of
+ * this code.
  */
 
+
+ 
 #ifndef __DEVICESTDREQ_H__
 #define __DEVICESTDREQ_H__
 
@@ -67,10 +58,10 @@
 		/* Enums: */
 			#if defined(ARCH_HAS_MULTI_ADDRESS_SPACE) || defined(__DOXYGEN__)
 				/** Enum for the possible descriptor memory spaces, for the \c MemoryAddressSpace parameter of the
-				 *  \ref CALLBACK_USB_GetDescriptor() function. This can be used when none of the \c USE_*_DESCRIPTORS
+				 *  @ref CALLBACK_USB_GetDescriptor() function. This can be used when none of the \c USE_*_DESCRIPTORS
 				 *  compile time options are used, to indicate in which memory space the descriptor is stored.
 				 *
-				 *  \ingroup Group_Device
+				 *  @ingroup Group_Device
 				 */
 				enum USB_DescriptorMemorySpaces_t
 				{
@@ -89,10 +80,10 @@
 			 *  different configurations which the host can select between; this indicates the currently selected
 			 *  value, or 0 if no configuration has been selected.
 			 *
-			 *  \note This variable should be treated as read-only in the user application, and never manually
+			 *  @note This variable should be treated as read-only in the user application, and never manually
 			 *        changed in value.
 			 *
-			 *  \ingroup Group_Device
+			 *  @ingroup Group_Device
 			 */
 			extern uint8_t USB_Device_ConfigurationNumber;
 
@@ -100,16 +91,16 @@
 				/** Indicates if the host is currently allowing the device to issue remote wakeup events. If this
 				 *  flag is cleared, the device should not issue remote wakeup events to the host.
 				 *
-				 *  \note This variable should be treated as read-only in the user application, and never manually
+				 *  @note This variable should be treated as read-only in the user application, and never manually
 				 *        changed in value.
 				 *        \n\n
 				 *
-				 *  \note To reduce FLASH usage of the compiled applications where Remote Wakeup is not supported,
+				 *  @note To reduce FLASH usage of the compiled applications where Remote Wakeup is not supported,
 				 *        this global and the underlying management code can be disabled by defining the
 				 *        \c NO_DEVICE_REMOTE_WAKEUP token in the project makefile and passing it to the compiler via
 				 *        the -D switch.
 				 *
-				 *  \ingroup Group_Device
+				 *  @ingroup Group_Device
 				 */
 				extern bool USB_Device_RemoteWakeupEnabled;
 			#endif
@@ -119,7 +110,7 @@
 				 *  powered by the host's USB supply. This flag should remain cleared if the device does not
 				 *  support self powered mode, as indicated in the device descriptors.
 				 *
-				 *  \ingroup Group_Device
+				 *  @ingroup Group_Device
 				 */
 				extern bool USB_Device_CurrentlySelfPowered;
 			#endif
@@ -137,18 +128,18 @@
 		#endif
 
 		/* Function Prototypes: */
-			void USB_Device_ProcessControlRequest(void);
+			void USB_Device_ProcessControlRequest(uint8_t corenum);
 
 			#if defined(__INCLUDE_FROM_DEVICESTDREQ_C)
-				static void USB_Device_SetAddress(void);
-				static void USB_Device_SetConfiguration(void);
-				static void USB_Device_GetConfiguration(void);
-				static void USB_Device_GetDescriptor(void);
-				static void USB_Device_GetStatus(void);
-				static void USB_Device_ClearSetFeature(void);
+				static void USB_Device_SetAddress(uint8_t corenum);
+				static void USB_Device_SetConfiguration(uint8_t corenum);
+				static void USB_Device_GetConfiguration(uint8_t corenum);
+				static void USB_Device_GetDescriptor(uint8_t corenum);
+				static void USB_Device_GetStatus(uint8_t corenum);
+				static void USB_Device_ClearSetFeature(uint8_t corenum);
 
 				#if !defined(NO_INTERNAL_SERIAL) && (USE_INTERNAL_SERIAL != NO_DESCRIPTOR)
-					static void USB_Device_GetInternalSerialDescriptor(void);
+					static void USB_Device_GetInternalSerialDescriptor(uint8_t corenum);
 				#endif
 			#endif
 	#endif

@@ -1,49 +1,39 @@
 /*
-* Copyright(C) NXP Semiconductors, 2011
-* All rights reserved.
-*
-* Copyright (C) Dean Camera, 2011.
-*
-* LUFA Library is licensed from Dean Camera by NXP for NXP customers 
-* for use with NXP's LPC microcontrollers.
-*
-* Software that is described herein is for illustrative purposes only
-* which provides customers with programming information regarding the
-* LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
-* intellectual property rights.  NXP Semiconductors assumes no responsibility
-* or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
-* or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
-* representation or warranty that such application will be suitable for the
-* specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' and its 
-* licensor's relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
-* this code.
-*/
-
-
-
-/** \file
- *  \brief Common definitions and declarations for the library USB CDC Class driver.
+ * @brief Common definitions and declarations for the library USB CDC Class driver
  *
- *  Common definitions and declarations for the library USB CDC Class driver.
+ * @note
+ * Copyright(C) NXP Semiconductors, 2012
+ * Copyright(C) Dean Camera, 2011, 2012
+ * All rights reserved.
  *
- *  \note This file should not be included directly. It is automatically included as needed by the USB module driver
- *        dispatch header located in LPCUSBlib/Drivers/USB.h.
+ * @par
+ * Software that is described herein is for illustrative purposes only
+ * which provides customers with programming information regarding the
+ * LPC products.  This software is supplied "AS IS" without any warranties of
+ * any kind, and NXP Semiconductors and its licensor disclaim any and
+ * all warranties, express or implied, including all implied warranties of
+ * merchantability, fitness for a particular purpose and non-infringement of
+ * intellectual property rights.  NXP Semiconductors assumes no responsibility
+ * or liability for the use of the software, conveys no license or rights under any
+ * patent, copyright, mask work right, or any other intellectual property rights in
+ * or to any products. NXP Semiconductors reserves the right to make changes
+ * in the software without notification. NXP Semiconductors also makes no
+ * representation or warranty that such application will be suitable for the
+ * specified use without further testing or modification.
+ *
+ * @par
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation is hereby granted, under NXP Semiconductors' and its
+ * licensor's relevant copyrights in the software, without fee, provided that it
+ * is used in conjunction with NXP Semiconductors microcontrollers.  This
+ * copyright, permission, and disclaimer notice must appear in all copies of
+ * this code.
  */
 
-/** \ingroup Group_USBClassCDC
- *  \defgroup Group_USBClassCDCCommon  Common Class Definitions
+/** @ingroup Group_USBClassCDC
+ *  @defgroup Group_USBClassCDCCommon  Common Class Definitions
  *
- *  \section Sec_ModDescription Module Description
+ *  @section Sec_ModDescription Module Description
  *  Constants, Types and Enum definitions that are common to both Device and Host modes for the USB
  *  CDC Class.
  *
@@ -67,49 +57,49 @@
 		#endif
 
 	/* Macros: */
-		/** \name Virtual Control Line Masks */
+		/** @name Virtual Control Line Masks */
 		//@{
-		/** Mask for the DTR handshake line for use with the \ref CDC_REQ_SetControlLineState class-specific request
+		/** Mask for the DTR handshake line for use with the @ref CDC_REQ_SetControlLineState class-specific request
 		 *  from the host, to indicate that the DTR line state should be high.
 		 */
 		#define CDC_CONTROL_LINE_OUT_DTR         (1 << 0)
 
-		/** Mask for the RTS handshake line for use with the \ref CDC_REQ_SetControlLineState class-specific request
+		/** Mask for the RTS handshake line for use with the @ref CDC_REQ_SetControlLineState class-specific request
 		 *  from the host, to indicate that the RTS line state should be high.
 		 */
 		#define CDC_CONTROL_LINE_OUT_RTS         (1 << 1)
 
-		/** Mask for the DCD handshake line for use with the \ref CDC_NOTIF_SerialState class-specific notification
+		/** Mask for the DCD handshake line for use with the @ref CDC_NOTIF_SerialState class-specific notification
 		 *  from the device to the host, to indicate that the DCD line state is currently high.
 		 */
 		#define CDC_CONTROL_LINE_IN_DCD          (1 << 0)
 
-		/** Mask for the DSR handshake line for use with the \ref CDC_NOTIF_SerialState class-specific notification
+		/** Mask for the DSR handshake line for use with the @ref CDC_NOTIF_SerialState class-specific notification
 		 *  from the device to the host, to indicate that the DSR line state is currently high.
 		 */
 		#define CDC_CONTROL_LINE_IN_DSR          (1 << 1)
 
-		/** Mask for the BREAK handshake line for use with the \ref CDC_NOTIF_SerialState class-specific notification
+		/** Mask for the BREAK handshake line for use with the @ref CDC_NOTIF_SerialState class-specific notification
 		 *  from the device to the host, to indicate that the BREAK line state is currently high.
 		 */
 		#define CDC_CONTROL_LINE_IN_BREAK        (1 << 2)
 
-		/** Mask for the RING handshake line for use with the \ref CDC_NOTIF_SerialState class-specific notification
+		/** Mask for the RING handshake line for use with the @ref CDC_NOTIF_SerialState class-specific notification
 		 *  from the device to the host, to indicate that the RING line state is currently high.
 		 */
 		#define CDC_CONTROL_LINE_IN_RING         (1 << 3)
 
-		/** Mask for use with the \ref CDC_NOTIF_SerialState class-specific notification from the device to the host,
+		/** Mask for use with the @ref CDC_NOTIF_SerialState class-specific notification from the device to the host,
 		 *  to indicate that a framing error has occurred on the virtual serial port.
 		 */
 		#define CDC_CONTROL_LINE_IN_FRAMEERROR   (1 << 4)
 
-		/** Mask for use with the \ref CDC_NOTIF_SerialState class-specific notification from the device to the host,
+		/** Mask for use with the @ref CDC_NOTIF_SerialState class-specific notification from the device to the host,
 		 *  to indicate that a parity error has occurred on the virtual serial port.
 		 */
 		#define CDC_CONTROL_LINE_IN_PARITYERROR  (1 << 5)
 
-		/** Mask for use with the \ref CDC_NOTIF_SerialState class-specific notification from the device to the host,
+		/** Mask for use with the @ref CDC_NOTIF_SerialState class-specific notification from the device to the host,
 		 *  to indicate that a data overrun error has occurred on the virtual serial port.
 		 */
 		#define CDC_CONTROL_LINE_IN_OVERRUNERROR (1 << 6)
@@ -120,7 +110,7 @@
 		 *  a single typedef struct. A macro is used instead so that functional descriptors can be created
 		 *  easily by specifying the size of the payload. This allows \c sizeof() to work correctly.
 		 *
-		 *  \param[in] DataSize  Size in bytes of the CDC functional descriptor's data payload.
+		 *  @param DataSize  Size in bytes of the CDC functional descriptor's data payload.
 		 */
 		#define CDC_FUNCTIONAL_DESCRIPTOR(DataSize)        \
 		     struct                                        \
@@ -180,7 +170,7 @@
 		enum CDC_ClassNotifications_t
 		{
 			CDC_NOTIF_SerialState               = 0x20, /**< Notification type constant for a change in the virtual serial port
-			                                             *   handshake line states, for use with a \ref USB_Request_Header_t
+			                                             *   handshake line states, for use with a @ref USB_Request_Header_t
 			                                             *   notification structure when sent to the host via the CDC notification
 			                                             *   endpoint.
 			                                             */
@@ -227,64 +217,64 @@
 		};
 
 	/* Type Defines: */
-		/** \brief CDC class-specific Functional Header Descriptor (LPCUSBlib naming conventions).
+		/** @brief CDC class-specific Functional Header Descriptor (nxpUSBlib naming conventions).
 		 *
 		 *  Type define for a CDC class-specific functional header descriptor. This indicates to the host that the device
 		 *  contains one or more CDC functional data descriptors, which give the CDC interface's capabilities and configuration.
 		 *  See the CDC class specification for more details.
 		 *
-		 *  \see \ref USB_CDC_StdDescriptor_FunctionalHeader_t for the version of this type with standard element names.
+		 *  @see @ref USB_CDC_StdDescriptor_FunctionalHeader_t for the version of this type with standard element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			USB_Descriptor_Header_t Header; /**< Regular descriptor header containing the descriptor's type and length. */
 			uint8_t                 Subtype; /**< Sub type value used to distinguish between CDC class-specific descriptors,
-			                                  *   must be \ref CDC_DSUBTYPE_CSInterface_Header.
+			                                  *   must be @ref CDC_DSUBTYPE_CSInterface_Header.
 			                                  */
 			uint16_t                CDCSpecification; /**< Version number of the CDC specification implemented by the device,
 			                                           *   encoded in BCD format.
 			                                           */
 		} ATTR_PACKED USB_CDC_Descriptor_FunctionalHeader_t;
 
-		/** \brief CDC class-specific Functional Header Descriptor (USB-IF naming conventions).
+		/** @brief CDC class-specific Functional Header Descriptor (USB-IF naming conventions).
 		 *
 		 *  Type define for a CDC class-specific functional header descriptor. This indicates to the host that the device
 		 *  contains one or more CDC functional data descriptors, which give the CDC interface's capabilities and configuration.
 		 *  See the CDC class specification for more details.
 		 *
-		 *  \see \ref USB_CDC_Descriptor_FunctionalHeader_t for the version of this type with non-standard LPCUSBlib specific
+		 *  @see @ref USB_CDC_Descriptor_FunctionalHeader_t for the version of this type with non-standard nxpUSBlib specific
 		 *       element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t  bFunctionLength; /**< Size of the descriptor, in bytes. */
-			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
+			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in @ref USB_DescriptorTypes_t or a value
 			                           *   given by the specific class.
 			                           */
 			uint8_t  bDescriptorSubType; /**< Sub type value used to distinguish between CDC class-specific descriptors,
-			                              *   must be \ref CDC_DSUBTYPE_CSInterface_Header.
+			                              *   must be @ref CDC_DSUBTYPE_CSInterface_Header.
 			                              */
 			uint16_t bcdCDC; /**< Version number of the CDC specification implemented by the device, encoded in BCD format. */
 		} ATTR_PACKED USB_CDC_StdDescriptor_FunctionalHeader_t;
 
-		/** \brief CDC class-specific Functional ACM Descriptor (LPCUSBlib naming conventions).
+		/** @brief CDC class-specific Functional ACM Descriptor (nxpUSBlib naming conventions).
 		 *
 		 *  Type define for a CDC class-specific functional ACM descriptor. This indicates to the host that the CDC interface
 		 *  supports the CDC ACM subclass of the CDC specification. See the CDC class specification for more details.
 		 *
-		 *  \see \ref USB_CDC_StdDescriptor_FunctionalACM_t for the version of this type with standard element names.
+		 *  @see @ref USB_CDC_StdDescriptor_FunctionalACM_t for the version of this type with standard element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			USB_Descriptor_Header_t Header; /**< Regular descriptor header containing the descriptor's type and length. */
 			uint8_t                 Subtype; /**< Sub type value used to distinguish between CDC class-specific descriptors,
-			                                  *   must be \ref CDC_DSUBTYPE_CSInterface_ACM.
+			                                  *   must be @ref CDC_DSUBTYPE_CSInterface_ACM.
 			                                  */
 			uint8_t                 Capabilities; /**< Capabilities of the ACM interface, given as a bit mask. For most devices,
 			                                       *   this should be set to a fixed value of 0x06 - for other capabilities, refer
@@ -292,24 +282,24 @@
 			                                       */
 		} ATTR_PACKED USB_CDC_Descriptor_FunctionalACM_t;
 
-		/** \brief CDC class-specific Functional ACM Descriptor (USB-IF naming conventions).
+		/** @brief CDC class-specific Functional ACM Descriptor (USB-IF naming conventions).
 		 *
 		 *  Type define for a CDC class-specific functional ACM descriptor. This indicates to the host that the CDC interface
 		 *  supports the CDC ACM subclass of the CDC specification. See the CDC class specification for more details.
 		 *
-		 *  \see \ref USB_CDC_Descriptor_FunctionalACM_t for the version of this type with non-standard LPCUSBlib specific
+		 *  @see @ref USB_CDC_Descriptor_FunctionalACM_t for the version of this type with non-standard nxpUSBlib specific
 		 *       element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t bFunctionLength; /**< Size of the descriptor, in bytes. */
-			uint8_t bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
+			uint8_t bDescriptorType; /**< Type of the descriptor, either a value in @ref USB_DescriptorTypes_t or a value
 			                          *   given by the specific class.
 			                          */
 			uint8_t bDescriptorSubType; /**< Sub type value used to distinguish between CDC class-specific descriptors,
-			                             *   must be \ref CDC_DSUBTYPE_CSInterface_ACM.
+			                             *   must be @ref CDC_DSUBTYPE_CSInterface_ACM.
 			                             */
 			uint8_t bmCapabilities; /**< Capabilities of the ACM interface, given as a bit mask. For most devices,
 			                         *   this should be set to a fixed value of 0x06 - for other capabilities, refer
@@ -317,63 +307,63 @@
 			                         */
 		} ATTR_PACKED USB_CDC_StdDescriptor_FunctionalACM_t;
 
-		/** \brief CDC class-specific Functional Union Descriptor (LPCUSBlib naming conventions).
+		/** @brief CDC class-specific Functional Union Descriptor (nxpUSBlib naming conventions).
 		 *
 		 *  Type define for a CDC class-specific functional Union descriptor. This indicates to the host that specific
 		 *  CDC control and data interfaces are related. See the CDC class specification for more details.
 		 *
-		 *  \see \ref USB_CDC_StdDescriptor_FunctionalUnion_t for the version of this type with standard element names.
+		 *  @see @ref USB_CDC_StdDescriptor_FunctionalUnion_t for the version of this type with standard element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			USB_Descriptor_Header_t Header; /**< Regular descriptor header containing the descriptor's type and length. */
 			uint8_t                 Subtype; /**< Sub type value used to distinguish between CDC class-specific descriptors,
-			                                  *   must be \ref CDC_DSUBTYPE_CSInterface_Union.
+			                                  *   must be @ref CDC_DSUBTYPE_CSInterface_Union.
 			                                  */
 			uint8_t                 MasterInterfaceNumber; /**< Interface number of the CDC Control interface. */
 			uint8_t                 SlaveInterfaceNumber; /**< Interface number of the CDC Data interface. */
 		} ATTR_PACKED USB_CDC_Descriptor_FunctionalUnion_t;
 
-		/** \brief CDC class-specific Functional Union Descriptor (USB-IF naming conventions).
+		/** @brief CDC class-specific Functional Union Descriptor (USB-IF naming conventions).
 		 *
 		 *  Type define for a CDC class-specific functional Union descriptor. This indicates to the host that specific
 		 *  CDC control and data interfaces are related. See the CDC class specification for more details.
 		 *
-		 *  \see \ref USB_CDC_Descriptor_FunctionalUnion_t for the version of this type with non-standard LPCUSBlib specific
+		 *  @see @ref USB_CDC_Descriptor_FunctionalUnion_t for the version of this type with non-standard nxpUSBlib specific
 		 *       element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t bFunctionLength; /**< Size of the descriptor, in bytes. */
-			uint8_t bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
+			uint8_t bDescriptorType; /**< Type of the descriptor, either a value in @ref USB_DescriptorTypes_t or a value
 			                          *   given by the specific class.
 			                          */
 			uint8_t bDescriptorSubType; /**< Sub type value used to distinguish between CDC class-specific descriptors,
-			                             *   must be \ref CDC_DSUBTYPE_CSInterface_Union.
+			                             *   must be @ref CDC_DSUBTYPE_CSInterface_Union.
 			                             */
 			uint8_t bMasterInterface; /**< Interface number of the CDC Control interface. */
 			uint8_t bSlaveInterface0; /**< Interface number of the CDC Data interface. */
 		} ATTR_PACKED USB_CDC_StdDescriptor_FunctionalUnion_t;
 		
-		/** \brief CDC Virtual Serial Port Line Encoding Settings Structure.
+		/** @brief CDC Virtual Serial Port Line Encoding Settings Structure.
 		 *
 		 *  Type define for a CDC Line Encoding structure, used to hold the various encoding parameters for a virtual
 		 *  serial port.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			uint32_t BaudRateBPS; /**< Baud rate of the virtual serial port, in bits per second. */
 			uint8_t  CharFormat; /**< Character format of the virtual serial port, a value from the
-								  *   \ref CDC_LineEncodingFormats_t enum.
+								  *   @ref CDC_LineEncodingFormats_t enum.
 								  */
 			uint8_t  ParityType; /**< Parity setting of the virtual serial port, a value from the
-								  *   \ref CDC_LineEncodingParity_t enum.
+								  *   @ref CDC_LineEncodingParity_t enum.
 								  */
 			uint8_t  DataBits; /**< Bits of data per character of the virtual serial port. */
 		} ATTR_PACKED CDC_LineEncoding_t;

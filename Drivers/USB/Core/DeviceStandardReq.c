@@ -1,33 +1,34 @@
 /*
-* Copyright(C) NXP Semiconductors, 2011
-* All rights reserved.
-*
-* Copyright (C) Dean Camera, 2011.
-*
-* LUFA Library is licensed from Dean Camera by NXP for NXP customers 
-* for use with NXP's LPC microcontrollers.
-*
-* Software that is described herein is for illustrative purposes only
-* which provides customers with programming information regarding the
-* LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
-* intellectual property rights.  NXP Semiconductors assumes no responsibility
-* or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
-* or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
-* representation or warranty that such application will be suitable for the
-* specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' and its 
-* licensor's relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
-* this code.
-*/
+ * @brief USB device standard request management
+ *
+ * @note
+ * Copyright(C) NXP Semiconductors, 2012
+ * Copyright(C) Dean Camera, 2011, 2012
+ * All rights reserved.
+ *
+ * @par
+ * Software that is described herein is for illustrative purposes only
+ * which provides customers with programming information regarding the
+ * LPC products.  This software is supplied "AS IS" without any warranties of
+ * any kind, and NXP Semiconductors and its licensor disclaim any and
+ * all warranties, express or implied, including all implied warranties of
+ * merchantability, fitness for a particular purpose and non-infringement of
+ * intellectual property rights.  NXP Semiconductors assumes no responsibility
+ * or liability for the use of the software, conveys no license or rights under any
+ * patent, copyright, mask work right, or any other intellectual property rights in
+ * or to any products. NXP Semiconductors reserves the right to make changes
+ * in the software without notification. NXP Semiconductors also makes no
+ * representation or warranty that such application will be suitable for the
+ * specified use without further testing or modification.
+ *
+ * @par
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation is hereby granted, under NXP Semiconductors' and its
+ * licensor's relevant copyrights in the software, without fee, provided that it
+ * is used in conjunction with NXP Semiconductors microcontrollers.  This
+ * copyright, permission, and disclaimer notice must appear in all copies of
+ * this code.
+ */
 
 
 #define  __INCLUDE_FROM_USB_DRIVER
@@ -48,7 +49,7 @@ bool    USB_Device_CurrentlySelfPowered;
 bool    USB_Device_RemoteWakeupEnabled;
 #endif
 
-void USB_Device_ProcessControlRequest(void)
+void USB_Device_ProcessControlRequest(uint8_t corenum)
 {
 //	USB_ControlRequest.bmRequestType = Endpoint_Read_8();
 //	USB_ControlRequest.bRequest      = Endpoint_Read_8();
@@ -56,11 +57,11 @@ void USB_Device_ProcessControlRequest(void)
 //	USB_ControlRequest.wIndex        = Endpoint_Read_16_LE();
 //	USB_ControlRequest.wLength       = Endpoint_Read_16_LE();
 
-	Endpoint_GetSetupPackage( (uint8_t*) &USB_ControlRequest);
+	Endpoint_GetSetupPackage(corenum, (uint8_t*) &USB_ControlRequest);
 
 	EVENT_USB_Device_ControlRequest();
 
-	if (Endpoint_IsSETUPReceived())
+	if (Endpoint_IsSETUPReceived(corenum))
 	{
 		uint8_t bmRequestType = USB_ControlRequest.bmRequestType;
 
@@ -70,7 +71,7 @@ void USB_Device_ProcessControlRequest(void)
 				if ((bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_STANDARD | REQREC_DEVICE)) ||
 					(bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_STANDARD | REQREC_ENDPOINT)))
 				{
-					USB_Device_GetStatus();
+					USB_Device_GetStatus(corenum);
 				}
 
 				break;
@@ -79,62 +80,62 @@ void USB_Device_ProcessControlRequest(void)
 				if ((bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_STANDARD | REQREC_DEVICE)) ||
 					(bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_STANDARD | REQREC_ENDPOINT)))
 				{
-					USB_Device_ClearSetFeature();
+					USB_Device_ClearSetFeature(corenum);
 				}
 
 				break;
 			case REQ_SetAddress:
 				if (bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_STANDARD | REQREC_DEVICE))
-				  USB_Device_SetAddress();
+				  USB_Device_SetAddress(corenum);
 
 				break;
 			case REQ_GetDescriptor:
 				if ((bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_STANDARD | REQREC_DEVICE)) ||
 					(bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_STANDARD | REQREC_INTERFACE)))
 				{
-					USB_Device_GetDescriptor();
+					USB_Device_GetDescriptor(corenum);
 				}
 
 				break;
 			case REQ_GetConfiguration:
 				if (bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_STANDARD | REQREC_DEVICE))
-				  USB_Device_GetConfiguration();
+				  USB_Device_GetConfiguration(corenum);
 
 				break;
 			case REQ_SetConfiguration:
 				if (bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_STANDARD | REQREC_DEVICE))
-				  USB_Device_SetConfiguration();
+				  USB_Device_SetConfiguration(corenum);
 
 				break;
 		}
 	}
 
-	if (Endpoint_IsSETUPReceived())
+	if (Endpoint_IsSETUPReceived(corenum))
 	{
-		Endpoint_ClearSETUP();
-		Endpoint_StallTransaction();
+		Endpoint_ClearSETUP(corenum);
+		Endpoint_StallTransaction(corenum);
 	}
 }
 
-static void USB_Device_SetAddress(void)
+static void USB_Device_SetAddress(uint8_t corenum)
 {
 	uint8_t    DeviceAddress    = (USB_ControlRequest.wValue & 0x7F);
 	uint_reg_t CurrentGlobalInt = GetGlobalInterruptMask();
 	GlobalInterruptDisable();
 				
-	Endpoint_ClearSETUP();
+	Endpoint_ClearSETUP(corenum);
 
-	Endpoint_ClearStatusStage();
+	Endpoint_ClearStatusStage(corenum);
 
-	while (!(Endpoint_IsINReady()));
+	while (!(Endpoint_IsINReady(corenum)));
 
-	USB_Device_SetDeviceAddress(DeviceAddress);
-	USB_DeviceState = (DeviceAddress) ? DEVICE_STATE_Addressed : DEVICE_STATE_Default;
+	USB_Device_SetDeviceAddress(corenum, DeviceAddress);
+	USB_DeviceState[corenum] = (DeviceAddress) ? DEVICE_STATE_Addressed : DEVICE_STATE_Default;
 	
 	SetGlobalInterruptMask(CurrentGlobalInt);
 }
 
-static void USB_Device_SetConfiguration(void)
+static void USB_Device_SetConfiguration(uint8_t corenum)
 {
 	#if defined(FIXED_NUM_CONFIGURATIONS)
 	if ((uint8_t)USB_ControlRequest.wValue > FIXED_NUM_CONFIGURATIONS)
@@ -147,14 +148,14 @@ static void USB_Device_SetConfiguration(void)
 			#define MemoryAddressSpace  MEMSPACE_FLASH
 		#elif defined(USE_EEPROM_DESCRIPTORS)
 			#define MemoryAddressSpace  MEMSPACE_EEPROM
-		#elif defined(USE_SRAM_DESCRIPTORS)
+		#elif defined(USE_RAM_DESCRIPTORS)
 			#define MemoryAddressSpace  MEMSPACE_SRAM
 		#else
 			uint8_t MemoryAddressSpace;
 		#endif
 	#endif
 	
-	if (CALLBACK_USB_GetDescriptor((DTYPE_Device << 8), 0, (void*)&DevDescriptorPtr
+	if (CALLBACK_USB_GetDescriptor(corenum, (DTYPE_Device << 8), 0, (void*)&DevDescriptorPtr
 	#if defined(ARCH_HAS_MULTI_ADDRESS_SPACE) && \
 	    !(defined(USE_FLASH_DESCRIPTORS) || defined(USE_EEPROM_DESCRIPTORS) || defined(USE_RAM_DESCRIPTORS))
 	                               , &MemoryAddressSpace
@@ -186,32 +187,32 @@ static void USB_Device_SetConfiguration(void)
 	#endif
 	#endif
 
-	Endpoint_ClearSETUP();
+	Endpoint_ClearSETUP(corenum);
 
 	USB_Device_ConfigurationNumber = (uint8_t)USB_ControlRequest.wValue;
 
-	Endpoint_ClearStatusStage();
+	Endpoint_ClearStatusStage(corenum);
 
 	if (USB_Device_ConfigurationNumber)
-	  USB_DeviceState = DEVICE_STATE_Configured;
+	  USB_DeviceState[corenum] = DEVICE_STATE_Configured;
 	else
-	  USB_DeviceState = (USB_Device_IsAddressSet()) ? DEVICE_STATE_Configured : DEVICE_STATE_Powered;
+	  USB_DeviceState[corenum] = (USB_Device_IsAddressSet()) ? DEVICE_STATE_Configured : DEVICE_STATE_Powered;
 
 	EVENT_USB_Device_ConfigurationChanged();
 }
 
-static void USB_Device_GetConfiguration(void)
+static void USB_Device_GetConfiguration(uint8_t corenum)
 {
-	Endpoint_ClearSETUP();
+	Endpoint_ClearSETUP(corenum);
 
-	Endpoint_Write_8(USB_Device_ConfigurationNumber);
-	Endpoint_ClearIN();
+	Endpoint_Write_8(corenum, USB_Device_ConfigurationNumber);
+	Endpoint_ClearIN(corenum);
 
-	Endpoint_ClearStatusStage();
+	Endpoint_ClearStatusStage(corenum);
 }
 
 #if !defined(NO_INTERNAL_SERIAL) && (USE_INTERNAL_SERIAL != NO_DESCRIPTOR)
-static void USB_Device_GetInternalSerialDescriptor(void)
+static void USB_Device_GetInternalSerialDescriptor(uint8_t corenum)
 {
 	struct
 	{
@@ -224,14 +225,14 @@ static void USB_Device_GetInternalSerialDescriptor(void)
 	
 	USB_Device_GetSerialString(SignatureDescriptor.UnicodeString);
 
-	Endpoint_ClearSETUP();
+	Endpoint_ClearSETUP(corenum);
 
-	Endpoint_Write_Control_Stream_LE(&SignatureDescriptor, sizeof(SignatureDescriptor));
-	Endpoint_ClearOUT();
+	Endpoint_Write_Control_Stream_LE(corenum, &SignatureDescriptor, sizeof(SignatureDescriptor));
+	Endpoint_ClearOUT(corenum);
 }
 #endif
 
-static void USB_Device_GetDescriptor(void)
+static void USB_Device_GetDescriptor(uint8_t corenum)
 {
 	const void* DescriptorPointer;
 	uint16_t    DescriptorSize;
@@ -244,12 +245,12 @@ static void USB_Device_GetDescriptor(void)
 	#if !defined(NO_INTERNAL_SERIAL) && (USE_INTERNAL_SERIAL != NO_DESCRIPTOR)
 	if (USB_ControlRequest.wValue == ((DTYPE_String << 8) | USE_INTERNAL_SERIAL))
 	{
-		USB_Device_GetInternalSerialDescriptor();
+		USB_Device_GetInternalSerialDescriptor(corenum);
 		return;
 	}
 	#endif
 
-	if ((DescriptorSize = CALLBACK_USB_GetDescriptor(USB_ControlRequest.wValue, USB_ControlRequest.wIndex,
+	if ((DescriptorSize = CALLBACK_USB_GetDescriptor(corenum, USB_ControlRequest.wValue, USB_ControlRequest.wIndex,
 	                                                 &DescriptorPointer
 	#if defined(ARCH_HAS_MULTI_ADDRESS_SPACE) && \
 	    !(defined(USE_FLASH_DESCRIPTORS) || defined(USE_EEPROM_DESCRIPTORS) || defined(USE_RAM_DESCRIPTORS))
@@ -260,10 +261,10 @@ static void USB_Device_GetDescriptor(void)
 		return;
 	}
 
-	Endpoint_ClearSETUP();
+	Endpoint_ClearSETUP(corenum);
 
 	#if defined(USE_RAM_DESCRIPTORS) || !defined(ARCH_HAS_MULTI_ADDRESS_SPACE)
-	Endpoint_Write_Control_Stream_LE(DescriptorPointer, DescriptorSize);
+	Endpoint_Write_Control_Stream_LE(corenum, DescriptorPointer, DescriptorSize);
 	#elif defined(USE_EEPROM_DESCRIPTORS)
 	Endpoint_Write_Control_EStream_LE(DescriptorPointer, DescriptorSize);
 	#elif defined(USE_FLASH_DESCRIPTORS)
@@ -274,13 +275,13 @@ static void USB_Device_GetDescriptor(void)
 	else if (DescriptorAddressSpace == MEMSPACE_EEPROM)
 	  Endpoint_Write_Control_EStream_LE(DescriptorPointer, DescriptorSize);
 	else
-	  Endpoint_Write_Control_Stream_LE(DescriptorPointer, DescriptorSize);
+	  Endpoint_Write_Control_Stream_LE(corenum, DescriptorPointer, DescriptorSize);
 	#endif
 
-	Endpoint_ClearOUT();
+	Endpoint_ClearOUT(corenum);
 }
 
-static void USB_Device_GetStatus(void)
+static void USB_Device_GetStatus(uint8_t corenum)
 {
 	uint8_t CurrentStatus = 0;
 
@@ -301,11 +302,11 @@ static void USB_Device_GetStatus(void)
 		#endif
 		#if !defined(CONTROL_ONLY_DEVICE)
 		case (REQDIR_DEVICETOHOST | REQTYPE_STANDARD | REQREC_ENDPOINT):
-			Endpoint_SelectEndpoint((uint8_t)USB_ControlRequest.wIndex & ENDPOINT_EPNUM_MASK);
+			Endpoint_SelectEndpoint(corenum, (uint8_t)USB_ControlRequest.wIndex & ENDPOINT_EPNUM_MASK);
 
-			CurrentStatus = Endpoint_IsStalled();
+			CurrentStatus = Endpoint_IsStalled(corenum);
 
-			Endpoint_SelectEndpoint(ENDPOINT_CONTROLEP);
+			Endpoint_SelectEndpoint(corenum, ENDPOINT_CONTROLEP);
 
 			break;
 		#endif
@@ -313,15 +314,15 @@ static void USB_Device_GetStatus(void)
 			return;
 	}
 
-	Endpoint_ClearSETUP();
+	Endpoint_ClearSETUP(corenum);
 
-	Endpoint_Write_16_LE(CurrentStatus);
-	Endpoint_ClearIN();
+	Endpoint_Write_16_LE(corenum, CurrentStatus);
+	Endpoint_ClearIN(corenum);
 
-	Endpoint_ClearStatusStage();
+	Endpoint_ClearStatusStage(corenum);
 }
 
-static void USB_Device_ClearSetFeature(void)
+static void USB_Device_ClearSetFeature(uint8_t corenum)
 {
 	switch (USB_ControlRequest.bmRequestType & CONTROL_REQTYPE_RECIPIENT)
 	{
@@ -343,19 +344,19 @@ static void USB_Device_ClearSetFeature(void)
 				if (EndpointIndex == ENDPOINT_CONTROLEP)
 				  return;
 
-				Endpoint_SelectEndpoint(EndpointIndex);
+				Endpoint_SelectEndpoint(corenum, EndpointIndex);
 
 				if (Endpoint_IsEnabled())
 				{
 					if (USB_ControlRequest.bRequest == REQ_SetFeature)
 					{
-						Endpoint_StallTransaction();
+						Endpoint_StallTransaction(corenum);
 					}
 					else
 					{
-						Endpoint_ClearStall();
+						Endpoint_ClearStall(corenum);
 						Endpoint_ResetEndpoint(EndpointIndex);
-						Endpoint_ResetDataToggle();
+						Endpoint_ResetDataToggle(corenum);
 					}
 				}
 			}
@@ -366,11 +367,11 @@ static void USB_Device_ClearSetFeature(void)
 			return;
 	}
 
-	Endpoint_SelectEndpoint(ENDPOINT_CONTROLEP);
+	Endpoint_SelectEndpoint(corenum, ENDPOINT_CONTROLEP);
 
-	Endpoint_ClearSETUP();
+	Endpoint_ClearSETUP(corenum);
 
-	Endpoint_ClearStatusStage();
+	Endpoint_ClearStatusStage(corenum);
 }
 
 #endif

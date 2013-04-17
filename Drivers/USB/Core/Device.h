@@ -1,47 +1,38 @@
 /*
-* Copyright(C) NXP Semiconductors, 2011
-* All rights reserved.
-*
-* Copyright (C) Dean Camera, 2011.
-*
-* LUFA Library is licensed from Dean Camera by NXP for NXP customers 
-* for use with NXP's LPC microcontrollers.
-*
-* Software that is described herein is for illustrative purposes only
-* which provides customers with programming information regarding the
-* LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
-* intellectual property rights.  NXP Semiconductors assumes no responsibility
-* or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
-* or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
-* representation or warranty that such application will be suitable for the
-* specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' and its 
-* licensor's relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
-* this code.
-*/
-
-
-
-/** \file
- *  \brief Common USB Device definitions for all architectures.
- *  \copydetails Group_Device
+ * @brief Common USB Device definitions for all architectures
  *
- *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in lpcroot/libraries/LPCUSBlib/Drivers/USB/USB.h.
+ * @note
+ * Copyright(C) NXP Semiconductors, 2012
+ * Copyright(C) Dean Camera, 2011, 2012
+ * All rights reserved.
+ *
+ * @par
+ * Software that is described herein is for illustrative purposes only
+ * which provides customers with programming information regarding the
+ * LPC products.  This software is supplied "AS IS" without any warranties of
+ * any kind, and NXP Semiconductors and its licensor disclaim any and
+ * all warranties, express or implied, including all implied warranties of
+ * merchantability, fitness for a particular purpose and non-infringement of
+ * intellectual property rights.  NXP Semiconductors assumes no responsibility
+ * or liability for the use of the software, conveys no license or rights under any
+ * patent, copyright, mask work right, or any other intellectual property rights in
+ * or to any products. NXP Semiconductors reserves the right to make changes
+ * in the software without notification. NXP Semiconductors also makes no
+ * representation or warranty that such application will be suitable for the
+ * specified use without further testing or modification.
+ *
+ * @par
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation is hereby granted, under NXP Semiconductors' and its
+ * licensor's relevant copyrights in the software, without fee, provided that it
+ * is used in conjunction with NXP Semiconductors microcontrollers.  This
+ * copyright, permission, and disclaimer notice must appear in all copies of
+ * this code.
  */
 
-/** \ingroup Group_USB
- *  \defgroup Group_Device Device Management
- *  \brief USB Device management definitions for USB device mode.
+/** @ingroup Group_USB
+ *  @defgroup Group_Device Device Management
+ *  @brief USB Device management definitions for USB device mode.
  *
  *  USB Device mode related definitions common to all architectures. This module contains definitions which
  *  are used when the USB controller is initialized in device mode.
@@ -58,7 +49,7 @@
 		#include "StdDescriptors.h"
 		#include "USBInterrupt.h"
 		#include "Endpoint.h"
-
+		
 	/* Enable C linkage for C++ Compilers: */
 		#if defined(__cplusplus)
 			extern "C" {
@@ -72,11 +63,11 @@
 	/* Public Interface - May be used in end-application: */
 		/* Enums: */
 			/** Enum for the various states of the USB Device state machine. Only some states are
-			 *  implemented in the LPCUSBlib library - other states are left to the user to implement.
+			 *  implemented in the nxpUSBlib library - other states are left to the user to implement.
 			 *
 			 *  For information on each possible USB device state, refer to the USB 2.0 specification.
 			 *
-			 *  \see \ref USB_DeviceState, which stores the current device state machine state.
+			 *  \see @ref USB_DeviceState, which stores the current device state machine state.
 			 */
 			enum USB_Device_States_t
 			{
@@ -107,52 +98,49 @@
 			};
 
 		/* Function Prototypes: */
-			/** Function to retrieve a given descriptor's size and memory location from the given descriptor type value,
-			 *  index and language ID. This function MUST be overridden in the user application (added with full, identical
-			 *  prototype and name so that the library can call it to retrieve descriptor data.
-			 *
-			 *  \param[in] wValue               The type of the descriptor to retrieve in the upper byte, and the index in the
+			/** @brief	Function to retrieve a given descriptor's size and memory location from the given descriptor type value,
+			 *  		index and language ID. This function MUST be overridden in the user application (added with full, identical
+			 *  		prototype and name so that the library can call it to retrieve descriptor data.
+			 *  @param  corenum				 :  ID Number of USB Core to be processed.
+			 *  @param 	wValue               :	The type of the descriptor to retrieve in the upper byte, and the index in the
 			 *                                  lower byte (when more than one descriptor of the given type exists, such as the
 			 *                                  case of string descriptors). The type may be one of the standard types defined
 			 *                                  in the DescriptorTypes_t enum, or may be a class-specific descriptor type value.
-			 *  \param[in] wIndex               The language ID of the string to return if the \c wValue type indicates
-			 *                                  \ref DTYPE_String, otherwise zero for standard descriptors, or as defined in a
+			 *  @param 	wIndex               : 	The language ID of the string to return if the \c wValue type indicates
+			 *                                  @ref DTYPE_String, otherwise zero for standard descriptors, or as defined in a
 			 *                                  class-specific standards.
-			 *  \param[out] DescriptorAddress   Pointer to the descriptor in memory. This should be set by the routine to
+			 *  @param 	DescriptorAddress    :  Pointer to the descriptor in memory. This should be set by the routine to
 			 *                                  the address of the descriptor.
-			 *  \param[out] MemoryAddressSpace  A value from the \ref USB_DescriptorMemorySpaces_t enum to indicate the memory
+			 *  @param 	MemoryAddressSpace   :	A value from the @ref USB_DescriptorMemorySpaces_t enum to indicate the memory
 			 *                                  space in which the descriptor is stored. This parameter does not exist when one
 			 *                                  of the \c USE_*_DESCRIPTORS compile time options is used, or on architectures which
 			 *                                  use a unified address space.
 			 *
-			 *  \note By default, the library expects all descriptors to be located in flash memory via the \c PROGMEM attribute.
+			 *  @note By default, the library expects all descriptors to be located in flash memory via the \c PROGMEM attribute.
 			 *        If descriptors should be located in RAM or EEPROM instead (to speed up access in the case of RAM, or to
 			 *        allow the descriptors to be changed dynamically at runtime) either the \c USE_RAM_DESCRIPTORS or the
 			 *        \c USE_EEPROM_DESCRIPTORS tokens may be defined in the project makefile and passed to the compiler by the -D
 			 *        switch.
 			 *
-			 *  \return Size in bytes of the descriptor if it exists, zero or \ref NO_DESCRIPTOR otherwise.
+			 *  @return Size in bytes of the descriptor if it exists, zero or @ref NO_DESCRIPTOR otherwise.
 			 */
-			uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
+			uint16_t CALLBACK_USB_GetDescriptor(uint8_t corenum, const uint16_t wValue,
 			                                    const uint8_t wIndex,
 			                                    const void** const DescriptorAddress
 			#if (defined(ARCH_HAS_MULTI_ADDRESS_SPACE) || defined(__DOXYGEN__)) && \
 			    !(defined(USE_FLASH_DESCRIPTORS) || defined(USE_EEPROM_DESCRIPTORS) || defined(USE_RAM_DESCRIPTORS))
 			                                    , uint8_t* MemoryAddressSpace
 			#endif
-			                                    ) ATTR_WARN_UNUSED_RESULT ATTR_NON_NULL_PTR_ARG(3);
+			                                    ) ATTR_WARN_UNUSED_RESULT ATTR_NON_NULL_PTR_ARG(4);
 
-	/* Architecture Includes: */
-		#if (ARCH == ARCH_AVR8)
-			#include "AVR8/Device_AVR8.h"
-		#elif (ARCH == ARCH_UC3)
-			#include "UC3/Device_UC3.h"
-		#elif (ARCH == ARCH_XMEGA)
-			#include "XMEGA/Device_XMEGA.h"
-		#elif (ARCH== ARCH_LPC)
-			#include "LPC/Device_LPC.h"
-		#endif
-
+			#if defined(__LPC18XX__) || defined(__LPC43XX__)
+				#include "DCD/LPC18XX/Device_LPC18xx.h"
+			#elif defined(__LPC175X_6X__) || defined(__LPC177X_8X__) || defined(__LPC407X_8X__)
+				#include "DCD/LPC17XX/Device_LPC17xx.h"
+			#elif defined(__LPC11U1X__) || defined(__LPC11U2X_3X__) || defined(__LPC1347__)
+				#include "DCD/LPC11UXX/Device_LPC11Uxx.h"
+			#endif
+			
 	/* Disable C linkage for C++ Compilers: */
 		#if defined(__cplusplus)
 			}

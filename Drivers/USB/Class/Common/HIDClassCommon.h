@@ -1,49 +1,39 @@
 /*
-* Copyright(C) NXP Semiconductors, 2011
-* All rights reserved.
-*
-* Copyright (C) Dean Camera, 2011.
-*
-* LUFA Library is licensed from Dean Camera by NXP for NXP customers 
-* for use with NXP's LPC microcontrollers.
-*
-* Software that is described herein is for illustrative purposes only
-* which provides customers with programming information regarding the
-* LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
-* intellectual property rights.  NXP Semiconductors assumes no responsibility
-* or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
-* or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
-* representation or warranty that such application will be suitable for the
-* specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' and its 
-* licensor's relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
-* this code.
-*/
-
-
-
-/** \file
- *  \brief Common definitions and declarations for the library USB HID Class driver.
+ * @brief Common definitions and declarations for the library USB HID Class driver
  *
- *  Common definitions and declarations for the library USB HID Class driver.
+ * @note
+ * Copyright(C) NXP Semiconductors, 2012
+ * Copyright(C) Dean Camera, 2011, 2012
+ * All rights reserved.
  *
- *  \note This file should not be included directly. It is automatically included as needed by the USB module driver
- *        dispatch header located in LPCUSBlib/Drivers/USB.h.
+ * @par
+ * Software that is described herein is for illustrative purposes only
+ * which provides customers with programming information regarding the
+ * LPC products.  This software is supplied "AS IS" without any warranties of
+ * any kind, and NXP Semiconductors and its licensor disclaim any and
+ * all warranties, express or implied, including all implied warranties of
+ * merchantability, fitness for a particular purpose and non-infringement of
+ * intellectual property rights.  NXP Semiconductors assumes no responsibility
+ * or liability for the use of the software, conveys no license or rights under any
+ * patent, copyright, mask work right, or any other intellectual property rights in
+ * or to any products. NXP Semiconductors reserves the right to make changes
+ * in the software without notification. NXP Semiconductors also makes no
+ * representation or warranty that such application will be suitable for the
+ * specified use without further testing or modification.
+ *
+ * @par
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation is hereby granted, under NXP Semiconductors' and its
+ * licensor's relevant copyrights in the software, without fee, provided that it
+ * is used in conjunction with NXP Semiconductors microcontrollers.  This
+ * copyright, permission, and disclaimer notice must appear in all copies of
+ * this code.
  */
 
-/** \ingroup Group_USBClassHID
- *  \defgroup Group_USBClassHIDCommon  Common Class Definitions
+/** @ingroup Group_USBClassHID
+ *  @defgroup Group_USBClassHIDCommon  Common Class Definitions
  *
- *  \section Sec_ModDescription Module Description
+ *  @section Sec_ModDescription Module Description
  *  Constants, Types and Enum definitions that are common to both Device and Host modes for the USB
  *  HID Class.
  *
@@ -68,7 +58,7 @@
 		#endif
 
 	/* Macros: */
-		/** \name Keyboard Standard Report Modifier Masks */
+		/** @name Keyboard Standard Report Modifier Masks */
 		//@{
 		/** Constant for a keyboard report modifier byte, indicating that the keyboard's left control key is currently pressed. */
 		#define HID_KEYBOARD_MODIFER_LEFTCTRL                     (1 << 0)
@@ -95,7 +85,7 @@
 		#define HID_KEYBOARD_MODIFER_RIGHTGUI                     (1 << 7)
 		//@}
 		
-		/** \name Keyboard Standard Report LED Masks */
+		/** @name Keyboard Standard Report LED Masks */
 		//@{
 		/** Constant for a keyboard output report LED byte, indicating that the host's NUM LOCK mode is currently set. */
 		#define HID_KEYBOARD_LED_NUMLOCK                          (1 << 0)
@@ -110,7 +100,7 @@
 		#define HID_KEYBOARD_LED_KATANA                           (1 << 3)
 		//@}
 
-		/** \name Keyboard Standard Report Key Scan-codes */
+		/** @name Keyboard Standard Report Key Scan-codes */
 		//@{	
 		#define HID_KEYBOARD_SC_ERROR_ROLLOVER                    0x01
 		#define HID_KEYBOARD_SC_POST_FAIL                         0x02
@@ -331,7 +321,7 @@
 		#define HID_KEYBOARD_SC_RIGHT_GUI                         0xE7
 		//@}
 
-		/** \name Common HID Device Report Descriptors */
+		/** @name Common HID Device Report Descriptors */
 		//@{
 		/** \hideinitializer
 		 *  A list of HID report item array elements that describe a typical HID USB Joystick. The resulting report
@@ -351,12 +341,12 @@
 		 *  Where \c uintA_t is a type large enough to hold one bit per button, and \c intB_t is a type large enough to hold the
 		 *  ranges of the signed \c MinAxisVal and \c MaxAxisVal values.
 		 *
-		 *  \param[in] NumAxis         Number of axis in the joystick (8-bit)
-		 *  \param[in] MinAxisVal      Minimum logical axis value (16-bit).
-		 *  \param[in] MaxAxisVal      Maximum logical axis value (16-bit).
-		 *  \param[in] MinPhysicalVal  Minimum physical axis value, for movement resolution calculations (16-bit).
-		 *  \param[in] MaxPhysicalVal  Maximum physical axis value, for movement resolution calculations (16-bit).
-		 *  \param[in] Buttons         Total number of buttons in the device (8-bit).
+		 *  @param NumAxis         Number of axis in the joystick (8-bit)
+		 *  @param MinAxisVal      Minimum logical axis value (16-bit).
+		 *  @param MaxAxisVal      Maximum logical axis value (16-bit).
+		 *  @param MinPhysicalVal  Minimum physical axis value, for movement resolution calculations (16-bit).
+		 *  @param MaxPhysicalVal  Maximum physical axis value, for movement resolution calculations (16-bit).
+		 *  @param Buttons         Total number of buttons in the device (8-bit).
 		 */
 		#define HID_DESCRIPTOR_JOYSTICK(NumAxis, MinAxisVal, MaxAxisVal, MinPhysicalVal, MaxPhysicalVal, Buttons) \
 			HID_RI_USAGE_PAGE(8, 0x01),                     \
@@ -389,7 +379,7 @@
 
 		/** \hideinitializer
 		 *  A list of HID report item array elements that describe a typical HID USB keyboard. The resulting report descriptor
-		 *  is compatible with \ref USB_KeyboardReport_Data_t when \c MaxKeys is equal to 6. For other values, the report will
+		 *  is compatible with @ref USB_KeyboardReport_Data_t when \c MaxKeys is equal to 6. For other values, the report will
 		 *  be structured according to the following layout:
 		 *
 		 *  \code
@@ -401,7 +391,7 @@
 		 *  } Keyboard_Report;
 		 *  \endcode
 		 *
-		 *  \param[in] MaxKeys  Number of simultaneous keys that can be reported at the one time (8-bit).
+		 *  @param MaxKeys  Number of simultaneous keys that can be reported at the one time (8-bit).
 		 */
 		#define HID_DESCRIPTOR_KEYBOARD(MaxKeys)            \
 			HID_RI_USAGE_PAGE(8, 0x01),                     \
@@ -439,7 +429,7 @@
 
 		/** \hideinitializer
 		 *  A list of HID report item array elements that describe a typical HID USB mouse. The resulting report descriptor
-		 *  is compatible with \ref USB_MouseReport_Data_t if the \c MinAxisVal and \c MaxAxisVal values fit within a \c int8_t range
+		 *  is compatible with @ref USB_MouseReport_Data_t if the \c MinAxisVal and \c MaxAxisVal values fit within a \c int8_t range
 		 *  and the number of Buttons is less than 8. For other values, the report is structured according to the following layout:
 		 *
 		 *  \code
@@ -454,12 +444,12 @@
 		 *  Where \c intA_t is a type large enough to hold one bit per button, and \c intB_t is a type large enough to hold the
 		 *  ranges of the signed \c MinAxisVal and \c MaxAxisVal values.
 		 *
-		 *  \param[in] MinAxisVal      Minimum X/Y logical axis value (16-bit).
-		 *  \param[in] MaxAxisVal      Maximum X/Y logical axis value (16-bit).
-		 *  \param[in] MinPhysicalVal  Minimum X/Y physical axis value, for movement resolution calculations (16-bit).
-		 *  \param[in] MaxPhysicalVal  Maximum X/Y physical axis value, for movement resolution calculations (16-bit).
-		 *  \param[in] Buttons         Total number of buttons in the device (8-bit).
-		 *  \param[in] AbsoluteCoords  Boolean true to use absolute X/Y coordinates (e.g. touchscreen).
+		 *  @param MinAxisVal      Minimum X/Y logical axis value (16-bit).
+		 *  @param MaxAxisVal      Maximum X/Y logical axis value (16-bit).
+		 *  @param MinPhysicalVal  Minimum X/Y physical axis value, for movement resolution calculations (16-bit).
+		 *  @param MaxPhysicalVal  Maximum X/Y physical axis value, for movement resolution calculations (16-bit).
+		 *  @param Buttons         Total number of buttons in the device (8-bit).
+		 *  @param AbsoluteCoords  Boolean true to use absolute X/Y coordinates (e.g. touchscreen).
 		 */
 		#define HID_DESCRIPTOR_MOUSE(MinAxisVal, MaxAxisVal, MinPhysicalVal, MaxPhysicalVal, Buttons, AbsoluteCoords) \
 			HID_RI_USAGE_PAGE(8, 0x01),                     \
@@ -496,11 +486,11 @@
 		 *  used for transporting arbitrary data between the USB host and device via HID reports. The resulting report should be
 		 *  a uint8_t byte array of the specified length in both Device to Host (IN) and Host to Device (OUT) directions.
 		 *
-		 *  \param[in] VendorPageNum    Vendor Defined HID Usage Page index, ranging from 0x00 to 0xFF.
-		 *  \param[in] CollectionUsage  Vendor Usage for the encompassing report IN and OUT collection, ranging from 0x00 to 0xFF.
-		 *  \param[in] DataINUsage      Vendor Usage for the IN report data, ranging from 0x00 to 0xFF.
-		 *  \param[in] DataOUTUsage     Vendor Usage for the OUT report data, ranging from 0x00 to 0xFF.   
-		 *  \param[in] NumBytes         Length of the data IN and OUT reports.
+		 *  @param VendorPageNum    Vendor Defined HID Usage Page index, ranging from 0x00 to 0xFF.
+		 *  @param CollectionUsage  Vendor Usage for the encompassing report IN and OUT collection, ranging from 0x00 to 0xFF.
+		 *  @param DataINUsage      Vendor Usage for the IN report data, ranging from 0x00 to 0xFF.
+		 *  @param DataOUTUsage     Vendor Usage for the OUT report data, ranging from 0x00 to 0xFF.   
+		 *  @param NumBytes         Length of the data IN and OUT reports.
 		 */
 		#define HID_DESCRIPTOR_VENDOR(VendorPageNum, CollectionUsage, DataINUsage, DataOUTUsage, NumBytes) \
 			HID_RI_USAGE_PAGE(16, (0xFF00 | VendorPageNum)), \
@@ -573,14 +563,14 @@
 			HID_REPORT_ITEM_Feature = 2, /**< Indicates that the item is a FEATURE report type. */
 		};
 
-		/** \brief HID class-specific HID Descriptor (LPCUSBlib naming conventions).
+		/** @brief HID class-specific HID Descriptor (nxpUSBlib naming conventions).
 		 *
 		 *  Type define for the HID class-specific HID descriptor, to describe the HID device's specifications. Refer to the HID
 		 *  specification for details on the structure elements.
 		 *
-		 *  \see \ref USB_HID_StdDescriptor_HID_t for the version of this type with standard element names.
+		 *  @see @ref USB_HID_StdDescriptor_HID_t for the version of this type with standard element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
@@ -591,24 +581,24 @@
 
 			uint8_t                 TotalReportDescriptors; /**< Total number of HID report descriptors for the interface. */
 
-			uint8_t                 HIDReportType; /**< Type of HID report, set to \ref HID_DTYPE_Report. */
+			uint8_t                 HIDReportType; /**< Type of HID report, set to @ref HID_DTYPE_Report. */
 			uint16_t                HIDReportLength; /**< Length of the associated HID report descriptor, in bytes. */
 		} ATTR_PACKED USB_HID_Descriptor_HID_t;
 
-		/** \brief HID class-specific HID Descriptor (USB-IF naming conventions).
+		/** @brief HID class-specific HID Descriptor (USB-IF naming conventions).
 		 *
 		 *  Type define for the HID class-specific HID descriptor, to describe the HID device's specifications. Refer to the HID
 		 *  specification for details on the structure elements.
 		 *
-		 *  \see \ref USB_HID_Descriptor_HID_t for the version of this type with non-standard LPCUSBlib specific
+		 *  @see @ref USB_HID_Descriptor_HID_t for the version of this type with non-standard nxpUSBlib specific
 		 *       element names.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
 			uint8_t  bLength; /**< Size of the descriptor, in bytes. */
-			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
+			uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in @ref USB_DescriptorTypes_t or a value
 			                           *   given by the specific class.
 			                           */
 
@@ -617,11 +607,11 @@
 
 			uint8_t  bNumDescriptors; /**< Total number of HID report descriptors for the interface. */
 
-			uint8_t  bDescriptorType2; /**< Type of HID report, set to \ref HID_DTYPE_Report. */
+			uint8_t  bDescriptorType2; /**< Type of HID report, set to @ref HID_DTYPE_Report. */
 			uint16_t wDescriptorLength; /**< Length of the associated HID report descriptor, in bytes. */
 		} ATTR_PACKED USB_HID_StdDescriptor_HID_t;
 
-		/** \brief Standard HID Boot Protocol Mouse Report.
+		/** @brief Standard HID Boot Protocol Mouse Report.
 		 *
 		 *  Type define for a standard Boot Protocol Mouse report
 		 */
@@ -632,7 +622,7 @@
 			int8_t  Y; /**< Current delta Y movement on the mouse. */
 		} ATTR_PACKED USB_MouseReport_Data_t;
 
-		/** \brief Standard HID Boot Protocol Keyboard Report.
+		/** @brief Standard HID Boot Protocol Keyboard Report.
 		 *
 		 *  Type define for a standard Boot Protocol Keyboard report
 		 */

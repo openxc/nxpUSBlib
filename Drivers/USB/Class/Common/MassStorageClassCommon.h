@@ -1,49 +1,39 @@
 /*
-* Copyright(C) NXP Semiconductors, 2011
-* All rights reserved.
-*
-* Copyright (C) Dean Camera, 2011.
-*
-* LUFA Library is licensed from Dean Camera by NXP for NXP customers 
-* for use with NXP's LPC microcontrollers.
-*
-* Software that is described herein is for illustrative purposes only
-* which provides customers with programming information regarding the
-* LPC products.  This software is supplied "AS IS" without any warranties of
-* any kind, and NXP Semiconductors and its licensor disclaim any and 
-* all warranties, express or implied, including all implied warranties of 
-* merchantability, fitness for a particular purpose and non-infringement of 
-* intellectual property rights.  NXP Semiconductors assumes no responsibility
-* or liability for the use of the software, conveys no license or rights under any
-* patent, copyright, mask work right, or any other intellectual property rights in 
-* or to any products. NXP Semiconductors reserves the right to make changes
-* in the software without notification. NXP Semiconductors also makes no 
-* representation or warranty that such application will be suitable for the
-* specified use without further testing or modification.
-* 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' and its 
-* licensor's relevant copyrights in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
-* this code.
-*/
-
-
-
-/** \file
- *  \brief Common definitions and declarations for the library USB Mass Storage Class driver.
+ * @brief Common definitions and declarations for the library USB Mass Storage Class driver
  *
- *  Common definitions and declarations for the library USB Mass Storage Class driver.
+ * @note
+ * Copyright(C) NXP Semiconductors, 2012
+ * Copyright(C) Dean Camera, 2011, 2012
+ * All rights reserved.
  *
- *  \note This file should not be included directly. It is automatically included as needed by the USB module driver
- *        dispatch header located in LPCUSBlib/Drivers/USB.h.
+ * @par
+ * Software that is described herein is for illustrative purposes only
+ * which provides customers with programming information regarding the
+ * LPC products.  This software is supplied "AS IS" without any warranties of
+ * any kind, and NXP Semiconductors and its licensor disclaim any and
+ * all warranties, express or implied, including all implied warranties of
+ * merchantability, fitness for a particular purpose and non-infringement of
+ * intellectual property rights.  NXP Semiconductors assumes no responsibility
+ * or liability for the use of the software, conveys no license or rights under any
+ * patent, copyright, mask work right, or any other intellectual property rights in
+ * or to any products. NXP Semiconductors reserves the right to make changes
+ * in the software without notification. NXP Semiconductors also makes no
+ * representation or warranty that such application will be suitable for the
+ * specified use without further testing or modification.
+ *
+ * @par
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation is hereby granted, under NXP Semiconductors' and its
+ * licensor's relevant copyrights in the software, without fee, provided that it
+ * is used in conjunction with NXP Semiconductors microcontrollers.  This
+ * copyright, permission, and disclaimer notice must appear in all copies of
+ * this code.
  */
 
-/** \ingroup Group_USBClassMS
- *  \defgroup Group_USBClassMSCommon  Common Class Definitions
+/** @ingroup Group_USBClassMS
+ *  @defgroup Group_USBClassMSCommon  Common Class Definitions
  *
- *  \section Sec_ModDescription Module Description
+ *  @section Sec_ModDescription Module Description
  *  Constants, Types and Enum definitions that are common to both Device and Host modes for the USB
  *  Mass Storage Class.
  *
@@ -79,7 +69,7 @@
 		/** Mask for a Command Block Wrapper's flags attribute to specify a command with data sent from device-to-host. */
 		#define MS_COMMAND_DIR_DATA_IN                         (1 << 7)
 
-		/** \name SCSI Commands*/
+		/** @name SCSI Commands*/
 		//@{
 		/** SCSI Command Code for an INQUIRY command. */
 		#define SCSI_CMD_INQUIRY                               0x12
@@ -121,7 +111,7 @@
 		#define SCSI_CMD_MODE_SENSE_10                         0x5A
 		//@}
 		
-		/** \name SCSI Sense Key Values */
+		/** @name SCSI Sense Key Values */
 		//@{
 		/** SCSI Sense Code to indicate no error has occurred. */
 		#define SCSI_SENSE_KEY_GOOD                            0x00
@@ -168,7 +158,7 @@
 		#define SCSI_SENSE_KEY_MISCOMPARE                      0x0E
 		//@}
 		
-		/** \name SCSI Additional Sense Codes */
+		/** @name SCSI Additional Sense Codes */
 		//@{
 		/** SCSI Additional Sense Code to indicate no additional sense information is available. */
 		#define SCSI_ASENSE_NO_ADDITIONAL_INFORMATION          0x00
@@ -200,7 +190,7 @@
 		#define SCSI_ASENSE_MEDIUM_NOT_PRESENT                 0x3A
 		//@}
 		
-		/** \name SCSI Additional Sense Key Code Qualifiers */
+		/** @name SCSI Additional Sense Key Code Qualifiers */
 		//@{
 		/** SCSI Additional Sense Qualifier Code to indicate no additional sense qualifier information is available. */
 		#define SCSI_ASENSEQ_NO_QUALIFIER                      0x00
@@ -257,15 +247,15 @@
 		};
 
 	/* Type Defines: */
-		/** \brief Mass Storage Class Command Block Wrapper.
+		/** @brief Mass Storage Class Command Block Wrapper.
 		 *
 		 *  Type define for a Command Block Wrapper, used in the Mass Storage Bulk-Only Transport protocol.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
-			uint32_t Signature; /**< Command block signature, must be \ref MS_CBW_SIGNATURE to indicate a valid Command Block. */
+			uint32_t Signature; /**< Command block signature, must be @ref MS_CBW_SIGNATURE to indicate a valid Command Block. */
 			uint32_t Tag; /**< Unique command ID value, to associate a command block wrapper with its command status wrapper. */
 			uint32_t DataTransferLength; /**< Length of the optional data portion of the issued command, in bytes. */
 			uint8_t  Flags; /**< Command block flags, indicating command data direction. */
@@ -274,24 +264,24 @@
 			uint8_t  SCSICommandData[16]; /**< Issued SCSI command in the Command Block. */
 		} ATTR_PACKED MS_CommandBlockWrapper_t;
 
-		/** \brief Mass Storage Class Command Status Wrapper.
+		/** @brief Mass Storage Class Command Status Wrapper.
 		 *
 		 *  Type define for a Command Status Wrapper, used in the Mass Storage Bulk-Only Transport protocol.
 		 *
-		 *  \note Regardless of CPU architecture, these values should be stored as little endian.
+		 *  @note Regardless of CPU architecture, these values should be stored as little endian.
 		 */
 		typedef ATTR_IAR_PACKED struct
 		{
-			uint32_t Signature; /**< Status block signature, must be \ref MS_CSW_SIGNATURE to indicate a valid Command Status. */
+			uint32_t Signature; /**< Status block signature, must be @ref MS_CSW_SIGNATURE to indicate a valid Command Status. */
 			uint32_t Tag; /**< Unique command ID value, to associate a command block wrapper with its command status wrapper. */
 			uint32_t DataTransferResidue; /**< Number of bytes of data not processed in the SCSI command. */
-			uint8_t  Status; /**< Status code of the issued command - a value from the \ref MS_CommandStatusCodes_t enum. */
+			uint8_t  Status; /**< Status code of the issued command - a value from the @ref MS_CommandStatusCodes_t enum. */
 		} ATTR_PACKED MS_CommandStatusWrapper_t;
 
-		/** \brief Mass Storage Class SCSI Sense Structure
+		/** @brief Mass Storage Class SCSI Sense Structure
 		 *
 		 *  Type define for a SCSI Sense structure. Structures of this type are filled out by the
-		 *  device via the \ref MS_Host_RequestSense() function, indicating the current sense data of the
+		 *  device via the @ref MS_Host_RequestSense() function, indicating the current sense data of the
 		 *  device (giving explicit error codes for the last issued command). For details of the
 		 *  structure contents, refer to the SCSI specifications.
 		 */
@@ -316,10 +306,10 @@
 			uint8_t  SenseKeySpecific[3];
 		} ATTR_PACKED SCSI_Request_Sense_Response_t;
 
-		/** \brief Mass Storage Class SCSI Inquiry Structure.
+		/** @brief Mass Storage Class SCSI Inquiry Structure.
 		 *
 		 *  Type define for a SCSI Inquiry structure. Structures of this type are filled out by the
-		 *  device via the \ref MS_Host_GetInquiryData() function, retrieving the attached device's
+		 *  device via the @ref MS_Host_GetInquiryData() function, retrieving the attached device's
 		 *  information.
 		 *
 		 *  For details of the structure contents, refer to the SCSI specifications.
